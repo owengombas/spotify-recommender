@@ -61,6 +61,7 @@ class SpotiUser:
         return df
 
     def _preprocess_album(self, df: pd.DataFrame) -> pd.DataFrame:
+        print(df)
         df["album_name"] = df["album"].apply(lambda x: x["name"])
         df["album_release_date"] = df["album"].apply(lambda x: x["release_date"])
         df["album_total_tracks"] = df["album"].apply(lambda x: x["total_tracks"])
