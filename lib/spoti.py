@@ -27,7 +27,7 @@ class SpotiUser:
     @property
     def username(self) -> str:
         return self._username
-    
+
     @property
     def sp(self) -> spotipy.Spotify:
         return self._sp
@@ -56,70 +56,167 @@ class SpotiUser:
         self._sp = spotipy.Spotify(auth_manager=auth_manager)
 
     def _preprocess_artists(self, df: pd.DataFrame) -> pd.DataFrame:
+        if "artists" not in df.columns:
+            return df
+
         df["artists_names"] = df["artists"].apply(lambda x: x[0]["name"])
         df["artists_ids"] = df["artists"].apply(lambda x: x[0]["id"])
         return df
 
     def _preprocess_album(self, df: pd.DataFrame) -> pd.DataFrame:
-        print(df)
+        if "album" not in df.columns:
+            return df
+
         df["album_name"] = df["album"].apply(lambda x: x["name"])
         df["album_release_date"] = df["album"].apply(lambda x: x["release_date"])
         df["album_total_tracks"] = df["album"].apply(lambda x: x["total_tracks"])
         return df
-    
+
+    def get_playlist_tracks(
+        self, playlist_id: str, limit: int = 100, offset: int = 0
+    ) -> pd.DataFrame:
+        first_result = self.sp.playlist_tracks(playlist_id, limit=limit, offset=offset)
+
+        def add_tracks(x: Dict) -> Dict:
+            if "track" not in x:
+                return None
+            if x["track"] is None:
+                return None
+            return {
+                **x["track"],
+                "added_at": x["added_at"],
+                "username": self._username,
+                "added_by": x["added_by"]["id"],
+                "playlist_id": playlist_id,
+            }
+
+        tracks_df = pd.DataFrame([add_tracks(x) for x in first_result["items"]])
+        if first_result["next"]:
+            while first_result["next"]:
+                result_next = self.sp.next(first_result)
+                if result_next is None:
+                    break
+                result_data = pd.DataFrame(
+                    list(filter(lambda x: x is not None, [add_tracks(x) for x in result_next["items"]]))
+                )
+                tracks_df = pd.concat([tracks_df, result_data])
+                first_result["next"] = result_next["next"]
+        tracks_df["username"] = self._username
+        tracks_df.reset_index(inplace=True, drop=True)
+        tracks_df.dropna(inplace=True)
+
+        # remove duplicates
+        tracks_df.drop_duplicates(subset=["id"], inplace=True)
+
+        tracks_df = self._preprocess_artists(tracks_df)
+        tracks_df = self._preprocess_album(tracks_df)
+        tracks_df = self.populate_artist_infos(tracks_df)
+        tracks_df = self.populate_track_features(tracks_df)
+
+        return tracks_df
+
+    def get_playlists(self, limit: int = 50, offset: int = 0) -> pd.DataFrame:
+        first_result = self.sp.current_user_playlists(limit=limit, offset=offset)
+        playlists_df = pd.DataFrame(first_result["items"])
+        if first_result["next"]:
+            while first_result["next"]:
+                result_next = self.sp.next(first_result)
+                result_data = pd.DataFrame(result_next["items"])
+                playlists_df = pd.concat([playlists_df, result_data])
+                first_result["next"] = result_next["next"]
+        playlists_df["username"] = self._username
+        playlists_df.reset_index(inplace=True, drop=True)
+        return playlists_df
+
     def get_artists(self, artist_ids: List[str]) -> pd.DataFrame:
         artists = self.sp.artists(artist_ids)
         artists_df = pd.DataFrame(artists["artists"])
         return artists_df
-    
-    def top_tracks(self, limit: int = 20, offset: int = 0, time_range: str = "medium_term", wait_seconds: float = 2.) -> pd.DataFrame:
-        results = self.sp.current_user_top_tracks(limit=limit, offset=offset, time_range=time_range)
+
+    def top_tracks(
+        self,
+        limit: int = 20,
+        offset: int = 0,
+        time_range: str = "medium_term",
+        wait_seconds: float = 2.0,
+    ) -> pd.DataFrame:
+        results = self.sp.current_user_top_tracks(
+            limit=limit, offset=offset, time_range=time_range
+        )
         result_df = pd.DataFrame(results["items"])
         result_df = self._preprocess_artists(result_df)
         result_df = self._preprocess_album(result_df)
         result_df = self.populate_artist_infos(result_df, wait_seconds=wait_seconds)
         result_df = self.populate_track_features(result_df, wait_seconds=wait_seconds)
         return result_df
-    
-    def populate_track_features(self, tracks: pd.DataFrame, wait_seconds: float = 2.) -> pd.DataFrame:
+
+    def populate_track_features(
+        self, tracks: pd.DataFrame, wait_seconds: float = 2.0
+    ) -> pd.DataFrame:
+        if "id" not in tracks.columns:
+            return tracks
+
         tracks_ids = tracks["id"].unique().tolist()
-        chunks = [tracks_ids[x:x+100] for x in range(0, len(tracks_ids), 100)]
+        chunks = [tracks_ids[x : x + 100] for x in range(0, len(tracks_ids), 100)]
 
         tracks_features_df = pd.DataFrame()
         for chunk in chunks:
-            tracks_features_df = pd.concat([tracks_features_df, pd.DataFrame(self.sp.audio_features(chunk))])
+            tracks_features_df = pd.concat(
+                [tracks_features_df, pd.DataFrame(self.sp.audio_features(chunk))]
+            )
             time.sleep(wait_seconds)
-        
-        df = tracks.merge(tracks_features_df, left_on="id", right_on="id", suffixes=("", "_features"))
+
+        df = tracks.merge(
+            tracks_features_df, left_on="id", right_on="id", suffixes=("", "_features")
+        )
         return df
-    
+
     def playlists(self, limit: int = 50, offset: int = 0) -> pd.DataFrame:
         result = self.sp.current_user_playlists(limit=limit, offset=offset)
         result_df = pd.DataFrame(result["items"])
         return result_df
-    
-    def populate_artist_infos(self, df: pd.DataFrame, wait_seconds: float = 2.) -> pd.DataFrame:
+
+    def populate_artist_infos(
+        self, df: pd.DataFrame, wait_seconds: float = 2.0
+    ) -> pd.DataFrame:
+        if "artists_ids" not in df.columns:
+            return df
+
         unique_artists = df["artists_ids"].unique().tolist()
-        chunks = [unique_artists[x:x+50] for x in range(0, len(unique_artists), 50)]
+        chunks = [unique_artists[x : x + 50] for x in range(0, len(unique_artists), 50)]
 
         artists_df = pd.DataFrame()
         for chunk in chunks:
             artists_df = pd.concat([artists_df, self.get_artists(chunk)])
             time.sleep(wait_seconds)
 
-        df = df.merge(artists_df, left_on="artists_ids", right_on="id", suffixes=("", "_artists"))
+        df = df.merge(
+            artists_df, left_on="artists_ids", right_on="id", suffixes=("", "_artists")
+        )
         return df
-    
-    def liked_tracks(self, limit: int = 50, offset: int = 0, pages_max: int = 1, wait_seconds: float = 2.) -> pd.DataFrame:
-        if pages_max is None: pages_max = np.inf
+
+    def liked_tracks(
+        self,
+        limit: int = 50,
+        offset: int = 0,
+        pages_max: int = 1,
+        wait_seconds: float = 2.0,
+    ) -> pd.DataFrame:
+        if pages_max is None:
+            pages_max = np.inf
 
         result = self.sp.current_user_saved_tracks(limit=limit, offset=offset)
-        
-        items = list(map(lambda x: {**x["track"], "added_at": x["added_at"]}, result["items"]))
+
+        items = list(
+            map(lambda x: {**x["track"], "added_at": x["added_at"]}, result["items"])
+        )
         if pages_max is not None:
-            while(result["next"] and pages_max > 0):
+            while result["next"] and pages_max > 0:
                 result_next = self.sp.next(result)
-                result_data = map(lambda x: {**x["track"], "added_at": x["added_at"]}, result_next["items"])
+                result_data = map(
+                    lambda x: {**x["track"], "added_at": x["added_at"]},
+                    result_next["items"],
+                )
                 items.extend(result_data)
                 result["next"] = result_next["next"]
                 pages_max -= 1
@@ -130,5 +227,5 @@ class SpotiUser:
         result_df = self._preprocess_album(result_df)
         result_df = self.populate_artist_infos(result_df, wait_seconds=wait_seconds)
         result_df = self.populate_track_features(result_df, wait_seconds=wait_seconds)
-        
+
         return result_df
