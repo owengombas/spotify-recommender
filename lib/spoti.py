@@ -10,6 +10,8 @@ import plotly.express as px
 import plotly.graph_objects as go
 from typing import Dict, List, Tuple, Union
 import time
+import os
+from lib import genre_normalizer
 
 DEFAULT_SCOPE = (
     "user-library-read "
@@ -21,6 +23,31 @@ DEFAULT_SCOPE = (
     "user-library-read "
     "user-read-email "
 )
+
+NUMERICAL_FEATURES = [
+    "danceability",
+    "energy",
+    "speechiness",
+    "acousticness",
+    "instrumentalness",
+    "liveness",
+    "valence",
+    "tempo",
+    "loudness",
+    "duration_ms",
+    "release_year",
+    "popularity",
+]
+
+TRACKS_TYPES = ["top_track", "liked_track", "playlist"]
+
+PRETTY_PRINT_FEATURES = [
+    "username",
+    "artists_names",
+    "name",
+    "release_year",
+    "popularity",
+] + NUMERICAL_FEATURES
 
 
 class SpotiUser:
@@ -36,6 +63,82 @@ class SpotiUser:
         self._username: str = username
         self._scope = DEFAULT_SCOPE
         self._sp: spotipy.Spotify = None
+
+    def load_top_tracks(
+        self,
+        penality_factors: Dict[str, float] = {
+            "short_term": 1.0,
+            "medium_term": 1.0,
+            "long_term": 1.0,
+        },
+        base_path: str = "data",
+    ) -> pd.DataFrame:
+        df: pd.DataFrame = pd.read_json(
+            os.path.join(base_path, f"{self._username}_top_tracks.json")
+        )
+        for time_range, df_sub_time_range in df.groupby("time_range"):
+            # Add affinity column, to goes from 0 to 1, it's just a incremental index
+            size = len(df_sub_time_range)
+            penality_factor = penality_factors[time_range]
+            df_sub_time_range["affinity"] = range(1, size + 1)[::-1]
+            df.loc[df_sub_time_range.index, "affinity"] = (
+                df_sub_time_range["affinity"] * penality_factor
+            ) / size
+        df["type"] = "top_track"
+        df["username"] = self.username
+        df["release_year"] = df["album_release_date"].apply(
+            lambda x: int(x.split("-")[0])
+        )
+        df["normalized_genres"] = genre_normalizer.normalize_genres(df["genres"])
+        return df
+
+    def load_liked_tracks(self, base_path: str = "data") -> pd.DataFrame:
+        df = pd.read_json(
+            os.path.join(base_path, f"{self._username}_liked_tracks.json")
+        )
+        df["added_at"] = pd.to_datetime(df["added_at"])
+        df["type"] = "liked_track"
+        df["username"] = self.username
+        df["release_year"] = df["album_release_date"].apply(
+            lambda x: int(x.split("-")[0])
+        )
+        df["normalized_genres"] = genre_normalizer.normalize_genres(df["genres"])
+        return df
+
+    def load_playlists(self, base_path: str = "data") -> pd.DataFrame:
+        df = pd.read_json(
+            os.path.join(base_path, f"{self._username}_playlists_tracks.json")
+        )
+        # df["added_at"] = pd.to_datetime(df["added_at"])
+        df["type"] = "playlist"
+        df["username"] = self.username
+        df["release_year"] = df["album_release_date"].apply(
+            lambda x: int(x.split("-")[0])
+        )
+        df["normalized_genres"] = genre_normalizer.normalize_genres(df["genres"])
+        return df
+
+    def load_all(
+        self,
+        penality_factors: Dict[str, float] = {
+            "short_term": 1.0,
+            "medium_term": 1.0,
+            "long_term": 1.0,
+        },
+        base_path: str = "data",
+    ) -> pd.DataFrame:
+        df_top_tracks = self.load_top_tracks(
+            penality_factors=penality_factors, base_path=base_path
+        )
+        df_liked_tracks = self.load_liked_tracks(base_path=base_path)
+        df_playlists = self.load_playlists(base_path=base_path)
+
+        df = pd.concat(
+            [df_top_tracks, df_liked_tracks, df_playlists], ignore_index=True
+        )
+        df["username"] = self.username
+
+        return df
 
     def get_auth_url(self) -> str:
         dotenv.load_dotenv()
@@ -97,7 +200,12 @@ class SpotiUser:
                 if result_next is None:
                     break
                 result_data = pd.DataFrame(
-                    list(filter(lambda x: x is not None, [add_tracks(x) for x in result_next["items"]]))
+                    list(
+                        filter(
+                            lambda x: x is not None,
+                            [add_tracks(x) for x in result_next["items"]],
+                        )
+                    )
                 )
                 tracks_df = pd.concat([tracks_df, result_data])
                 first_result["next"] = result_next["next"]
@@ -229,3 +337,29 @@ class SpotiUser:
         result_df = self.populate_track_features(result_df, wait_seconds=wait_seconds)
 
         return result_df
+
+def load_all_tracks(
+    base_path: str = "data",
+    users: List[SpotiUser] = None,
+    load_spotify_tracks: bool = True,
+    penality_factors: Dict[str, float] = {
+        "short_term": 1.0,
+        "medium_term": 1.0,
+        "long_term": 1.0,
+    },
+) -> pd.DataFrame:
+    df = pd.DataFrame()
+
+    if load_spotify_tracks:
+        df = pd.read_json(
+            os.path.join(base_path, "tracks.json"), orient="records"
+        ).reset_index(drop=True)
+        df["username"] = "Spotify"
+
+    for user in users:
+        df_user = user.load_all(penality_factors=penality_factors, base_path=base_path)
+        df = pd.concat([df, df_user], ignore_index=True)
+
+    df = df.reset_index(drop=True)
+
+    return df

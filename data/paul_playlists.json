@@ -1,1 +1,657 @@
-[{"collaborative":false,"description":"","external_urls":{"spotify":"https:\/\/open.spotify.com\/playlist\/5DpHUi5FYFb2RC1jEhp7be"},"href":"https:\/\/api.spotify.com\/v1\/playlists\/5DpHUi5FYFb2RC1jEhp7be","id":"5DpHUi5FYFb2RC1jEhp7be","images":[{"height":640,"url":"https:\/\/i.scdn.co\/image\/ab67616d0000b273b4e1bca21b1dfe2aac65ff20","width":640}],"name":"\ud83d\udc94\ud83d\udc94\ud83d\udc94","owner":{"display_name":"paulwissemberg1","external_urls":{"spotify":"https:\/\/open.spotify.com\/user\/paulwissemberg1"},"href":"https:\/\/api.spotify.com\/v1\/users\/paulwissemberg1","id":"paulwissemberg1","type":"user","uri":"spotify:user:paulwissemberg1"},"primary_color":null,"public":true,"snapshot_id":"NCw4OTU0NzEzZGMwOTg1MmFjOTcwZmU0MDRkMTYxM2EyZTRhZWMxNjY4","tracks":{"href":"https:\/\/api.spotify.com\/v1\/playlists\/5DpHUi5FYFb2RC1jEhp7be\/tracks","total":3},"type":"playlist","uri":"spotify:playlist:5DpHUi5FYFb2RC1jEhp7be","username":"paul"},{"collaborative":false,"description":"","external_urls":{"spotify":"https:\/\/open.spotify.com\/playlist\/1GHSHKlBKGcwSm9HF3B63O"},"href":"https:\/\/api.spotify.com\/v1\/playlists\/1GHSHKlBKGcwSm9HF3B63O","id":"1GHSHKlBKGcwSm9HF3B63O","images":[{"height":640,"url":"https:\/\/i.scdn.co\/image\/ab67616d0000b273015a2277d13ddeb9e8d2c07f","width":640}],"name":"\ud83d\udc94\ud83d\udc94","owner":{"display_name":"paulwissemberg1","external_urls":{"spotify":"https:\/\/open.spotify.com\/user\/paulwissemberg1"},"href":"https:\/\/api.spotify.com\/v1\/users\/paulwissemberg1","id":"paulwissemberg1","type":"user","uri":"spotify:user:paulwissemberg1"},"primary_color":null,"public":true,"snapshot_id":"NiwzMjk1ZWU2ZDI2NDc2Y2U3NTZlZjNhNGYzOWE3NTQ3NzA5Y2Q2NWRm","tracks":{"href":"https:\/\/api.spotify.com\/v1\/playlists\/1GHSHKlBKGcwSm9HF3B63O\/tracks","total":3},"type":"playlist","uri":"spotify:playlist:1GHSHKlBKGcwSm9HF3B63O","username":"paul"},{"collaborative":false,"description":"","external_urls":{"spotify":"https:\/\/open.spotify.com\/playlist\/289xbvrPAmam6ROIohpIJD"},"href":"https:\/\/api.spotify.com\/v1\/playlists\/289xbvrPAmam6ROIohpIJD","id":"289xbvrPAmam6ROIohpIJD","images":[{"height":640,"url":"https:\/\/mosaic.scdn.co\/640\/ab67616d0000b2731e546007515b02884d72595fab67616d0000b27327b75c8f94720797618b890aab67616d0000b273b3b8a63ffd573ce414ae0851ab67616d0000b273dbe4f5c39b18885f36b0319f","width":640},{"height":300,"url":"https:\/\/mosaic.scdn.co\/300\/ab67616d0000b2731e546007515b02884d72595fab67616d0000b27327b75c8f94720797618b890aab67616d0000b273b3b8a63ffd573ce414ae0851ab67616d0000b273dbe4f5c39b18885f36b0319f","width":300},{"height":60,"url":"https:\/\/mosaic.scdn.co\/60\/ab67616d0000b2731e546007515b02884d72595fab67616d0000b27327b75c8f94720797618b890aab67616d0000b273b3b8a63ffd573ce414ae0851ab67616d0000b273dbe4f5c39b18885f36b0319f","width":60}],"name":"\u2764\ufe0f\u2764\ufe0f","owner":{"display_name":"paulwissemberg1","external_urls":{"spotify":"https:\/\/open.spotify.com\/user\/paulwissemberg1"},"href":"https:\/\/api.spotify.com\/v1\/users\/paulwissemberg1","id":"paulwissemberg1","type":"user","uri":"spotify:user:paulwissemberg1"},"primary_color":null,"public":true,"snapshot_id":"MTQsODM1OWE0MmE3Nzc1NzAzODQzZGUyNGU2MzYzZjk4ZWVmNGU0YjExYw==","tracks":{"href":"https:\/\/api.spotify.com\/v1\/playlists\/289xbvrPAmam6ROIohpIJD\/tracks","total":11},"type":"playlist","uri":"spotify:playlist:289xbvrPAmam6ROIohpIJD","username":"paul"},{"collaborative":false,"description":"","external_urls":{"spotify":"https:\/\/open.spotify.com\/playlist\/7J10X1Pwj9TyB7XesMJLuN"},"href":"https:\/\/api.spotify.com\/v1\/playlists\/7J10X1Pwj9TyB7XesMJLuN","id":"7J10X1Pwj9TyB7XesMJLuN","images":[{"height":640,"url":"https:\/\/mosaic.scdn.co\/640\/ab67616d0000b273034f85da463faf79527d1fe0ab67616d0000b27338198004ae6d8e6e2120f446ab67616d0000b27369db794590452e2c288677fdab67616d0000b273b180cabcad56fa8a411ae880","width":640},{"height":300,"url":"https:\/\/mosaic.scdn.co\/300\/ab67616d0000b273034f85da463faf79527d1fe0ab67616d0000b27338198004ae6d8e6e2120f446ab67616d0000b27369db794590452e2c288677fdab67616d0000b273b180cabcad56fa8a411ae880","width":300},{"height":60,"url":"https:\/\/mosaic.scdn.co\/60\/ab67616d0000b273034f85da463faf79527d1fe0ab67616d0000b27338198004ae6d8e6e2120f446ab67616d0000b27369db794590452e2c288677fdab67616d0000b273b180cabcad56fa8a411ae880","width":60}],"name":"\ud83d\udc94","owner":{"display_name":"paulwissemberg1","external_urls":{"spotify":"https:\/\/open.spotify.com\/user\/paulwissemberg1"},"href":"https:\/\/api.spotify.com\/v1\/users\/paulwissemberg1","id":"paulwissemberg1","type":"user","uri":"spotify:user:paulwissemberg1"},"primary_color":null,"public":true,"snapshot_id":"NTQsYTEzNTRmZGY0NTY2OGUxMjNkNDc4MmFkNWMzOTRhNjYzYjVhZmViMA==","tracks":{"href":"https:\/\/api.spotify.com\/v1\/playlists\/7J10X1Pwj9TyB7XesMJLuN\/tracks","total":50},"type":"playlist","uri":"spotify:playlist:7J10X1Pwj9TyB7XesMJLuN","username":"paul"},{"collaborative":false,"description":"","external_urls":{"spotify":"https:\/\/open.spotify.com\/playlist\/1z2aBSexn2axSlrq6XexUv"},"href":"https:\/\/api.spotify.com\/v1\/playlists\/1z2aBSexn2axSlrq6XexUv","id":"1z2aBSexn2axSlrq6XexUv","images":[{"height":640,"url":"https:\/\/mosaic.scdn.co\/640\/ab67616d0000b27327b75c8f94720797618b890aab67616d0000b2735cbb5fba22a92557b60f8e22ab67616d0000b2736661ad2644e579aec83ac6ffab67616d0000b273cf75796b339d285da53d4545","width":640},{"height":300,"url":"https:\/\/mosaic.scdn.co\/300\/ab67616d0000b27327b75c8f94720797618b890aab67616d0000b2735cbb5fba22a92557b60f8e22ab67616d0000b2736661ad2644e579aec83ac6ffab67616d0000b273cf75796b339d285da53d4545","width":300},{"height":60,"url":"https:\/\/mosaic.scdn.co\/60\/ab67616d0000b27327b75c8f94720797618b890aab67616d0000b2735cbb5fba22a92557b60f8e22ab67616d0000b2736661ad2644e579aec83ac6ffab67616d0000b273cf75796b339d285da53d4545","width":60}],"name":"\u2764\ufe0f","owner":{"display_name":"paulwissemberg1","external_urls":{"spotify":"https:\/\/open.spotify.com\/user\/paulwissemberg1"},"href":"https:\/\/api.spotify.com\/v1\/users\/paulwissemberg1","id":"paulwissemberg1","type":"user","uri":"spotify:user:paulwissemberg1"},"primary_color":null,"public":true,"snapshot_id":"MTkwLGIxOWM5MmYwNTJjYjViOTQ3OWQ1NmEyMjEzOTRiYmRkZjFjYmEwMzI=","tracks":{"href":"https:\/\/api.spotify.com\/v1\/playlists\/1z2aBSexn2axSlrq6XexUv\/tracks","total":167},"type":"playlist","uri":"spotify:playlist:1z2aBSexn2axSlrq6XexUv","username":"paul"},{"collaborative":false,"description":"","external_urls":{"spotify":"https:\/\/open.spotify.com\/playlist\/40EAom3v5pjC1IVvVWIuwU"},"href":"https:\/\/api.spotify.com\/v1\/playlists\/40EAom3v5pjC1IVvVWIuwU","id":"40EAom3v5pjC1IVvVWIuwU","images":[{"height":640,"url":"https:\/\/mosaic.scdn.co\/640\/ab67616d0000b2735a0ff19349d789a116a12e3cab67616d0000b27369cb2821a5d3401341c8b4f4ab67616d0000b273b4e1bca21b1dfe2aac65ff20ab67616d0000b273e0d0d7f99a62dce1d5e9c62d","width":640},{"height":300,"url":"https:\/\/mosaic.scdn.co\/300\/ab67616d0000b2735a0ff19349d789a116a12e3cab67616d0000b27369cb2821a5d3401341c8b4f4ab67616d0000b273b4e1bca21b1dfe2aac65ff20ab67616d0000b273e0d0d7f99a62dce1d5e9c62d","width":300},{"height":60,"url":"https:\/\/mosaic.scdn.co\/60\/ab67616d0000b2735a0ff19349d789a116a12e3cab67616d0000b27369cb2821a5d3401341c8b4f4ab67616d0000b273b4e1bca21b1dfe2aac65ff20ab67616d0000b273e0d0d7f99a62dce1d5e9c62d","width":60}],"name":"RapFr2","owner":{"display_name":"paulwissemberg1","external_urls":{"spotify":"https:\/\/open.spotify.com\/user\/paulwissemberg1"},"href":"https:\/\/api.spotify.com\/v1\/users\/paulwissemberg1","id":"paulwissemberg1","type":"user","uri":"spotify:user:paulwissemberg1"},"primary_color":null,"public":true,"snapshot_id":"MTIsNTYyNWU1Njk5MGRlYjE1YjQ1MmQ5OTRiMDlmMTMyOWY1MWJmZDg5MQ==","tracks":{"href":"https:\/\/api.spotify.com\/v1\/playlists\/40EAom3v5pjC1IVvVWIuwU\/tracks","total":10},"type":"playlist","uri":"spotify:playlist:40EAom3v5pjC1IVvVWIuwU","username":"paul"},{"collaborative":false,"description":"","external_urls":{"spotify":"https:\/\/open.spotify.com\/playlist\/4z8XPiOUXDKux4iY15oXrc"},"href":"https:\/\/api.spotify.com\/v1\/playlists\/4z8XPiOUXDKux4iY15oXrc","id":"4z8XPiOUXDKux4iY15oXrc","images":[{"height":640,"url":"https:\/\/mosaic.scdn.co\/640\/ab67616d0000b2732e02117d76426a08ac7c174fab67616d0000b273683757f1fd40a7f7ef64bec1ab67616d0000b2738b52c6b9bc4e43d873869699ab67616d0000b273b5ef185d28724c5573c2ac9c","width":640},{"height":300,"url":"https:\/\/mosaic.scdn.co\/300\/ab67616d0000b2732e02117d76426a08ac7c174fab67616d0000b273683757f1fd40a7f7ef64bec1ab67616d0000b2738b52c6b9bc4e43d873869699ab67616d0000b273b5ef185d28724c5573c2ac9c","width":300},{"height":60,"url":"https:\/\/mosaic.scdn.co\/60\/ab67616d0000b2732e02117d76426a08ac7c174fab67616d0000b273683757f1fd40a7f7ef64bec1ab67616d0000b2738b52c6b9bc4e43d873869699ab67616d0000b273b5ef185d28724c5573c2ac9c","width":60}],"name":"K. Bercy","owner":{"display_name":"paulwissemberg1","external_urls":{"spotify":"https:\/\/open.spotify.com\/user\/paulwissemberg1"},"href":"https:\/\/api.spotify.com\/v1\/users\/paulwissemberg1","id":"paulwissemberg1","type":"user","uri":"spotify:user:paulwissemberg1"},"primary_color":null,"public":true,"snapshot_id":"MTYsOWVlYTNlZDFkZWRlNWQxOWJhOGZjMWNjN2VjZTJiYzZjYTlkZjgwOQ==","tracks":{"href":"https:\/\/api.spotify.com\/v1\/playlists\/4z8XPiOUXDKux4iY15oXrc\/tracks","total":13},"type":"playlist","uri":"spotify:playlist:4z8XPiOUXDKux4iY15oXrc","username":"paul"},{"collaborative":false,"description":"","external_urls":{"spotify":"https:\/\/open.spotify.com\/playlist\/78N9Y08zax5rYYDArXg095"},"href":"https:\/\/api.spotify.com\/v1\/playlists\/78N9Y08zax5rYYDArXg095","id":"78N9Y08zax5rYYDArXg095","images":[{"height":640,"url":"https:\/\/mosaic.scdn.co\/640\/ab67616d0000b2730b2e3999b189fa2a8a6a752fab67616d0000b27321be37e939cfb51144465d40ab67616d0000b273c94cc03b69e24d4e9c5ec7dcab67616d0000b273d52e14e0595216ca453572ab","width":640},{"height":300,"url":"https:\/\/mosaic.scdn.co\/300\/ab67616d0000b2730b2e3999b189fa2a8a6a752fab67616d0000b27321be37e939cfb51144465d40ab67616d0000b273c94cc03b69e24d4e9c5ec7dcab67616d0000b273d52e14e0595216ca453572ab","width":300},{"height":60,"url":"https:\/\/mosaic.scdn.co\/60\/ab67616d0000b2730b2e3999b189fa2a8a6a752fab67616d0000b27321be37e939cfb51144465d40ab67616d0000b273c94cc03b69e24d4e9c5ec7dcab67616d0000b273d52e14e0595216ca453572ab","width":60}],"name":"Oldschool","owner":{"display_name":"paulwissemberg1","external_urls":{"spotify":"https:\/\/open.spotify.com\/user\/paulwissemberg1"},"href":"https:\/\/api.spotify.com\/v1\/users\/paulwissemberg1","id":"paulwissemberg1","type":"user","uri":"spotify:user:paulwissemberg1"},"primary_color":null,"public":true,"snapshot_id":"MTAsZmIxMDU5YTQ5NTJkMTE3NDFkNWU0NmRiNDUwMTQwZGM5ZGE3ODk2Nw==","tracks":{"href":"https:\/\/api.spotify.com\/v1\/playlists\/78N9Y08zax5rYYDArXg095\/tracks","total":9},"type":"playlist","uri":"spotify:playlist:78N9Y08zax5rYYDArXg095","username":"paul"},{"collaborative":false,"description":"","external_urls":{"spotify":"https:\/\/open.spotify.com\/playlist\/3apVOc9LpWKB0BYoRR3RcI"},"href":"https:\/\/api.spotify.com\/v1\/playlists\/3apVOc9LpWKB0BYoRR3RcI","id":"3apVOc9LpWKB0BYoRR3RcI","images":[{"height":640,"url":"https:\/\/mosaic.scdn.co\/640\/ab67616d0000b2730327d6f0022f7030605b6c31ab67616d0000b273162f99980b0244ebb843e256ab67616d0000b273299fb14652d1ce08011a25a6ab67616d0000b27370a92ddbe10010f1c2f95da1","width":640},{"height":300,"url":"https:\/\/mosaic.scdn.co\/300\/ab67616d0000b2730327d6f0022f7030605b6c31ab67616d0000b273162f99980b0244ebb843e256ab67616d0000b273299fb14652d1ce08011a25a6ab67616d0000b27370a92ddbe10010f1c2f95da1","width":300},{"height":60,"url":"https:\/\/mosaic.scdn.co\/60\/ab67616d0000b2730327d6f0022f7030605b6c31ab67616d0000b273162f99980b0244ebb843e256ab67616d0000b273299fb14652d1ce08011a25a6ab67616d0000b27370a92ddbe10010f1c2f95da1","width":60}],"name":"Cara\u00efbe","owner":{"display_name":"paulwissemberg1","external_urls":{"spotify":"https:\/\/open.spotify.com\/user\/paulwissemberg1"},"href":"https:\/\/api.spotify.com\/v1\/users\/paulwissemberg1","id":"paulwissemberg1","type":"user","uri":"spotify:user:paulwissemberg1"},"primary_color":null,"public":true,"snapshot_id":"MzksMGYxYmE4Y2QxZDYxMGM2MzJkNDBkZDExYTM4MDQ5ODg5MTJlMzE5Mw==","tracks":{"href":"https:\/\/api.spotify.com\/v1\/playlists\/3apVOc9LpWKB0BYoRR3RcI\/tracks","total":32},"type":"playlist","uri":"spotify:playlist:3apVOc9LpWKB0BYoRR3RcI","username":"paul"},{"collaborative":false,"description":"","external_urls":{"spotify":"https:\/\/open.spotify.com\/playlist\/3vU6KiQty6MLJbsqOfShUS"},"href":"https:\/\/api.spotify.com\/v1\/playlists\/3vU6KiQty6MLJbsqOfShUS","id":"3vU6KiQty6MLJbsqOfShUS","images":[{"height":640,"url":"https:\/\/mosaic.scdn.co\/640\/ab67616d0000b273093affa4d8c24b4dca6e09a1ab67616d0000b2731559978790d7553b9604ac12ab67616d0000b27320a2ae582934150e1fddaedaab67616d0000b2733c7d945b6baf935e8a0ebdaa","width":640},{"height":300,"url":"https:\/\/mosaic.scdn.co\/300\/ab67616d0000b273093affa4d8c24b4dca6e09a1ab67616d0000b2731559978790d7553b9604ac12ab67616d0000b27320a2ae582934150e1fddaedaab67616d0000b2733c7d945b6baf935e8a0ebdaa","width":300},{"height":60,"url":"https:\/\/mosaic.scdn.co\/60\/ab67616d0000b273093affa4d8c24b4dca6e09a1ab67616d0000b2731559978790d7553b9604ac12ab67616d0000b27320a2ae582934150e1fddaedaab67616d0000b2733c7d945b6baf935e8a0ebdaa","width":60}],"name":"summer","owner":{"display_name":"paulwissemberg1","external_urls":{"spotify":"https:\/\/open.spotify.com\/user\/paulwissemberg1"},"href":"https:\/\/api.spotify.com\/v1\/users\/paulwissemberg1","id":"paulwissemberg1","type":"user","uri":"spotify:user:paulwissemberg1"},"primary_color":null,"public":true,"snapshot_id":"NSw5ZWQ5M2I1MjZlZTk3ZmE1MGFkYmE0Y2Q4ZGM2Nzk1MjIwMDFkMWRh","tracks":{"href":"https:\/\/api.spotify.com\/v1\/playlists\/3vU6KiQty6MLJbsqOfShUS\/tracks","total":4},"type":"playlist","uri":"spotify:playlist:3vU6KiQty6MLJbsqOfShUS","username":"paul"},{"collaborative":false,"description":"","external_urls":{"spotify":"https:\/\/open.spotify.com\/playlist\/1ZJMRNHeeoDGk7GqbeRFcG"},"href":"https:\/\/api.spotify.com\/v1\/playlists\/1ZJMRNHeeoDGk7GqbeRFcG","id":"1ZJMRNHeeoDGk7GqbeRFcG","images":[{"height":640,"url":"https:\/\/mosaic.scdn.co\/640\/ab67616d0000b273142275e4512e9fc70da4aee7ab67616d0000b27373bff44ca801066e98eba059ab67616d0000b2739837ae6eac4f725fc7a83a62ab67616d0000b27399b8daa6a1dcc5f84584b607","width":640},{"height":300,"url":"https:\/\/mosaic.scdn.co\/300\/ab67616d0000b273142275e4512e9fc70da4aee7ab67616d0000b27373bff44ca801066e98eba059ab67616d0000b2739837ae6eac4f725fc7a83a62ab67616d0000b27399b8daa6a1dcc5f84584b607","width":300},{"height":60,"url":"https:\/\/mosaic.scdn.co\/60\/ab67616d0000b273142275e4512e9fc70da4aee7ab67616d0000b27373bff44ca801066e98eba059ab67616d0000b2739837ae6eac4f725fc7a83a62ab67616d0000b27399b8daa6a1dcc5f84584b607","width":60}],"name":"80s","owner":{"display_name":"paulwissemberg1","external_urls":{"spotify":"https:\/\/open.spotify.com\/user\/paulwissemberg1"},"href":"https:\/\/api.spotify.com\/v1\/users\/paulwissemberg1","id":"paulwissemberg1","type":"user","uri":"spotify:user:paulwissemberg1"},"primary_color":null,"public":true,"snapshot_id":"MTUsNzgzMzQzZmVjNDM0OTg4YzRkMzA0OTcwODY5ZWU1NzExOWYzMWM4OQ==","tracks":{"href":"https:\/\/api.spotify.com\/v1\/playlists\/1ZJMRNHeeoDGk7GqbeRFcG\/tracks","total":9},"type":"playlist","uri":"spotify:playlist:1ZJMRNHeeoDGk7GqbeRFcG","username":"paul"},{"collaborative":false,"description":"","external_urls":{"spotify":"https:\/\/open.spotify.com\/playlist\/4hiGYgOxkYdhmIaiy3FQds"},"href":"https:\/\/api.spotify.com\/v1\/playlists\/4hiGYgOxkYdhmIaiy3FQds","id":"4hiGYgOxkYdhmIaiy3FQds","images":[{"height":640,"url":"https:\/\/mosaic.scdn.co\/640\/ab67616d0000b2730a91b726e8b44d37faed4e15ab67616d0000b2731184191625b12259967b7116ab67616d0000b273c6f7af36ecdc3ed6e0a1f169ab67616d0000b273df7cddc2d32ef9df762d5a30","width":640},{"height":300,"url":"https:\/\/mosaic.scdn.co\/300\/ab67616d0000b2730a91b726e8b44d37faed4e15ab67616d0000b2731184191625b12259967b7116ab67616d0000b273c6f7af36ecdc3ed6e0a1f169ab67616d0000b273df7cddc2d32ef9df762d5a30","width":300},{"height":60,"url":"https:\/\/mosaic.scdn.co\/60\/ab67616d0000b2730a91b726e8b44d37faed4e15ab67616d0000b2731184191625b12259967b7116ab67616d0000b273c6f7af36ecdc3ed6e0a1f169ab67616d0000b273df7cddc2d32ef9df762d5a30","width":60}],"name":"electro","owner":{"display_name":"paulwissemberg1","external_urls":{"spotify":"https:\/\/open.spotify.com\/user\/paulwissemberg1"},"href":"https:\/\/api.spotify.com\/v1\/users\/paulwissemberg1","id":"paulwissemberg1","type":"user","uri":"spotify:user:paulwissemberg1"},"primary_color":null,"public":true,"snapshot_id":"MTM3LGJlN2U2MzdkMDc2ZDY5OGFlYjhkYmNlNWJkY2I1OGRkMDJhMzlkNjY=","tracks":{"href":"https:\/\/api.spotify.com\/v1\/playlists\/4hiGYgOxkYdhmIaiy3FQds\/tracks","total":47},"type":"playlist","uri":"spotify:playlist:4hiGYgOxkYdhmIaiy3FQds","username":"paul"},{"collaborative":false,"description":"","external_urls":{"spotify":"https:\/\/open.spotify.com\/playlist\/3wODyXHopYsLWm0TfGVm0b"},"href":"https:\/\/api.spotify.com\/v1\/playlists\/3wODyXHopYsLWm0TfGVm0b","id":"3wODyXHopYsLWm0TfGVm0b","images":[{"height":640,"url":"https:\/\/mosaic.scdn.co\/640\/ab67616d0000b273bf42b51a2daf61e202961bc0ab67616d0000b273c72ba2038f906d600a3289ceab67616d0000b273c9dac440212e652f62129e1aab67616d0000b273ff6a615bde464f6f9ee3dcce","width":640},{"height":300,"url":"https:\/\/mosaic.scdn.co\/300\/ab67616d0000b273bf42b51a2daf61e202961bc0ab67616d0000b273c72ba2038f906d600a3289ceab67616d0000b273c9dac440212e652f62129e1aab67616d0000b273ff6a615bde464f6f9ee3dcce","width":300},{"height":60,"url":"https:\/\/mosaic.scdn.co\/60\/ab67616d0000b273bf42b51a2daf61e202961bc0ab67616d0000b273c72ba2038f906d600a3289ceab67616d0000b273c9dac440212e652f62129e1aab67616d0000b273ff6a615bde464f6f9ee3dcce","width":60}],"name":"RapFr","owner":{"display_name":"paulwissemberg1","external_urls":{"spotify":"https:\/\/open.spotify.com\/user\/paulwissemberg1"},"href":"https:\/\/api.spotify.com\/v1\/users\/paulwissemberg1","id":"paulwissemberg1","type":"user","uri":"spotify:user:paulwissemberg1"},"primary_color":null,"public":true,"snapshot_id":"NTA1LDRjN2U1NzMzNmJhMWJjYmE1NTZjMmYxYzYwZDc2MWNiMzJmMmE5Nzg=","tracks":{"href":"https:\/\/api.spotify.com\/v1\/playlists\/3wODyXHopYsLWm0TfGVm0b\/tracks","total":99},"type":"playlist","uri":"spotify:playlist:3wODyXHopYsLWm0TfGVm0b","username":"paul"},{"collaborative":false,"description":"","external_urls":{"spotify":"https:\/\/open.spotify.com\/playlist\/6M2I9fcjqpMaVRFLLZlVJa"},"href":"https:\/\/api.spotify.com\/v1\/playlists\/6M2I9fcjqpMaVRFLLZlVJa","id":"6M2I9fcjqpMaVRFLLZlVJa","images":[{"height":640,"url":"https:\/\/mosaic.scdn.co\/640\/ab67616d0000b273248667da8d589ce025f1ba56ab67616d0000b273886d823ecbfcbe661a6b0ab9ab67616d0000b273d8b9541d085bc0cc22f1feddab67616d0000b273db09958534ac66f9a90d3cf7","width":640},{"height":300,"url":"https:\/\/mosaic.scdn.co\/300\/ab67616d0000b273248667da8d589ce025f1ba56ab67616d0000b273886d823ecbfcbe661a6b0ab9ab67616d0000b273d8b9541d085bc0cc22f1feddab67616d0000b273db09958534ac66f9a90d3cf7","width":300},{"height":60,"url":"https:\/\/mosaic.scdn.co\/60\/ab67616d0000b273248667da8d589ce025f1ba56ab67616d0000b273886d823ecbfcbe661a6b0ab9ab67616d0000b273d8b9541d085bc0cc22f1feddab67616d0000b273db09958534ac66f9a90d3cf7","width":60}],"name":"RapUS","owner":{"display_name":"paulwissemberg1","external_urls":{"spotify":"https:\/\/open.spotify.com\/user\/paulwissemberg1"},"href":"https:\/\/api.spotify.com\/v1\/users\/paulwissemberg1","id":"paulwissemberg1","type":"user","uri":"spotify:user:paulwissemberg1"},"primary_color":null,"public":true,"snapshot_id":"NDcxLGJhODBkZjE1NGEwMGYxN2U5YTNhNWVjYTJlYzQ0NmY0MDM0NDZmM2U=","tracks":{"href":"https:\/\/api.spotify.com\/v1\/playlists\/6M2I9fcjqpMaVRFLLZlVJa\/tracks","total":103},"type":"playlist","uri":"spotify:playlist:6M2I9fcjqpMaVRFLLZlVJa","username":"paul"},{"collaborative":true,"description":"","external_urls":{"spotify":"https:\/\/open.spotify.com\/playlist\/0nwrErl4E9EBfoePMB3UXy"},"href":"https:\/\/api.spotify.com\/v1\/playlists\/0nwrErl4E9EBfoePMB3UXy","id":"0nwrErl4E9EBfoePMB3UXy","images":[{"height":640,"url":"https:\/\/mosaic.scdn.co\/640\/ab67616d0000b2732ed326786e4c61c6b1dbf222ab67616d0000b2734a0ccebdb023ad701f859ed8ab67616d0000b2735c8cfe4b2c4aa89c9c92108eab67616d0000b27366c3eb32692a0ae487079cf1","width":640},{"height":300,"url":"https:\/\/mosaic.scdn.co\/300\/ab67616d0000b2732ed326786e4c61c6b1dbf222ab67616d0000b2734a0ccebdb023ad701f859ed8ab67616d0000b2735c8cfe4b2c4aa89c9c92108eab67616d0000b27366c3eb32692a0ae487079cf1","width":300},{"height":60,"url":"https:\/\/mosaic.scdn.co\/60\/ab67616d0000b2732ed326786e4c61c6b1dbf222ab67616d0000b2734a0ccebdb023ad701f859ed8ab67616d0000b2735c8cfe4b2c4aa89c9c92108eab67616d0000b27366c3eb32692a0ae487079cf1","width":60}],"name":"Familly","owner":{"display_name":"paulwissemberg1","external_urls":{"spotify":"https:\/\/open.spotify.com\/user\/paulwissemberg1"},"href":"https:\/\/api.spotify.com\/v1\/users\/paulwissemberg1","id":"paulwissemberg1","type":"user","uri":"spotify:user:paulwissemberg1"},"primary_color":null,"public":false,"snapshot_id":"NjEsMzBjMmQyNGVmY2ZhYWI4ZjdmMWI1MWYyYmQxMTY0NzU2ZjJhNmI5Nw==","tracks":{"href":"https:\/\/api.spotify.com\/v1\/playlists\/0nwrErl4E9EBfoePMB3UXy\/tracks","total":53},"type":"playlist","uri":"spotify:playlist:0nwrErl4E9EBfoePMB3UXy","username":"paul"},{"collaborative":false,"description":"","external_urls":{"spotify":"https:\/\/open.spotify.com\/playlist\/4AORxF8bAWa58AdnS8w18a"},"href":"https:\/\/api.spotify.com\/v1\/playlists\/4AORxF8bAWa58AdnS8w18a","id":"4AORxF8bAWa58AdnS8w18a","images":[{"height":640,"url":"https:\/\/mosaic.scdn.co\/640\/ab67616d0000b2733862d62a50dc6b928651bdebab67616d0000b273444d1ba6cd088e28bccee374ab67616d0000b2735c8cfe4b2c4aa89c9c92108eab67616d0000b273e14f11f796cef9f9a82691a7","width":640},{"height":300,"url":"https:\/\/mosaic.scdn.co\/300\/ab67616d0000b2733862d62a50dc6b928651bdebab67616d0000b273444d1ba6cd088e28bccee374ab67616d0000b2735c8cfe4b2c4aa89c9c92108eab67616d0000b273e14f11f796cef9f9a82691a7","width":300},{"height":60,"url":"https:\/\/mosaic.scdn.co\/60\/ab67616d0000b2733862d62a50dc6b928651bdebab67616d0000b273444d1ba6cd088e28bccee374ab67616d0000b2735c8cfe4b2c4aa89c9c92108eab67616d0000b273e14f11f796cef9f9a82691a7","width":60}],"name":"2010s","owner":{"display_name":"paulwissemberg1","external_urls":{"spotify":"https:\/\/open.spotify.com\/user\/paulwissemberg1"},"href":"https:\/\/api.spotify.com\/v1\/users\/paulwissemberg1","id":"paulwissemberg1","type":"user","uri":"spotify:user:paulwissemberg1"},"primary_color":null,"public":true,"snapshot_id":"MjAzLGFiMWUxZWQyN2NmNDIyZGNiMzc4OGQ4MmMwOGI4ZTEzN2ZjNGM5NmM=","tracks":{"href":"https:\/\/api.spotify.com\/v1\/playlists\/4AORxF8bAWa58AdnS8w18a\/tracks","total":130},"type":"playlist","uri":"spotify:playlist:4AORxF8bAWa58AdnS8w18a","username":"paul"}]
+[{
+    "collaborative": false,
+    "description": "",
+    "external_urls": {
+        "spotify": "https:\/\/open.spotify.com\/playlist\/5DpHUi5FYFb2RC1jEhp7be"
+    },
+    "href": "https:\/\/api.spotify.com\/v1\/playlists\/5DpHUi5FYFb2RC1jEhp7be",
+    "id": "5DpHUi5FYFb2RC1jEhp7be",
+    "images": [{
+        "height": 640,
+        "url": "https:\/\/i.scdn.co\/image\/ab67616d0000b273b4e1bca21b1dfe2aac65ff20",
+        "width": 640
+    }],
+    "name": "\ud83d\udc94\ud83d\udc94\ud83d\udc94",
+    "owner": {
+        "display_name": "paulwissemberg1",
+        "external_urls": {
+            "spotify": "https:\/\/open.spotify.com\/user\/paulwissemberg1"
+        },
+        "href": "https:\/\/api.spotify.com\/v1\/users\/paulwissemberg1",
+        "id": "paulwissemberg1",
+        "type": "user",
+        "uri": "spotify:user:paulwissemberg1"
+    },
+    "primary_color": null,
+    "public": true,
+    "snapshot_id": "NCw4OTU0NzEzZGMwOTg1MmFjOTcwZmU0MDRkMTYxM2EyZTRhZWMxNjY4",
+    "tracks": {
+        "href": "https:\/\/api.spotify.com\/v1\/playlists\/5DpHUi5FYFb2RC1jEhp7be\/tracks",
+        "total": 3
+    },
+    "type": "playlist",
+    "uri": "spotify:playlist:5DpHUi5FYFb2RC1jEhp7be",
+    "username": "paul"
+}, {
+    "collaborative": false,
+    "description": "",
+    "external_urls": {
+        "spotify": "https:\/\/open.spotify.com\/playlist\/1GHSHKlBKGcwSm9HF3B63O"
+    },
+    "href": "https:\/\/api.spotify.com\/v1\/playlists\/1GHSHKlBKGcwSm9HF3B63O",
+    "id": "1GHSHKlBKGcwSm9HF3B63O",
+    "images": [{
+        "height": 640,
+        "url": "https:\/\/i.scdn.co\/image\/ab67616d0000b273015a2277d13ddeb9e8d2c07f",
+        "width": 640
+    }],
+    "name": "\ud83d\udc94\ud83d\udc94",
+    "owner": {
+        "display_name": "paulwissemberg1",
+        "external_urls": {
+            "spotify": "https:\/\/open.spotify.com\/user\/paulwissemberg1"
+        },
+        "href": "https:\/\/api.spotify.com\/v1\/users\/paulwissemberg1",
+        "id": "paulwissemberg1",
+        "type": "user",
+        "uri": "spotify:user:paulwissemberg1"
+    },
+    "primary_color": null,
+    "public": true,
+    "snapshot_id": "NiwzMjk1ZWU2ZDI2NDc2Y2U3NTZlZjNhNGYzOWE3NTQ3NzA5Y2Q2NWRm",
+    "tracks": {
+        "href": "https:\/\/api.spotify.com\/v1\/playlists\/1GHSHKlBKGcwSm9HF3B63O\/tracks",
+        "total": 3
+    },
+    "type": "playlist",
+    "uri": "spotify:playlist:1GHSHKlBKGcwSm9HF3B63O",
+    "username": "paul"
+}, {
+    "collaborative": false,
+    "description": "",
+    "external_urls": {
+        "spotify": "https:\/\/open.spotify.com\/playlist\/289xbvrPAmam6ROIohpIJD"
+    },
+    "href": "https:\/\/api.spotify.com\/v1\/playlists\/289xbvrPAmam6ROIohpIJD",
+    "id": "289xbvrPAmam6ROIohpIJD",
+    "images": [{
+        "height": 640,
+        "url": "https:\/\/mosaic.scdn.co\/640\/ab67616d0000b2731e546007515b02884d72595fab67616d0000b27327b75c8f94720797618b890aab67616d0000b273b3b8a63ffd573ce414ae0851ab67616d0000b273dbe4f5c39b18885f36b0319f",
+        "width": 640
+    }, {
+        "height": 300,
+        "url": "https:\/\/mosaic.scdn.co\/300\/ab67616d0000b2731e546007515b02884d72595fab67616d0000b27327b75c8f94720797618b890aab67616d0000b273b3b8a63ffd573ce414ae0851ab67616d0000b273dbe4f5c39b18885f36b0319f",
+        "width": 300
+    }, {
+        "height": 60,
+        "url": "https:\/\/mosaic.scdn.co\/60\/ab67616d0000b2731e546007515b02884d72595fab67616d0000b27327b75c8f94720797618b890aab67616d0000b273b3b8a63ffd573ce414ae0851ab67616d0000b273dbe4f5c39b18885f36b0319f",
+        "width": 60
+    }],
+    "name": "\u2764\ufe0f\u2764\ufe0f",
+    "owner": {
+        "display_name": "paulwissemberg1",
+        "external_urls": {
+            "spotify": "https:\/\/open.spotify.com\/user\/paulwissemberg1"
+        },
+        "href": "https:\/\/api.spotify.com\/v1\/users\/paulwissemberg1",
+        "id": "paulwissemberg1",
+        "type": "user",
+        "uri": "spotify:user:paulwissemberg1"
+    },
+    "primary_color": null,
+    "public": true,
+    "snapshot_id": "MTQsODM1OWE0MmE3Nzc1NzAzODQzZGUyNGU2MzYzZjk4ZWVmNGU0YjExYw==",
+    "tracks": {
+        "href": "https:\/\/api.spotify.com\/v1\/playlists\/289xbvrPAmam6ROIohpIJD\/tracks",
+        "total": 11
+    },
+    "type": "playlist",
+    "uri": "spotify:playlist:289xbvrPAmam6ROIohpIJD",
+    "username": "paul"
+}, {
+    "collaborative": false,
+    "description": "",
+    "external_urls": {
+        "spotify": "https:\/\/open.spotify.com\/playlist\/7J10X1Pwj9TyB7XesMJLuN"
+    },
+    "href": "https:\/\/api.spotify.com\/v1\/playlists\/7J10X1Pwj9TyB7XesMJLuN",
+    "id": "7J10X1Pwj9TyB7XesMJLuN",
+    "images": [{
+        "height": 640,
+        "url": "https:\/\/mosaic.scdn.co\/640\/ab67616d0000b273034f85da463faf79527d1fe0ab67616d0000b27338198004ae6d8e6e2120f446ab67616d0000b27369db794590452e2c288677fdab67616d0000b273b180cabcad56fa8a411ae880",
+        "width": 640
+    }, {
+        "height": 300,
+        "url": "https:\/\/mosaic.scdn.co\/300\/ab67616d0000b273034f85da463faf79527d1fe0ab67616d0000b27338198004ae6d8e6e2120f446ab67616d0000b27369db794590452e2c288677fdab67616d0000b273b180cabcad56fa8a411ae880",
+        "width": 300
+    }, {
+        "height": 60,
+        "url": "https:\/\/mosaic.scdn.co\/60\/ab67616d0000b273034f85da463faf79527d1fe0ab67616d0000b27338198004ae6d8e6e2120f446ab67616d0000b27369db794590452e2c288677fdab67616d0000b273b180cabcad56fa8a411ae880",
+        "width": 60
+    }],
+    "name": "\ud83d\udc94",
+    "owner": {
+        "display_name": "paulwissemberg1",
+        "external_urls": {
+            "spotify": "https:\/\/open.spotify.com\/user\/paulwissemberg1"
+        },
+        "href": "https:\/\/api.spotify.com\/v1\/users\/paulwissemberg1",
+        "id": "paulwissemberg1",
+        "type": "user",
+        "uri": "spotify:user:paulwissemberg1"
+    },
+    "primary_color": null,
+    "public": true,
+    "snapshot_id": "NTQsYTEzNTRmZGY0NTY2OGUxMjNkNDc4MmFkNWMzOTRhNjYzYjVhZmViMA==",
+    "tracks": {
+        "href": "https:\/\/api.spotify.com\/v1\/playlists\/7J10X1Pwj9TyB7XesMJLuN\/tracks",
+        "total": 50
+    },
+    "type": "playlist",
+    "uri": "spotify:playlist:7J10X1Pwj9TyB7XesMJLuN",
+    "username": "paul"
+}, {
+    "collaborative": false,
+    "description": "",
+    "external_urls": {
+        "spotify": "https:\/\/open.spotify.com\/playlist\/1z2aBSexn2axSlrq6XexUv"
+    },
+    "href": "https:\/\/api.spotify.com\/v1\/playlists\/1z2aBSexn2axSlrq6XexUv",
+    "id": "1z2aBSexn2axSlrq6XexUv",
+    "images": [{
+        "height": 640,
+        "url": "https:\/\/mosaic.scdn.co\/640\/ab67616d0000b27327b75c8f94720797618b890aab67616d0000b2735cbb5fba22a92557b60f8e22ab67616d0000b2736661ad2644e579aec83ac6ffab67616d0000b273cf75796b339d285da53d4545",
+        "width": 640
+    }, {
+        "height": 300,
+        "url": "https:\/\/mosaic.scdn.co\/300\/ab67616d0000b27327b75c8f94720797618b890aab67616d0000b2735cbb5fba22a92557b60f8e22ab67616d0000b2736661ad2644e579aec83ac6ffab67616d0000b273cf75796b339d285da53d4545",
+        "width": 300
+    }, {
+        "height": 60,
+        "url": "https:\/\/mosaic.scdn.co\/60\/ab67616d0000b27327b75c8f94720797618b890aab67616d0000b2735cbb5fba22a92557b60f8e22ab67616d0000b2736661ad2644e579aec83ac6ffab67616d0000b273cf75796b339d285da53d4545",
+        "width": 60
+    }],
+    "name": "\u2764\ufe0f",
+    "owner": {
+        "display_name": "paulwissemberg1",
+        "external_urls": {
+            "spotify": "https:\/\/open.spotify.com\/user\/paulwissemberg1"
+        },
+        "href": "https:\/\/api.spotify.com\/v1\/users\/paulwissemberg1",
+        "id": "paulwissemberg1",
+        "type": "user",
+        "uri": "spotify:user:paulwissemberg1"
+    },
+    "primary_color": null,
+    "public": true,
+    "snapshot_id": "MTkwLGIxOWM5MmYwNTJjYjViOTQ3OWQ1NmEyMjEzOTRiYmRkZjFjYmEwMzI=",
+    "tracks": {
+        "href": "https:\/\/api.spotify.com\/v1\/playlists\/1z2aBSexn2axSlrq6XexUv\/tracks",
+        "total": 167
+    },
+    "type": "playlist",
+    "uri": "spotify:playlist:1z2aBSexn2axSlrq6XexUv",
+    "username": "paul"
+}, {
+    "collaborative": false,
+    "description": "",
+    "external_urls": {
+        "spotify": "https:\/\/open.spotify.com\/playlist\/40EAom3v5pjC1IVvVWIuwU"
+    },
+    "href": "https:\/\/api.spotify.com\/v1\/playlists\/40EAom3v5pjC1IVvVWIuwU",
+    "id": "40EAom3v5pjC1IVvVWIuwU",
+    "images": [{
+        "height": 640,
+        "url": "https:\/\/mosaic.scdn.co\/640\/ab67616d0000b2735a0ff19349d789a116a12e3cab67616d0000b27369cb2821a5d3401341c8b4f4ab67616d0000b273b4e1bca21b1dfe2aac65ff20ab67616d0000b273e0d0d7f99a62dce1d5e9c62d",
+        "width": 640
+    }, {
+        "height": 300,
+        "url": "https:\/\/mosaic.scdn.co\/300\/ab67616d0000b2735a0ff19349d789a116a12e3cab67616d0000b27369cb2821a5d3401341c8b4f4ab67616d0000b273b4e1bca21b1dfe2aac65ff20ab67616d0000b273e0d0d7f99a62dce1d5e9c62d",
+        "width": 300
+    }, {
+        "height": 60,
+        "url": "https:\/\/mosaic.scdn.co\/60\/ab67616d0000b2735a0ff19349d789a116a12e3cab67616d0000b27369cb2821a5d3401341c8b4f4ab67616d0000b273b4e1bca21b1dfe2aac65ff20ab67616d0000b273e0d0d7f99a62dce1d5e9c62d",
+        "width": 60
+    }],
+    "name": "RapFr2",
+    "owner": {
+        "display_name": "paulwissemberg1",
+        "external_urls": {
+            "spotify": "https:\/\/open.spotify.com\/user\/paulwissemberg1"
+        },
+        "href": "https:\/\/api.spotify.com\/v1\/users\/paulwissemberg1",
+        "id": "paulwissemberg1",
+        "type": "user",
+        "uri": "spotify:user:paulwissemberg1"
+    },
+    "primary_color": null,
+    "public": true,
+    "snapshot_id": "MTIsNTYyNWU1Njk5MGRlYjE1YjQ1MmQ5OTRiMDlmMTMyOWY1MWJmZDg5MQ==",
+    "tracks": {
+        "href": "https:\/\/api.spotify.com\/v1\/playlists\/40EAom3v5pjC1IVvVWIuwU\/tracks",
+        "total": 10
+    },
+    "type": "playlist",
+    "uri": "spotify:playlist:40EAom3v5pjC1IVvVWIuwU",
+    "username": "paul"
+}, {
+    "collaborative": false,
+    "description": "",
+    "external_urls": {
+        "spotify": "https:\/\/open.spotify.com\/playlist\/4z8XPiOUXDKux4iY15oXrc"
+    },
+    "href": "https:\/\/api.spotify.com\/v1\/playlists\/4z8XPiOUXDKux4iY15oXrc",
+    "id": "4z8XPiOUXDKux4iY15oXrc",
+    "images": [{
+        "height": 640,
+        "url": "https:\/\/mosaic.scdn.co\/640\/ab67616d0000b2732e02117d76426a08ac7c174fab67616d0000b273683757f1fd40a7f7ef64bec1ab67616d0000b2738b52c6b9bc4e43d873869699ab67616d0000b273b5ef185d28724c5573c2ac9c",
+        "width": 640
+    }, {
+        "height": 300,
+        "url": "https:\/\/mosaic.scdn.co\/300\/ab67616d0000b2732e02117d76426a08ac7c174fab67616d0000b273683757f1fd40a7f7ef64bec1ab67616d0000b2738b52c6b9bc4e43d873869699ab67616d0000b273b5ef185d28724c5573c2ac9c",
+        "width": 300
+    }, {
+        "height": 60,
+        "url": "https:\/\/mosaic.scdn.co\/60\/ab67616d0000b2732e02117d76426a08ac7c174fab67616d0000b273683757f1fd40a7f7ef64bec1ab67616d0000b2738b52c6b9bc4e43d873869699ab67616d0000b273b5ef185d28724c5573c2ac9c",
+        "width": 60
+    }],
+    "name": "K. Bercy",
+    "owner": {
+        "display_name": "paulwissemberg1",
+        "external_urls": {
+            "spotify": "https:\/\/open.spotify.com\/user\/paulwissemberg1"
+        },
+        "href": "https:\/\/api.spotify.com\/v1\/users\/paulwissemberg1",
+        "id": "paulwissemberg1",
+        "type": "user",
+        "uri": "spotify:user:paulwissemberg1"
+    },
+    "primary_color": null,
+    "public": true,
+    "snapshot_id": "MTYsOWVlYTNlZDFkZWRlNWQxOWJhOGZjMWNjN2VjZTJiYzZjYTlkZjgwOQ==",
+    "tracks": {
+        "href": "https:\/\/api.spotify.com\/v1\/playlists\/4z8XPiOUXDKux4iY15oXrc\/tracks",
+        "total": 13
+    },
+    "type": "playlist",
+    "uri": "spotify:playlist:4z8XPiOUXDKux4iY15oXrc",
+    "username": "paul"
+}, {
+    "collaborative": false,
+    "description": "",
+    "external_urls": {
+        "spotify": "https:\/\/open.spotify.com\/playlist\/78N9Y08zax5rYYDArXg095"
+    },
+    "href": "https:\/\/api.spotify.com\/v1\/playlists\/78N9Y08zax5rYYDArXg095",
+    "id": "78N9Y08zax5rYYDArXg095",
+    "images": [{
+        "height": 640,
+        "url": "https:\/\/mosaic.scdn.co\/640\/ab67616d0000b2730b2e3999b189fa2a8a6a752fab67616d0000b27321be37e939cfb51144465d40ab67616d0000b273c94cc03b69e24d4e9c5ec7dcab67616d0000b273d52e14e0595216ca453572ab",
+        "width": 640
+    }, {
+        "height": 300,
+        "url": "https:\/\/mosaic.scdn.co\/300\/ab67616d0000b2730b2e3999b189fa2a8a6a752fab67616d0000b27321be37e939cfb51144465d40ab67616d0000b273c94cc03b69e24d4e9c5ec7dcab67616d0000b273d52e14e0595216ca453572ab",
+        "width": 300
+    }, {
+        "height": 60,
+        "url": "https:\/\/mosaic.scdn.co\/60\/ab67616d0000b2730b2e3999b189fa2a8a6a752fab67616d0000b27321be37e939cfb51144465d40ab67616d0000b273c94cc03b69e24d4e9c5ec7dcab67616d0000b273d52e14e0595216ca453572ab",
+        "width": 60
+    }],
+    "name": "Oldschool",
+    "owner": {
+        "display_name": "paulwissemberg1",
+        "external_urls": {
+            "spotify": "https:\/\/open.spotify.com\/user\/paulwissemberg1"
+        },
+        "href": "https:\/\/api.spotify.com\/v1\/users\/paulwissemberg1",
+        "id": "paulwissemberg1",
+        "type": "user",
+        "uri": "spotify:user:paulwissemberg1"
+    },
+    "primary_color": null,
+    "public": true,
+    "snapshot_id": "MTAsZmIxMDU5YTQ5NTJkMTE3NDFkNWU0NmRiNDUwMTQwZGM5ZGE3ODk2Nw==",
+    "tracks": {
+        "href": "https:\/\/api.spotify.com\/v1\/playlists\/78N9Y08zax5rYYDArXg095\/tracks",
+        "total": 9
+    },
+    "type": "playlist",
+    "uri": "spotify:playlist:78N9Y08zax5rYYDArXg095",
+    "username": "paul"
+}, {
+    "collaborative": false,
+    "description": "",
+    "external_urls": {
+        "spotify": "https:\/\/open.spotify.com\/playlist\/3apVOc9LpWKB0BYoRR3RcI"
+    },
+    "href": "https:\/\/api.spotify.com\/v1\/playlists\/3apVOc9LpWKB0BYoRR3RcI",
+    "id": "3apVOc9LpWKB0BYoRR3RcI",
+    "images": [{
+        "height": 640,
+        "url": "https:\/\/mosaic.scdn.co\/640\/ab67616d0000b2730327d6f0022f7030605b6c31ab67616d0000b273162f99980b0244ebb843e256ab67616d0000b273299fb14652d1ce08011a25a6ab67616d0000b27370a92ddbe10010f1c2f95da1",
+        "width": 640
+    }, {
+        "height": 300,
+        "url": "https:\/\/mosaic.scdn.co\/300\/ab67616d0000b2730327d6f0022f7030605b6c31ab67616d0000b273162f99980b0244ebb843e256ab67616d0000b273299fb14652d1ce08011a25a6ab67616d0000b27370a92ddbe10010f1c2f95da1",
+        "width": 300
+    }, {
+        "height": 60,
+        "url": "https:\/\/mosaic.scdn.co\/60\/ab67616d0000b2730327d6f0022f7030605b6c31ab67616d0000b273162f99980b0244ebb843e256ab67616d0000b273299fb14652d1ce08011a25a6ab67616d0000b27370a92ddbe10010f1c2f95da1",
+        "width": 60
+    }],
+    "name": "Cara\u00efbe",
+    "owner": {
+        "display_name": "paulwissemberg1",
+        "external_urls": {
+            "spotify": "https:\/\/open.spotify.com\/user\/paulwissemberg1"
+        },
+        "href": "https:\/\/api.spotify.com\/v1\/users\/paulwissemberg1",
+        "id": "paulwissemberg1",
+        "type": "user",
+        "uri": "spotify:user:paulwissemberg1"
+    },
+    "primary_color": null,
+    "public": true,
+    "snapshot_id": "MzksMGYxYmE4Y2QxZDYxMGM2MzJkNDBkZDExYTM4MDQ5ODg5MTJlMzE5Mw==",
+    "tracks": {
+        "href": "https:\/\/api.spotify.com\/v1\/playlists\/3apVOc9LpWKB0BYoRR3RcI\/tracks",
+        "total": 32
+    },
+    "type": "playlist",
+    "uri": "spotify:playlist:3apVOc9LpWKB0BYoRR3RcI",
+    "username": "paul"
+}, {
+    "collaborative": false,
+    "description": "",
+    "external_urls": {
+        "spotify": "https:\/\/open.spotify.com\/playlist\/3vU6KiQty6MLJbsqOfShUS"
+    },
+    "href": "https:\/\/api.spotify.com\/v1\/playlists\/3vU6KiQty6MLJbsqOfShUS",
+    "id": "3vU6KiQty6MLJbsqOfShUS",
+    "images": [{
+        "height": 640,
+        "url": "https:\/\/mosaic.scdn.co\/640\/ab67616d0000b273093affa4d8c24b4dca6e09a1ab67616d0000b2731559978790d7553b9604ac12ab67616d0000b27320a2ae582934150e1fddaedaab67616d0000b2733c7d945b6baf935e8a0ebdaa",
+        "width": 640
+    }, {
+        "height": 300,
+        "url": "https:\/\/mosaic.scdn.co\/300\/ab67616d0000b273093affa4d8c24b4dca6e09a1ab67616d0000b2731559978790d7553b9604ac12ab67616d0000b27320a2ae582934150e1fddaedaab67616d0000b2733c7d945b6baf935e8a0ebdaa",
+        "width": 300
+    }, {
+        "height": 60,
+        "url": "https:\/\/mosaic.scdn.co\/60\/ab67616d0000b273093affa4d8c24b4dca6e09a1ab67616d0000b2731559978790d7553b9604ac12ab67616d0000b27320a2ae582934150e1fddaedaab67616d0000b2733c7d945b6baf935e8a0ebdaa",
+        "width": 60
+    }],
+    "name": "summer",
+    "owner": {
+        "display_name": "paulwissemberg1",
+        "external_urls": {
+            "spotify": "https:\/\/open.spotify.com\/user\/paulwissemberg1"
+        },
+        "href": "https:\/\/api.spotify.com\/v1\/users\/paulwissemberg1",
+        "id": "paulwissemberg1",
+        "type": "user",
+        "uri": "spotify:user:paulwissemberg1"
+    },
+    "primary_color": null,
+    "public": true,
+    "snapshot_id": "NSw5ZWQ5M2I1MjZlZTk3ZmE1MGFkYmE0Y2Q4ZGM2Nzk1MjIwMDFkMWRh",
+    "tracks": {
+        "href": "https:\/\/api.spotify.com\/v1\/playlists\/3vU6KiQty6MLJbsqOfShUS\/tracks",
+        "total": 4
+    },
+    "type": "playlist",
+    "uri": "spotify:playlist:3vU6KiQty6MLJbsqOfShUS",
+    "username": "paul"
+}, {
+    "collaborative": false,
+    "description": "",
+    "external_urls": {
+        "spotify": "https:\/\/open.spotify.com\/playlist\/1ZJMRNHeeoDGk7GqbeRFcG"
+    },
+    "href": "https:\/\/api.spotify.com\/v1\/playlists\/1ZJMRNHeeoDGk7GqbeRFcG",
+    "id": "1ZJMRNHeeoDGk7GqbeRFcG",
+    "images": [{
+        "height": 640,
+        "url": "https:\/\/mosaic.scdn.co\/640\/ab67616d0000b273142275e4512e9fc70da4aee7ab67616d0000b27373bff44ca801066e98eba059ab67616d0000b2739837ae6eac4f725fc7a83a62ab67616d0000b27399b8daa6a1dcc5f84584b607",
+        "width": 640
+    }, {
+        "height": 300,
+        "url": "https:\/\/mosaic.scdn.co\/300\/ab67616d0000b273142275e4512e9fc70da4aee7ab67616d0000b27373bff44ca801066e98eba059ab67616d0000b2739837ae6eac4f725fc7a83a62ab67616d0000b27399b8daa6a1dcc5f84584b607",
+        "width": 300
+    }, {
+        "height": 60,
+        "url": "https:\/\/mosaic.scdn.co\/60\/ab67616d0000b273142275e4512e9fc70da4aee7ab67616d0000b27373bff44ca801066e98eba059ab67616d0000b2739837ae6eac4f725fc7a83a62ab67616d0000b27399b8daa6a1dcc5f84584b607",
+        "width": 60
+    }],
+    "name": "80s",
+    "owner": {
+        "display_name": "paulwissemberg1",
+        "external_urls": {
+            "spotify": "https:\/\/open.spotify.com\/user\/paulwissemberg1"
+        },
+        "href": "https:\/\/api.spotify.com\/v1\/users\/paulwissemberg1",
+        "id": "paulwissemberg1",
+        "type": "user",
+        "uri": "spotify:user:paulwissemberg1"
+    },
+    "primary_color": null,
+    "public": true,
+    "snapshot_id": "MTUsNzgzMzQzZmVjNDM0OTg4YzRkMzA0OTcwODY5ZWU1NzExOWYzMWM4OQ==",
+    "tracks": {
+        "href": "https:\/\/api.spotify.com\/v1\/playlists\/1ZJMRNHeeoDGk7GqbeRFcG\/tracks",
+        "total": 9
+    },
+    "type": "playlist",
+    "uri": "spotify:playlist:1ZJMRNHeeoDGk7GqbeRFcG",
+    "username": "paul"
+}, {
+    "collaborative": false,
+    "description": "",
+    "external_urls": {
+        "spotify": "https:\/\/open.spotify.com\/playlist\/4hiGYgOxkYdhmIaiy3FQds"
+    },
+    "href": "https:\/\/api.spotify.com\/v1\/playlists\/4hiGYgOxkYdhmIaiy3FQds",
+    "id": "4hiGYgOxkYdhmIaiy3FQds",
+    "images": [{
+        "height": 640,
+        "url": "https:\/\/mosaic.scdn.co\/640\/ab67616d0000b2730a91b726e8b44d37faed4e15ab67616d0000b2731184191625b12259967b7116ab67616d0000b273c6f7af36ecdc3ed6e0a1f169ab67616d0000b273df7cddc2d32ef9df762d5a30",
+        "width": 640
+    }, {
+        "height": 300,
+        "url": "https:\/\/mosaic.scdn.co\/300\/ab67616d0000b2730a91b726e8b44d37faed4e15ab67616d0000b2731184191625b12259967b7116ab67616d0000b273c6f7af36ecdc3ed6e0a1f169ab67616d0000b273df7cddc2d32ef9df762d5a30",
+        "width": 300
+    }, {
+        "height": 60,
+        "url": "https:\/\/mosaic.scdn.co\/60\/ab67616d0000b2730a91b726e8b44d37faed4e15ab67616d0000b2731184191625b12259967b7116ab67616d0000b273c6f7af36ecdc3ed6e0a1f169ab67616d0000b273df7cddc2d32ef9df762d5a30",
+        "width": 60
+    }],
+    "name": "electro",
+    "owner": {
+        "display_name": "paulwissemberg1",
+        "external_urls": {
+            "spotify": "https:\/\/open.spotify.com\/user\/paulwissemberg1"
+        },
+        "href": "https:\/\/api.spotify.com\/v1\/users\/paulwissemberg1",
+        "id": "paulwissemberg1",
+        "type": "user",
+        "uri": "spotify:user:paulwissemberg1"
+    },
+    "primary_color": null,
+    "public": true,
+    "snapshot_id": "MTM3LGJlN2U2MzdkMDc2ZDY5OGFlYjhkYmNlNWJkY2I1OGRkMDJhMzlkNjY=",
+    "tracks": {
+        "href": "https:\/\/api.spotify.com\/v1\/playlists\/4hiGYgOxkYdhmIaiy3FQds\/tracks",
+        "total": 47
+    },
+    "type": "playlist",
+    "uri": "spotify:playlist:4hiGYgOxkYdhmIaiy3FQds",
+    "username": "paul"
+}, {
+    "collaborative": false,
+    "description": "",
+    "external_urls": {
+        "spotify": "https:\/\/open.spotify.com\/playlist\/3wODyXHopYsLWm0TfGVm0b"
+    },
+    "href": "https:\/\/api.spotify.com\/v1\/playlists\/3wODyXHopYsLWm0TfGVm0b",
+    "id": "3wODyXHopYsLWm0TfGVm0b",
+    "images": [{
+        "height": 640,
+        "url": "https:\/\/mosaic.scdn.co\/640\/ab67616d0000b273bf42b51a2daf61e202961bc0ab67616d0000b273c72ba2038f906d600a3289ceab67616d0000b273c9dac440212e652f62129e1aab67616d0000b273ff6a615bde464f6f9ee3dcce",
+        "width": 640
+    }, {
+        "height": 300,
+        "url": "https:\/\/mosaic.scdn.co\/300\/ab67616d0000b273bf42b51a2daf61e202961bc0ab67616d0000b273c72ba2038f906d600a3289ceab67616d0000b273c9dac440212e652f62129e1aab67616d0000b273ff6a615bde464f6f9ee3dcce",
+        "width": 300
+    }, {
+        "height": 60,
+        "url": "https:\/\/mosaic.scdn.co\/60\/ab67616d0000b273bf42b51a2daf61e202961bc0ab67616d0000b273c72ba2038f906d600a3289ceab67616d0000b273c9dac440212e652f62129e1aab67616d0000b273ff6a615bde464f6f9ee3dcce",
+        "width": 60
+    }],
+    "name": "RapFr",
+    "owner": {
+        "display_name": "paulwissemberg1",
+        "external_urls": {
+            "spotify": "https:\/\/open.spotify.com\/user\/paulwissemberg1"
+        },
+        "href": "https:\/\/api.spotify.com\/v1\/users\/paulwissemberg1",
+        "id": "paulwissemberg1",
+        "type": "user",
+        "uri": "spotify:user:paulwissemberg1"
+    },
+    "primary_color": null,
+    "public": true,
+    "snapshot_id": "NTA1LDRjN2U1NzMzNmJhMWJjYmE1NTZjMmYxYzYwZDc2MWNiMzJmMmE5Nzg=",
+    "tracks": {
+        "href": "https:\/\/api.spotify.com\/v1\/playlists\/3wODyXHopYsLWm0TfGVm0b\/tracks",
+        "total": 99
+    },
+    "type": "playlist",
+    "uri": "spotify:playlist:3wODyXHopYsLWm0TfGVm0b",
+    "username": "paul"
+}, {
+    "collaborative": false,
+    "description": "",
+    "external_urls": {
+        "spotify": "https:\/\/open.spotify.com\/playlist\/6M2I9fcjqpMaVRFLLZlVJa"
+    },
+    "href": "https:\/\/api.spotify.com\/v1\/playlists\/6M2I9fcjqpMaVRFLLZlVJa",
+    "id": "6M2I9fcjqpMaVRFLLZlVJa",
+    "images": [{
+        "height": 640,
+        "url": "https:\/\/mosaic.scdn.co\/640\/ab67616d0000b273248667da8d589ce025f1ba56ab67616d0000b273886d823ecbfcbe661a6b0ab9ab67616d0000b273d8b9541d085bc0cc22f1feddab67616d0000b273db09958534ac66f9a90d3cf7",
+        "width": 640
+    }, {
+        "height": 300,
+        "url": "https:\/\/mosaic.scdn.co\/300\/ab67616d0000b273248667da8d589ce025f1ba56ab67616d0000b273886d823ecbfcbe661a6b0ab9ab67616d0000b273d8b9541d085bc0cc22f1feddab67616d0000b273db09958534ac66f9a90d3cf7",
+        "width": 300
+    }, {
+        "height": 60,
+        "url": "https:\/\/mosaic.scdn.co\/60\/ab67616d0000b273248667da8d589ce025f1ba56ab67616d0000b273886d823ecbfcbe661a6b0ab9ab67616d0000b273d8b9541d085bc0cc22f1feddab67616d0000b273db09958534ac66f9a90d3cf7",
+        "width": 60
+    }],
+    "name": "RapUS",
+    "owner": {
+        "display_name": "paulwissemberg1",
+        "external_urls": {
+            "spotify": "https:\/\/open.spotify.com\/user\/paulwissemberg1"
+        },
+        "href": "https:\/\/api.spotify.com\/v1\/users\/paulwissemberg1",
+        "id": "paulwissemberg1",
+        "type": "user",
+        "uri": "spotify:user:paulwissemberg1"
+    },
+    "primary_color": null,
+    "public": true,
+    "snapshot_id": "NDcxLGJhODBkZjE1NGEwMGYxN2U5YTNhNWVjYTJlYzQ0NmY0MDM0NDZmM2U=",
+    "tracks": {
+        "href": "https:\/\/api.spotify.com\/v1\/playlists\/6M2I9fcjqpMaVRFLLZlVJa\/tracks",
+        "total": 103
+    },
+    "type": "playlist",
+    "uri": "spotify:playlist:6M2I9fcjqpMaVRFLLZlVJa",
+    "username": "paul"
+}, {
+    "collaborative": true,
+    "description": "",
+    "external_urls": {
+        "spotify": "https:\/\/open.spotify.com\/playlist\/0nwrErl4E9EBfoePMB3UXy"
+    },
+    "href": "https:\/\/api.spotify.com\/v1\/playlists\/0nwrErl4E9EBfoePMB3UXy",
+    "id": "0nwrErl4E9EBfoePMB3UXy",
+    "images": [{
+        "height": 640,
+        "url": "https:\/\/mosaic.scdn.co\/640\/ab67616d0000b2732ed326786e4c61c6b1dbf222ab67616d0000b2734a0ccebdb023ad701f859ed8ab67616d0000b2735c8cfe4b2c4aa89c9c92108eab67616d0000b27366c3eb32692a0ae487079cf1",
+        "width": 640
+    }, {
+        "height": 300,
+        "url": "https:\/\/mosaic.scdn.co\/300\/ab67616d0000b2732ed326786e4c61c6b1dbf222ab67616d0000b2734a0ccebdb023ad701f859ed8ab67616d0000b2735c8cfe4b2c4aa89c9c92108eab67616d0000b27366c3eb32692a0ae487079cf1",
+        "width": 300
+    }, {
+        "height": 60,
+        "url": "https:\/\/mosaic.scdn.co\/60\/ab67616d0000b2732ed326786e4c61c6b1dbf222ab67616d0000b2734a0ccebdb023ad701f859ed8ab67616d0000b2735c8cfe4b2c4aa89c9c92108eab67616d0000b27366c3eb32692a0ae487079cf1",
+        "width": 60
+    }],
+    "name": "Familly",
+    "owner": {
+        "display_name": "paulwissemberg1",
+        "external_urls": {
+            "spotify": "https:\/\/open.spotify.com\/user\/paulwissemberg1"
+        },
+        "href": "https:\/\/api.spotify.com\/v1\/users\/paulwissemberg1",
+        "id": "paulwissemberg1",
+        "type": "user",
+        "uri": "spotify:user:paulwissemberg1"
+    },
+    "primary_color": null,
+    "public": false,
+    "snapshot_id": "NjEsMzBjMmQyNGVmY2ZhYWI4ZjdmMWI1MWYyYmQxMTY0NzU2ZjJhNmI5Nw==",
+    "tracks": {
+        "href": "https:\/\/api.spotify.com\/v1\/playlists\/0nwrErl4E9EBfoePMB3UXy\/tracks",
+        "total": 53
+    },
+    "type": "playlist",
+    "uri": "spotify:playlist:0nwrErl4E9EBfoePMB3UXy",
+    "username": "paul"
+}, {
+    "collaborative": false,
+    "description": "",
+    "external_urls": {
+        "spotify": "https:\/\/open.spotify.com\/playlist\/4AORxF8bAWa58AdnS8w18a"
+    },
+    "href": "https:\/\/api.spotify.com\/v1\/playlists\/4AORxF8bAWa58AdnS8w18a",
+    "id": "4AORxF8bAWa58AdnS8w18a",
+    "images": [{
+        "height": 640,
+        "url": "https:\/\/mosaic.scdn.co\/640\/ab67616d0000b2733862d62a50dc6b928651bdebab67616d0000b273444d1ba6cd088e28bccee374ab67616d0000b2735c8cfe4b2c4aa89c9c92108eab67616d0000b273e14f11f796cef9f9a82691a7",
+        "width": 640
+    }, {
+        "height": 300,
+        "url": "https:\/\/mosaic.scdn.co\/300\/ab67616d0000b2733862d62a50dc6b928651bdebab67616d0000b273444d1ba6cd088e28bccee374ab67616d0000b2735c8cfe4b2c4aa89c9c92108eab67616d0000b273e14f11f796cef9f9a82691a7",
+        "width": 300
+    }, {
+        "height": 60,
+        "url": "https:\/\/mosaic.scdn.co\/60\/ab67616d0000b2733862d62a50dc6b928651bdebab67616d0000b273444d1ba6cd088e28bccee374ab67616d0000b2735c8cfe4b2c4aa89c9c92108eab67616d0000b273e14f11f796cef9f9a82691a7",
+        "width": 60
+    }],
+    "name": "2010s",
+    "owner": {
+        "display_name": "paulwissemberg1",
+        "external_urls": {
+            "spotify": "https:\/\/open.spotify.com\/user\/paulwissemberg1"
+        },
+        "href": "https:\/\/api.spotify.com\/v1\/users\/paulwissemberg1",
+        "id": "paulwissemberg1",
+        "type": "user",
+        "uri": "spotify:user:paulwissemberg1"
+    },
+    "primary_color": null,
+    "public": true,
+    "snapshot_id": "MjAzLGFiMWUxZWQyN2NmNDIyZGNiMzc4OGQ4MmMwOGI4ZTEzN2ZjNGM5NmM=",
+    "tracks": {
+        "href": "https:\/\/api.spotify.com\/v1\/playlists\/4AORxF8bAWa58AdnS8w18a\/tracks",
+        "total": 130
+    },
+    "type": "playlist",
+    "uri": "spotify:playlist:4AORxF8bAWa58AdnS8w18a",
+    "username": "paul"
+}]
