@@ -1,1 +1,85 @@
-[{"collaborative":false,"description":"","external_urls":{"spotify":"https:\/\/open.spotify.com\/playlist\/3xkdw84I8axSBKjOf0hysB"},"href":"https:\/\/api.spotify.com\/v1\/playlists\/3xkdw84I8axSBKjOf0hysB","id":"3xkdw84I8axSBKjOf0hysB","images":[{"height":640,"url":"https:\/\/mosaic.scdn.co\/640\/ab67616d0000b2733a117e13ab1ddc1773b0fab0ab67616d0000b2733bf8ce7eb3ceb6847ba1ab65ab67616d0000b273a4f0f45e94c1a6ff37b76f26ab67616d0000b273af770a3e65634b9ed7b00e8c","width":640},{"height":300,"url":"https:\/\/mosaic.scdn.co\/300\/ab67616d0000b2733a117e13ab1ddc1773b0fab0ab67616d0000b2733bf8ce7eb3ceb6847ba1ab65ab67616d0000b273a4f0f45e94c1a6ff37b76f26ab67616d0000b273af770a3e65634b9ed7b00e8c","width":300},{"height":60,"url":"https:\/\/mosaic.scdn.co\/60\/ab67616d0000b2733a117e13ab1ddc1773b0fab0ab67616d0000b2733bf8ce7eb3ceb6847ba1ab65ab67616d0000b273a4f0f45e94c1a6ff37b76f26ab67616d0000b273af770a3e65634b9ed7b00e8c","width":60}],"name":"Nice","owner":{"display_name":"Blackangoo","external_urls":{"spotify":"https:\/\/open.spotify.com\/user\/40m2a55hq88nu986d5cn4ft04"},"href":"https:\/\/api.spotify.com\/v1\/users\/40m2a55hq88nu986d5cn4ft04","id":"40m2a55hq88nu986d5cn4ft04","type":"user","uri":"spotify:user:40m2a55hq88nu986d5cn4ft04"},"primary_color":null,"public":true,"snapshot_id":"MjcsYTFkNDIwZjczOWEwOWE0YjZlYjc0NzI3ZDkyMDc0ODcwMjJjYmY3ZA==","tracks":{"href":"https:\/\/api.spotify.com\/v1\/playlists\/3xkdw84I8axSBKjOf0hysB\/tracks","total":25},"type":"playlist","uri":"spotify:playlist:3xkdw84I8axSBKjOf0hysB","username":"arthur"},{"collaborative":false,"description":"","external_urls":{"spotify":"https:\/\/open.spotify.com\/playlist\/1FemkFZVKKZ5JbzxutuYcr"},"href":"https:\/\/api.spotify.com\/v1\/playlists\/1FemkFZVKKZ5JbzxutuYcr","id":"1FemkFZVKKZ5JbzxutuYcr","images":[{"height":640,"url":"https:\/\/mosaic.scdn.co\/640\/ab67616d0000b27308a1b1e0674086d3f1995e1bab67616d0000b2733ac318439ae56ce048d7bf5dab67616d0000b2734cb163c1d111f77307c842b6ab67616d0000b2739a482180e6a306229bff49dc","width":640},{"height":300,"url":"https:\/\/mosaic.scdn.co\/300\/ab67616d0000b27308a1b1e0674086d3f1995e1bab67616d0000b2733ac318439ae56ce048d7bf5dab67616d0000b2734cb163c1d111f77307c842b6ab67616d0000b2739a482180e6a306229bff49dc","width":300},{"height":60,"url":"https:\/\/mosaic.scdn.co\/60\/ab67616d0000b27308a1b1e0674086d3f1995e1bab67616d0000b2733ac318439ae56ce048d7bf5dab67616d0000b2734cb163c1d111f77307c842b6ab67616d0000b2739a482180e6a306229bff49dc","width":60}],"name":"Rock","owner":{"display_name":"Blackangoo","external_urls":{"spotify":"https:\/\/open.spotify.com\/user\/40m2a55hq88nu986d5cn4ft04"},"href":"https:\/\/api.spotify.com\/v1\/users\/40m2a55hq88nu986d5cn4ft04","id":"40m2a55hq88nu986d5cn4ft04","type":"user","uri":"spotify:user:40m2a55hq88nu986d5cn4ft04"},"primary_color":null,"public":true,"snapshot_id":"MTIzLDEyNTE3MGZiMTJkNGYwOGYyYjNiZjllYzM4NjFiNjlhYjY5NjYyNTQ=","tracks":{"href":"https:\/\/api.spotify.com\/v1\/playlists\/1FemkFZVKKZ5JbzxutuYcr\/tracks","total":89},"type":"playlist","uri":"spotify:playlist:1FemkFZVKKZ5JbzxutuYcr","username":"arthur"}]
+[{
+    "collaborative": false,
+    "description": "",
+    "external_urls": {
+        "spotify": "https:\/\/open.spotify.com\/playlist\/3xkdw84I8axSBKjOf0hysB"
+    },
+    "href": "https:\/\/api.spotify.com\/v1\/playlists\/3xkdw84I8axSBKjOf0hysB",
+    "id": "3xkdw84I8axSBKjOf0hysB",
+    "images": [{
+        "height": 640,
+        "url": "https:\/\/mosaic.scdn.co\/640\/ab67616d0000b2733a117e13ab1ddc1773b0fab0ab67616d0000b2733bf8ce7eb3ceb6847ba1ab65ab67616d0000b273a4f0f45e94c1a6ff37b76f26ab67616d0000b273af770a3e65634b9ed7b00e8c",
+        "width": 640
+    }, {
+        "height": 300,
+        "url": "https:\/\/mosaic.scdn.co\/300\/ab67616d0000b2733a117e13ab1ddc1773b0fab0ab67616d0000b2733bf8ce7eb3ceb6847ba1ab65ab67616d0000b273a4f0f45e94c1a6ff37b76f26ab67616d0000b273af770a3e65634b9ed7b00e8c",
+        "width": 300
+    }, {
+        "height": 60,
+        "url": "https:\/\/mosaic.scdn.co\/60\/ab67616d0000b2733a117e13ab1ddc1773b0fab0ab67616d0000b2733bf8ce7eb3ceb6847ba1ab65ab67616d0000b273a4f0f45e94c1a6ff37b76f26ab67616d0000b273af770a3e65634b9ed7b00e8c",
+        "width": 60
+    }],
+    "name": "Nice",
+    "owner": {
+        "display_name": "Blackangoo",
+        "external_urls": {
+            "spotify": "https:\/\/open.spotify.com\/user\/40m2a55hq88nu986d5cn4ft04"
+        },
+        "href": "https:\/\/api.spotify.com\/v1\/users\/40m2a55hq88nu986d5cn4ft04",
+        "id": "40m2a55hq88nu986d5cn4ft04",
+        "type": "user",
+        "uri": "spotify:user:40m2a55hq88nu986d5cn4ft04"
+    },
+    "primary_color": null,
+    "public": true,
+    "snapshot_id": "MjcsYTFkNDIwZjczOWEwOWE0YjZlYjc0NzI3ZDkyMDc0ODcwMjJjYmY3ZA==",
+    "tracks": {
+        "href": "https:\/\/api.spotify.com\/v1\/playlists\/3xkdw84I8axSBKjOf0hysB\/tracks",
+        "total": 25
+    },
+    "type": "playlist",
+    "uri": "spotify:playlist:3xkdw84I8axSBKjOf0hysB",
+    "username": "arthur"
+}, {
+    "collaborative": false,
+    "description": "",
+    "external_urls": {
+        "spotify": "https:\/\/open.spotify.com\/playlist\/1FemkFZVKKZ5JbzxutuYcr"
+    },
+    "href": "https:\/\/api.spotify.com\/v1\/playlists\/1FemkFZVKKZ5JbzxutuYcr",
+    "id": "1FemkFZVKKZ5JbzxutuYcr",
+    "images": [{
+        "height": 640,
+        "url": "https:\/\/mosaic.scdn.co\/640\/ab67616d0000b27308a1b1e0674086d3f1995e1bab67616d0000b2733ac318439ae56ce048d7bf5dab67616d0000b2734cb163c1d111f77307c842b6ab67616d0000b2739a482180e6a306229bff49dc",
+        "width": 640
+    }, {
+        "height": 300,
+        "url": "https:\/\/mosaic.scdn.co\/300\/ab67616d0000b27308a1b1e0674086d3f1995e1bab67616d0000b2733ac318439ae56ce048d7bf5dab67616d0000b2734cb163c1d111f77307c842b6ab67616d0000b2739a482180e6a306229bff49dc",
+        "width": 300
+    }, {
+        "height": 60,
+        "url": "https:\/\/mosaic.scdn.co\/60\/ab67616d0000b27308a1b1e0674086d3f1995e1bab67616d0000b2733ac318439ae56ce048d7bf5dab67616d0000b2734cb163c1d111f77307c842b6ab67616d0000b2739a482180e6a306229bff49dc",
+        "width": 60
+    }],
+    "name": "Rock",
+    "owner": {
+        "display_name": "Blackangoo",
+        "external_urls": {
+            "spotify": "https:\/\/open.spotify.com\/user\/40m2a55hq88nu986d5cn4ft04"
+        },
+        "href": "https:\/\/api.spotify.com\/v1\/users\/40m2a55hq88nu986d5cn4ft04",
+        "id": "40m2a55hq88nu986d5cn4ft04",
+        "type": "user",
+        "uri": "spotify:user:40m2a55hq88nu986d5cn4ft04"
+    },
+    "primary_color": null,
+    "public": true,
+    "snapshot_id": "MTIzLDEyNTE3MGZiMTJkNGYwOGYyYjNiZjllYzM4NjFiNjlhYjY5NjYyNTQ=",
+    "tracks": {
+        "href": "https:\/\/api.spotify.com\/v1\/playlists\/1FemkFZVKKZ5JbzxutuYcr\/tracks",
+        "total": 89
+    },
+    "type": "playlist",
+    "uri": "spotify:playlist:1FemkFZVKKZ5JbzxutuYcr",
+    "username": "arthur"
+}]

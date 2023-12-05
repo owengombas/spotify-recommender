@@ -63,6 +63,13 @@ class SpotiUser:
         self._username: str = username
         self._scope = DEFAULT_SCOPE
         self._sp: spotipy.Spotify = None
+    
+    def infos(self) -> pd.DataFrame:
+        result = self.sp.current_user()
+        return pd.DataFrame([result])
+    
+    def get_email(self) -> str:
+        return self.infos()["email"].iloc[0]
 
     def load_top_tracks(
         self,
