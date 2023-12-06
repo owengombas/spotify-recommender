@@ -1,21 +1,30 @@
-import numpy as np
+import torch
 import pandas as pd
 from typing import List
+import numpy as np
 
 
 class MatrixDataset:
-    _R: np.ndarray
+    _R: torch.Tensor  # Changed to a PyTorch Tensor
 
     @property
-    def R(self) -> np.ndarray:
+    def R(self) -> torch.Tensor:
         return self._R
 
     @property
-    def sorted_R(self) -> np.ndarray:
-        I = np.argsort(self._R, axis=1)
+    def sorted_R(self) -> torch.Tensor:
+        I = torch.argsort(self.R, axis=1)  # Convert to dense for sorting
         return I
 
-    def __init__(self, df: pd.DataFrame, user_col: str, item_col: str, value_col: str):
+    def __init__(
+        self,
+        df: pd.DataFrame,
+        user_col: str,
+        item_col: str,
+        value_col: str,
+        device: str = "cpu",
+        dtype: torch.dtype = torch.float32,
+    ):
         # A matrix of shape (num_users, num_items)
         self._user_col = user_col
         self._item_col = item_col
@@ -28,19 +37,22 @@ class MatrixDataset:
         num_users = len(self._df[user_col].cat.categories)
         num_items = len(self._df[item_col].cat.categories)
 
-        self._R = np.zeros((num_users, num_items))
+        # Vectorized creation of rows and cols
+        user_ids = self._df[user_col].cat.codes
+        item_ids = self._df[item_col].cat.codes
+        values = self._df[value_col]
 
-        for _, row in self._df.iterrows():
-            # We use the codes to get the index of the category
-            user_id = self.usernames_to_ids([row[user_col]])[0]
-            item_id = self.items_to_ids([row[item_col]])[0]
-            self._R[user_id, item_id] = row[value_col]
+        # Create sparse tensor
+        indices = torch.LongTensor(np.array([user_ids, item_ids]))
+        values = torch.FloatTensor(values.values)
+        self._R = torch.sparse_coo_tensor(indices, values, (num_users, num_items))
+        self._R = self._R.to_dense().to(device=device, dtype=dtype)
 
     def compute_alpha(self):
-        alpha = len(np.where(self.R == 0)[0]) / self.R.sum()
+        alpha = (torch.numel(self.R) - torch.count_nonzero(self.R)) / self.R.sum()
         return alpha
 
-    def get_user(self, user_id: int) -> np.ndarray:
+    def get_user(self, user_id: int) -> torch.Tensor:
         """
         Returns the user vector.
         :param user_id: The user id.
@@ -48,7 +60,7 @@ class MatrixDataset:
         """
         return self._R[user_id]
 
-    def get_item(self, item_id: int) -> np.ndarray:
+    def get_item(self, item_id: int) -> torch.Tensor:
         """
         Returns the item vector.
         :param item_id: The item id.
@@ -104,8 +116,10 @@ class MatrixDataset:
         return self._df[self._df[self._item_col].cat.codes.isin(ids)][
             self._item_col
         ].tolist()
-    
-    def items_ids_to_df(self, ids: List[int], score: List[float] = None) -> pd.DataFrame:
+
+    def items_ids_to_df(
+        self, ids: List[int], score: List[float] = None
+    ) -> pd.DataFrame:
         """
         Retrieve the items of the given ids and score from the dataframe.
         :param ids: The ids.
@@ -114,7 +128,7 @@ class MatrixDataset:
         """
         df = self._df[self._df[self._item_col].cat.codes.isin(ids)]
         if score is not None:
-            df['score'] = score
+            df["score"] = score
         return df
 
     def __str__(self):

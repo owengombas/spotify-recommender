@@ -105,7 +105,9 @@ class LogisticMatrixFactorization(nn.Module):
         total_interactions = torch.sum(self.R)
 
         # Create a tensor for percentile ranks (shape: num_items)
-        percentile_ranks = torch.arange(num_items, dtype=self.dtype, device=self.device) / num_items
+        percentile_ranks = (
+            torch.arange(num_items, dtype=self.dtype, device=self.device) / num_items
+        )
 
         # Use I to index into R and rearrange it, then multiply by the percentile ranks
         # Reshape and expand percentile ranks to match the shape of R
@@ -438,6 +440,7 @@ class LogisticMatrixFactorization(nn.Module):
             os.path.join(path, f"{name}.pt"),
         )
 
+    @staticmethod
     def load(path: str):
         """
         Loads the model.
