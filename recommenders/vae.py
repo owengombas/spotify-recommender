@@ -227,8 +227,9 @@ class MultiVAE(nn.Module):
         self.train()
         
         global_step = 0
-        self.mprs = torch.zeros(num_epochs // log_interval, dtype=self.dtype, device=self.device)
-        self.losses = torch.zeros(num_epochs // log_interval, dtype=self.dtype, device=self.device)
+
+        self.losses = torch.zeros(num_epochs * len(train_loader) // log_interval, dtype=self.dtype, device=self.device)
+        self.mprs = torch.zeros(num_epochs * len(train_loader) // log_interval, dtype=self.dtype, device=self.device)
 
         for epoch in range(num_epochs):
             for batch in train_loader:
@@ -238,7 +239,7 @@ class MultiVAE(nn.Module):
 
                 # Annealing schedule
                 anneal = torch.min(
-                    torch.tensor([max_anneal, (global_step + 1) / anneal_steps])
+                    torch.tensor([max_anneal, (global_step + 1) / anneal_steps], dtype=self.dtype, device=self.device)
                 )
 
                 # Forward pass

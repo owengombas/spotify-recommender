@@ -179,3 +179,12 @@ def plot_multivariate_gaussian_image_with_labels(
     plt.ylabel("Latent Variable 2")
     plt.title("Latent Space Representation with User Labels")
     plt.show()
+
+def plot_user_similarities_matrix(matrix: pd.DataFrame, figsize=(50, 50)):
+    plt.figure(figsize=figsize)
+    mask = np.triu(np.ones_like(matrix, dtype=bool))
+    sns.heatmap(matrix, annot=False, cmap='viridis', mask=mask)
+    plt.title("User Track Common Percentage Heatmap")
+    plt.ylabel("User")
+    plt.xlabel("Other User")
+    plt.show()

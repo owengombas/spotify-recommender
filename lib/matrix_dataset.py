@@ -133,8 +133,9 @@ class MatrixDataset:
         :param item_ids: The list of item ids.
         :return: The dataframe of the items.
         """
-        df_items = self._df[self._item_col].cat.categories
-        return df_items[item_ids].reset_index(drop=True).to_frame(self._item_col)
+        # Retrieve the rows of the items from the dataframe
+        df_items = self._df[self._df[self._item_col].cat.codes.isin(item_ids)]
+        return df_items
     
     def user_interacted_with(self, user_id: int) -> List[int]:
         """
