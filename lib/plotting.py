@@ -6,6 +6,7 @@ import numpy as np
 import plotly.express as px
 import plotly.graph_objects as go
 from lib import spoti
+import matplotlib.colors as mcolors
 
 
 def plot_feature_distribution(
@@ -109,3 +110,72 @@ def plot_column_distributions(
     plt.xticks(rotation=90)
 
     return fig
+
+
+def plot_multivariate_gaussian_image_with_labels(
+    means, variances, labels, color_map="viridis", num_points=1000, figsize=(10, 10)
+):
+    # Create a grid of points
+    x = np.linspace(
+        np.min(means[:, 0]) - 3 * np.sqrt(np.max(variances[:, 0])),
+        np.max(means[:, 0]) + 3 * np.sqrt(np.max(variances[:, 0])),
+        num_points,
+    )
+    y = np.linspace(
+        np.min(means[:, 1]) - 3 * np.sqrt(np.max(variances[:, 1])),
+        np.max(means[:, 1]) + 3 * np.sqrt(np.max(variances[:, 1])),
+        num_points,
+    )
+    X, Y = np.meshgrid(x, y)
+
+    # Initialize a blank image
+    image = np.zeros(X.shape)
+
+    # Plot each gaussian
+    for mean, variance in zip(means, variances):
+        # Calculate the Z values (probabilities) for each X, Y in the grid
+        Z = (
+            1.0
+            / (2.0 * np.pi * np.sqrt(variance[0] * variance[1]))
+            * np.exp(
+                -(
+                    (X - mean[0]) ** 2 / (2 * variance[0])
+                    + (Y - mean[1]) ** 2 / (2 * variance[1])
+                )
+            )
+        )
+        # Add the Z values to the image
+        image += Z
+
+    # Normalize the image to get values between 0 and 1
+    image = image / np.max(image)
+
+    # Plot the image
+    plt.figure(figsize=figsize)
+
+    plt.imshow(
+        image,
+        extent=(np.min(x), np.max(x), np.min(y), np.max(y)),
+        origin="lower",
+        cmap=color_map,
+        norm=mcolors.PowerNorm(gamma=1.0 / 2.0),
+    )
+
+    # Add labels near each mean
+    for mean, label in zip(means, labels):
+        plt.text(
+            mean[0] - 0.5,
+            mean[1],
+            label,
+            fontsize=8,
+            ha="right",
+            va="bottom",
+            color="white",
+            bbox=dict(facecolor="black", alpha=0.5, boxstyle="round"),
+        )
+
+    plt.colorbar()
+    plt.xlabel("Latent Variable 1")
+    plt.ylabel("Latent Variable 2")
+    plt.title("Latent Space Representation with User Labels")
+    plt.show()

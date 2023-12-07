@@ -79,57 +79,71 @@ class MatrixDataset:
 
     def usernames_to_ids(self, usernames: List[str]) -> List[int]:
         """
-        Returns the ids of the given usernames.
-        :param usernames: The usernames.
-        :return: The ids.
+        From the category values of the users column, returns the corresponding ids.
+        :param usernames: The list of usernames.
+        :return: The list of ids.
         """
-        return self._df[self._df[self._user_col].isin(usernames)][
-            self._user_col
-        ].cat.codes.tolist()
-
+        df_users = self._df[self._user_col].cat.categories
+        return df_users.get_indexer(usernames)
+    
+    def itemnames_to_ids(self, itemnames: List[str]) -> List[int]:
+        """
+        From the category values of the items column, returns the corresponding ids.
+        :param itemnames: The list of itemnames.
+        :return: The list of ids.
+        """
+        df_items = self._df[self._item_col].cat.categories
+        return df_items.get_indexer(itemnames)
+    
     def ids_to_usernames(self, ids: List[int]) -> List[str]:
         """
-        Returns the usernames of the given ids.
-        :param ids: The ids.
-        :return: The usernames.
+        From the category values of the users column, returns the corresponding usernames.
+        :param ids: The list of ids.
+        :return: The list of usernames.
         """
-        return self._df[self._df[self._user_col].cat.codes.isin(ids)][
-            self._user_col
-        ].tolist()
-
-    def items_to_ids(self, items: List[str]) -> List[int]:
+        df_users = self._df[self._user_col].cat.categories
+        return df_users[ids].tolist()
+    
+    def ids_to_itemnames(self, ids: List[int]) -> List[str]:
         """
-        Returns the ids of the given items.
-        :param items: The items.
-        :return: The ids.
+        From the category values of the items column, returns the corresponding itemnames.
+        :param ids: The list of ids.
+        :return: The list of itemnames.
         """
-        return self._df[self._df[self._item_col].isin(items)][
-            self._item_col
-        ].cat.codes.tolist()
-
-    def ids_to_items(self, ids: List[int]) -> List[str]:
+        df_items = self._df[self._item_col].cat.categories
+        return df_items[ids].tolist()
+    
+    def get_usernames(self) -> List[str]:
         """
-        Returns the items of the given ids.
-        :param ids: The ids.
-        :return: The items.
+        Returns the list of usernames.
+        :return: The list of usernames.
         """
-        return self._df[self._df[self._item_col].cat.codes.isin(ids)][
-            self._item_col
-        ].tolist()
-
-    def items_ids_to_df(
-        self, ids: List[int], score: List[float] = None
-    ) -> pd.DataFrame:
+        return self._df[self._user_col].cat.categories.tolist()
+    
+    def get_itemnames(self) -> List[str]:
         """
-        Retrieve the items of the given ids and score from the dataframe.
-        :param ids: The ids.
-        :param score: The score.
-        :return: The dataframe.
+        Returns the list of itemnames.
+        :return: The list of itemnames.
         """
-        df = self._df[self._df[self._item_col].cat.codes.isin(ids)]
-        if score is not None:
-            df["score"] = score
-        return df
+        return self._df[self._item_col].cat.categories.tolist()
+    
+    def item_ids_to_df(self, item_ids: List[int]) -> pd.DataFrame:
+        """
+        Returns the dataframe of the items.
+        :param item_ids: The list of item ids.
+        :return: The dataframe of the items.
+        """
+        df_items = self._df[self._item_col].cat.categories
+        return df_items[item_ids].reset_index(drop=True).to_frame(self._item_col)
+    
+    def user_interacted_with(self, user_id: int) -> List[int]:
+        """
+        Returns the list of item ids that the user interacted with.
+        :param user_id: The user id.
+        :return: A binary vector of the items the user interacted with.
+        """
+        interacted = self._R[user_id].nonzero().squeeze()
+        return interacted
 
     def __str__(self):
         return str(self._R)
