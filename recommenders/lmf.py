@@ -8,113 +8,116 @@ from torch.utils.data import Dataset, DataLoader
 from tqdm import tqdm
 import os
 
-
 class LogisticMatrixFactorization(nn.Module):
     """
-    Logistic Matrix Factorization model.
+    Matrix Factorization model with logistic loss.
     """
-
-    @property
-    def name(self) -> str:
-        s = f"LMF_"
-        s += f"{self.num_users}_"
-        s += f"{self.num_items}_"
-        s += f"{self.num_factors}_"
-        s += f"{self.alpha}_"
-        s += f"{self.lambd}_"
-        s += f"{self.device}_"
-        s += f"{self.name_suffix}"
-
-        if s[-1] == "_":
-            s = s[:-1]
-
-        return s
 
     def __init__(
         self,
-        R: torch.tensor,
+        counts: torch.Tensor,
         num_factors: int,
-        alpha: float,
-        lambd: float,
+        reg_param: float,
         device: str = "cpu",
         dtype: torch.dtype = torch.float64,
         name_suffix: str = "",
     ):
         """
         Constructor.
-        :param num_users: The number of users.
-        :param num_items: The number of items.
+        :param R: The matrix of interactions.
         :param num_factors: The number of latent factors.
+        :param alpha: The alpha parameter.
+        :param lambd: The lambda parameter.
+        :param device: The device for computations (e.g., "cpu" or "cuda").
+        :param dtype: The data type for tensors (e.g., torch.float32 or torch.float64).
+        :param name_suffix: A suffix to add to the model's name.
         """
         super(LogisticMatrixFactorization, self).__init__()
 
-        self.num_users, self.num_items = R.shape
+        self.counts = counts
+        self.num_users, self.num_items = counts.shape
         self.num_factors = num_factors
-        self.alpha = alpha
-        self.lambd = lambd
+        self.reg_param = reg_param
         self.device = device
         self.name_suffix = name_suffix
         self.dtype = dtype
 
-        # Initialize the latent vectors
-        self.R = R
-        self.X = torch.randn(
-            self.num_users, self.num_factors, dtype=dtype, device=device
-        )
-        self.Y = torch.randn(
-            self.num_items, self.num_factors, dtype=dtype, device=device
-        )
+        self.num_factors = num_factors
 
-        # Initialize the biases
-        self.beta_u = torch.randn(self.num_users, dtype=dtype, device=device)
-        self.beta_i = torch.randn(self.num_items, dtype=dtype, device=device)
+        self.ones = torch.ones((self.num_users, self.num_items), dtype=self.dtype, device=self.device, requires_grad=False)
+        self.user_vectors = nn.Parameter(torch.randn(self.num_users, num_factors, dtype=self.dtype, device=self.device), requires_grad=False)
+        self.item_vectors = nn.Parameter(torch.randn(self.num_items, num_factors, dtype=self.dtype, device=self.device), requires_grad=False)
+        self.user_biases = nn.Parameter(torch.randn(self.num_users, 1, dtype=self.dtype, device=self.device), requires_grad=False)
+        self.item_biases = nn.Parameter(torch.randn(self.num_items, 1, dtype=self.dtype, device=self.device), requires_grad=False)
 
-        self.mprs = torch.zeros(0, dtype=dtype, device=device)
-        self.losses = torch.zeros(0, dtype=dtype, device=device)
+        self.losses = torch.zeros(0, dtype=self.dtype, device=self.device, requires_grad=False)
+        self.mprs = torch.zeros(0, dtype=self.dtype, device=self.device, requires_grad=False)
 
-    def loss(self) -> torch.Tensor:
+        self.to(self.device)
+
+    def forward(self, user: bool = True) -> Tuple[torch.Tensor, torch.Tensor]:
         """
-        Computes the loss function.
-        :param R: The matrix of interactions.
-        :param alpha: The alpha parameter.
-        :param lambd: The lambda parameter.
-        :return: The loss value.
+        Compute derivatives for either users or items.
+        :param user: If True, compute derivatives for users; otherwise, compute derivatives for items.
+        :return: Tuple of derivatives for latent vectors and biases.
         """
-        # Compute the product x_u * y_i^T + beta_u + beta_i for all user-item pairs
-        user_item_interactions = (
-            torch.matmul(self.X, self.Y.t())
-            + self.beta_u[:, None]
-            + self.beta_i[None, :]
-        )
+        if user:
+            vec_deriv = torch.matmul(self.counts, self.item_vectors)
+            bias_deriv = torch.unsqueeze(torch.sum(self.counts, axis=1), dim=1)
+        else:
+            vec_deriv = torch.matmul(self.counts.t(), self.user_vectors)
+            bias_deriv = torch.unsqueeze(torch.sum(self.counts, axis=0), dim=1)
 
-        # Compute the log posterior term by term
-        log_posterior = torch.sum(
-            self.alpha * self.R * user_item_interactions
-            - (1 + self.alpha * self.R) * torch.log1p(torch.exp(user_item_interactions))
-        )
+        A = torch.mm(self.user_vectors, self.item_vectors.t())
+        A += self.user_biases
+        A += self.item_biases.t()
+        A = torch.exp(A)
+        A /= (A + self.ones)
+        A = (self.counts + self.ones) * A
 
-        # Subtract regularization terms
-        log_posterior -= (
-            self.lambd / 2 * (torch.sum(self.X**2) + torch.sum(self.Y**2))
-        )
+        if user:
+            vec_deriv -= torch.mm(A, self.item_vectors)
+            bias_deriv -= torch.unsqueeze(torch.sum(A, axis=1), dim=1)
+            # L2 regularization
+            vec_deriv -= self.reg_param * self.user_vectors
+        else:
+            vec_deriv -= torch.mm(A.t(), self.user_vectors)
+            bias_deriv -= torch.unsqueeze(torch.sum(A, axis=0), dim=1)
+            # L2 regularization
+            vec_deriv -= self.reg_param * self.item_vectors
 
-        return -log_posterior.item()
+        return vec_deriv, bias_deriv
+
+    def log_likelihood(self):  
+        loglik = 0
+        A = torch.mm(self.user_vectors, self.item_vectors.t())
+        A += self.user_biases
+        A += self.item_biases.t()
+        B = A * self.counts
+        loglik += torch.sum(B)
+
+        A = torch.exp(A)
+        A += self.ones
+
+        A = torch.log(A)
+        A = (self.counts + self.ones) * A
+        loglik -= torch.sum(A)
+
+        # L2 regularization
+        loglik -= 0.5 * self.reg_param * torch.sum(torch.square(self.user_vectors))
+        loglik -= 0.5 * self.reg_param * torch.sum(torch.square(self.item_vectors))
+        return loglik
 
     def mpr(self, I: torch.Tensor) -> float:
-        num_users, num_items = self.R.shape
-        total_interactions = torch.sum(self.R)
+        num_users, num_items = self.counts.shape
+        total_interactions = torch.sum(self.counts)
 
-        # Create a tensor for percentile ranks (shape: num_items)
         percentile_ranks = (
             torch.arange(num_items, dtype=self.dtype, device=self.device) / num_items
         )
 
-        # Use I to index into R and rearrange it, then multiply by the percentile ranks
-        # Reshape and expand percentile ranks to match the shape of R
-        # (shape of expanded percentile ranks: 1 x num_items)
-        weighted_ranks = self.R.gather(1, I) * percentile_ranks.expand(num_users, -1)
+        weighted_ranks = self.counts.gather(1, I) * percentile_ranks.expand(num_users, -1)
 
-        # Sum over all items and users, and normalize
         mpr = torch.sum(weighted_ranks) / total_interactions
 
         return mpr.item()
@@ -127,341 +130,128 @@ class LogisticMatrixFactorization(nn.Module):
         :return: The interaction.
         """
         return (
-            torch.matmul(self.X[user_id], self.Y[item_id].t())
-            + self.beta_u[user_id]
-            + self.beta_i[item_id]
+            torch.matmul(self.user_vectors[user_id], self.item_vectors[item_id].T)
+            + self.user_biases[user_id]
+            + self.item_biases[item_id]
         )
-
-    def predict_all(self) -> torch.Tensor:
+    
+    def predict_all(self, user: bool = True) -> torch.Tensor:
         """
-        Predicts the interactions for all users and items.
-        :return: The interaction matrix.
+        Predicts the interactions for all users or all items.
+        :param user: If True, return predictions for all users; otherwise, return predictions for all items.
+        :return: The matrix of interactions.
         """
-        return (
-            torch.matmul(self.X, self.Y.t())
-            + self.beta_u[:, None]
-            + self.beta_i[None, :]
-        )
+        if user:
+            return torch.matmul(self.user_vectors, self.item_vectors.T) + self.user_biases
+        else:
+            return torch.matmul(self.item_vectors, self.user_vectors.T) + self.item_biases
 
-    def get_user_latent_factors(self, user_id: int) -> torch.Tensor:
-        """
-        Returns the latent factors for a user.
-        :param user_id: The user id.
-        :return: The latent factors.
-        """
-        return self.X[user_id]
-
-    def get_item_latent_factors(self, item_id: int) -> torch.Tensor:
-        """
-        Returns the latent factors for an item.
-        :param item_id: The item id.
-        :return: The latent factors.
-        """
-        return self.Y[item_id]
-
-    def get_user_bias(self, user_id: int) -> float:
-        """
-        Returns the bias for a user.
-        :param user_id: The user id.
-        :return: The bias.
-        """
-        return self.beta_u[user_id]
-
-    def get_item_bias(self, item_id: int) -> float:
-        """
-        Returns the bias for an item.
-        :param item_id: The item id.
-        :return: The bias.
-        """
-        return self.beta_i[item_id]
-
-    def recommend(
-        self, user_id: int, top_k: int = 10, filter_user_items: bool = True
-    ) -> Tuple[List[int], List[float]]:
-        """
-        Recommends the top k items for a user.
-        :param user_id: The user id.
-        :param top_k: The number of items to recommend.
-        :param filter_user_items: Whether to filter the items that the user has already interacted with.
-        :return: The list of item ids and the list of scores.
-        """
-        # Get the predictions for the user
-        predictions = self.predict_all()[user_id]
-
-        # Filter the items that the user has already interacted with
-        if filter_user_items:
-            predictions[self.R[user_id] > 0] = float("-inf")
-
-        # Get the top k items
-        top_k_items = torch.topk(predictions, top_k)
-
-        return top_k_items.indices.tolist(), top_k_items.values.tolist()
-
-    def train_auto_gradients(
-        self, num_epochs: int, learning_rate: float, verbose: bool = True
-    ):
-        """
-        Trains the model.
-        :param num_epochs: The number of epochs.
-        :param learning_rate: The learning rate.
-        :param verbose: Whether to print the loss and MPR.
-        """
-        self.X.requires_grad_(True)
-        self.Y.requires_grad_(True)
-        self.beta_u.requires_grad_(True)
-        self.beta_i.requires_grad_(True)
-
-        # Initialize the optimizer which is adagrad
-        optimizer = optim.Adagrad(
-            [self.X, self.Y, self.beta_u, self.beta_i], lr=learning_rate
-        )
-
-        # Iterate over the epochs
-        for epoch in tqdm(range(num_epochs)):
-            # Fix X and B and take a step toward Y and B
-            self.X.requires_grad = False
-            self.Y.requires_grad = True
-            self.beta_u.requires_grad = False
-            self.beta_i.requires_grad = True
-            optimizer.zero_grad()
-            loss = self.loss()
-            loss.backward()
-            optimizer.step()
-
-            # Fix Y and B and take a step toward X and B
-            self.X.requires_grad = True
-            self.Y.requires_grad = False
-            self.beta_u.requires_grad = True
-            self.beta_i.requires_grad = False
-            optimizer.zero_grad()
-            loss = self.loss()
-            loss.backward()
-            optimizer.step()
-
-            # Compute the predictions
-            predictions = self.predict_all()
-
-            # Compute the MPR
-            I = torch.argsort(predictions, descending=True)
-            mpr = self.mpr(I)
-
-            # Save the loss and MPR
-            self.losses.append(loss)
-            self.mprs.append(mpr)
-
-            if verbose:
-                # Print the loss and MPR
-                print(f"Epoch {epoch + 1}: loss = {loss}, MPR = {mpr}")
-
-        self.X.requires_grad_(False)
-        self.Y.requires_grad_(False)
-        self.beta_u.requires_grad_(False)
-        self.beta_i.requires_grad_(False)
-
-    def train_with_gradients(
+    def train_model(
         self,
         num_epochs: int,
         learning_rate: float,
         verbose: bool = True,
         log_interval: int = 10,
+        tqdm: bool = True,
     ):
         """
-        Trains the model.
-        :param num_epochs: The number of epochs.
-        :param learning_rate: The learning rate.
-        :param verbose: Whether to print the loss and MPR.
+        Train the matrix factorization model.
+        :param num_epochs: Number of training epochs.
+        :param learning_rate: Learning rate for optimization.
+        :param verbose: If True, print progress.
+        :param log_interval: Interval for logging progress.
         """
-        # Initialize user and item latent factor matrices and bias vectors
-        self.X.requires_grad_(False)
-        self.Y.requires_grad_(False)
-        self.beta_u.requires_grad_(False)
-        self.beta_i.requires_grad_(False)
+        self.losses = torch.zeros(num_epochs // log_interval, dtype=self.dtype, device=self.device, requires_grad=False)
+        self.mprs = torch.zeros(num_epochs // log_interval, dtype=self.dtype, device=self.device, requires_grad=False)
 
-        grad_accumulator_X = torch.zeros_like(
-            self.X, dtype=self.dtype, device=self.device
-        )
-        grad_accumulator_Y = torch.zeros_like(
-            self.Y, dtype=self.dtype, device=self.device
-        )
+        optimizer = optim.Adagrad(self.parameters(), lr=learning_rate)
 
-        self.mprs = torch.zeros(
-            num_epochs // log_interval, dtype=self.dtype, device=self.device
-        )
-        self.losses = torch.zeros(
-            num_epochs // log_interval, dtype=self.dtype, device=self.device
-        )
+        user_vec_deriv_sum = torch.zeros((self.num_users, self.num_factors), device=self.device, dtype=self.dtype, requires_grad=False)
+        item_vec_deriv_sum = torch.zeros((self.num_items, self.num_factors), device=self.device, dtype=self.dtype, requires_grad=False)
+        user_bias_deriv_sum = torch.zeros((self.num_users, 1), device=self.device, dtype=self.dtype, requires_grad=False)
+        item_bias_deriv_sum = torch.zeros((self.num_items, 1), device=self.device, dtype=self.dtype, requires_grad=False)
+        for epoch in tqdm(range(num_epochs)) if tqdm else range(num_epochs):
+            optimizer.zero_grad()
 
-        for epoch in range(num_epochs):
-            # Iterative approach to computing gradients
-            #
-            # Fix X and B and take a step toward Y and B
-            # for i in range(self.num_items):
-            #     term1 = self.alpha * self.R[:, i][:, None]
+            # Fix items and solve for users
+            # take step towards gradient of deriv of log likelihood
+            # we take a step in positive direction because we are maximizing LL
+            user_vec_deriv, user_bias_deriv = self.forward(True)
+            user_vec_deriv_sum += torch.square(user_vec_deriv)
+            user_bias_deriv_sum += torch.square(user_bias_deriv)
+            vec_step_size = learning_rate / torch.sqrt(user_vec_deriv_sum)
+            bias_step_size = learning_rate / torch.sqrt(user_bias_deriv_sum)
+            self.user_vectors += vec_step_size * user_vec_deriv
+            self.user_biases += bias_step_size * user_bias_deriv
 
-            #     exp_term = torch.exp(
-            #         torch.matmul(self.Y[i], self.X.t()) + self.beta_u + self.beta_i[i]
-            #     )
-            #     exp_term = exp_term[:, None]
+            # Fix users and solve for items
+            # take step towards gradient of deriv of log likelihood
+            # we take a step in positive direction because we are maximizing LL
+            item_vec_deriv, item_bias_deriv = self.forward(False)
+            item_vec_deriv_sum += torch.square(item_vec_deriv)
+            item_bias_deriv_sum += torch.square(item_bias_deriv)
+            vec_step_size = learning_rate / torch.sqrt(item_vec_deriv_sum)
+            bias_step_size = learning_rate / torch.sqrt(item_bias_deriv_sum)
+            self.item_vectors += vec_step_size * item_vec_deriv
+            self.item_biases += bias_step_size * item_bias_deriv
 
-            #     gradients_Y = (
-            #         torch.sum(
-            #             term1 * self.X
-            #             - self.X * (1 + term1) * exp_term / (1 + exp_term),
-            #             dim=0,
-            #         )
-            #         - self.lambd * self.Y[i]
-            #     )
-            #     gradients_beta_i = torch.sum(
-            #         term1 - (1 + term1) * exp_term / (1 + exp_term), dim=0
-            #     ).squeeze()
+            if verbose and (epoch + 1) % log_interval == 0:
+                # We calculate the log-likelihood
+                loglik = -self.log_likelihood()
 
-            #     grad_accumulator_Y[i] += gradients_Y**2
-            #     self.Y[i] += (
-            #         learning_rate * gradients_Y / torch.sqrt(grad_accumulator_Y[i])
-            #     )
-            #     self.beta_i[i] += learning_rate * gradients_beta_i
-
-            # # Fix Y and B and take a step toward X and B
-            # for u in range(self.num_users):
-            #     term1 = self.alpha * self.R[u, :][:, None]
-
-            #     exp_term = torch.exp(
-            #         torch.matmul(self.X[u], self.Y.t()) + self.beta_u[u] + self.beta_i
-            #     )
-            #     exp_term = exp_term[:, None]
-
-            #     gradients_X = (
-            #         torch.sum(
-            #             term1 * self.Y
-            #             - self.Y * (1 + term1) * exp_term / (1 + exp_term),
-            #             dim=0,
-            #         )
-            #         - self.lambd * self.X[u]
-            #     )
-            #     gradients_beta_u = torch.sum(
-            #         term1 - (1 + term1) * exp_term / (1 + exp_term), dim=0
-            #     ).squeeze()
-
-            #     grad_accumulator_X[u] += gradients_X**2
-            #     self.X[u] += (
-            #         learning_rate * gradients_X / torch.sqrt(grad_accumulator_X[u])
-            #     )
-            #     self.beta_u[u] += learning_rate * gradients_beta_u
-
-            # Vectorized computation for Y and beta_i updates
-            term1_Y = self.alpha * self.R.t()[:, :, None]
-            exp_term_Y = torch.exp(
-                torch.matmul(self.Y, self.X.t()) + self.beta_u + self.beta_i[:, None]
-            )
-            exp_term_Y = exp_term_Y[:, :, None]
-
-            gradients_Y = (
-                torch.sum(
-                    term1_Y * self.X[None, :, :]
-                    - self.X[None, :, :]
-                    * (1 + term1_Y)
-                    * exp_term_Y
-                    / (1 + exp_term_Y),
-                    dim=1,
-                )
-                - self.lambd * self.Y
-            )
-            gradients_beta_i = torch.sum(
-                term1_Y - (1 + term1_Y) * exp_term_Y / (1 + exp_term_Y), dim=1
-            ).squeeze()
-
-            grad_accumulator_Y += gradients_Y**2
-            self.Y += learning_rate * gradients_Y / torch.sqrt(grad_accumulator_Y)
-            self.beta_i += learning_rate * gradients_beta_i
-
-            # Vectorized computation for X and beta_u updates
-            term1_X = self.alpha * self.R[:, :, None]
-            exp_term_X = torch.exp(
-                torch.matmul(self.X, self.Y.t()) + self.beta_u[:, None] + self.beta_i
-            )
-            exp_term_X = exp_term_X[:, :, None]
-
-            gradients_X = (
-                torch.sum(
-                    term1_X * self.Y[None, :, :]
-                    - self.Y[None, :, :]
-                    * (1 + term1_X)
-                    * exp_term_X
-                    / (1 + exp_term_X),
-                    dim=1,
-                )
-                - self.lambd * self.X
-            )
-            gradients_beta_u = torch.sum(
-                term1_X - (1 + term1_X) * exp_term_X / (1 + exp_term_X), dim=1
-            ).squeeze()
-
-            grad_accumulator_X += gradients_X**2
-            self.X += learning_rate * gradients_X / torch.sqrt(grad_accumulator_X)
-            self.beta_u += learning_rate * gradients_beta_u
-
-            if epoch % log_interval == 0:
-                loss = self.loss()
-                self.losses[epoch // log_interval] = loss
-
-                predictions = self.predict_all()
-                I = torch.argsort(predictions, descending=True, dim=1)
+                # We calculate the MPR
+                I = torch.argsort(self.predict_all(True), dim=1, descending=True)
                 mpr = self.mpr(I)
+
+                self.losses[epoch // log_interval] = loglik
                 self.mprs[epoch // log_interval] = mpr
 
-                if verbose:
-                    print(f"Epoch {epoch + 1}: loss = {loss}, MPR = {mpr}")
+                print(
+                    f"Epoch: {epoch+1}, log-likelihood: {loglik:.4f}, MPR: {mpr:.4f}"
+                )
+    
+    def recommend(self, user_id: int, top_k: int = 10, filter_user_items: bool = True) -> Tuple[List[int], List[float]]:
+        """
+        Recommends items for a user.
+        :param user_id: The user id.
+        :param top_k: The number of items to recommend.
+        :param filter_user_items: If True, items already interacted by the user are not recommended.
+        :return: Tuple of recommended items and their scores.
+        """
+        scores = self.predict_all(True)[user_id]
+        if filter_user_items:
+            scores[self.counts[user_id].bool()] = -np.inf
+        top_k_scores, top_k_items = torch.topk(scores, top_k)
+        return top_k_items.cpu().numpy(), top_k_scores.cpu().numpy()
+    
+    def get_item_factors(self, item_ids: List[int]) -> np.ndarray:
+        """
+        Returns the factors for a list of items.
+        :param item_ids: The list of item ids.
+        :return: The item factors.
+        """
+        return self.item_vectors[item_ids].detach().cpu().numpy()
+    
+    def get_user_factors(self, user_ids: List[int]) -> np.ndarray:
+        """
+        Returns the factors for a list of users.
+        :param user_ids: The list of user ids.
+        :return: The user factors.
+        """
+        return self.user_vectors[user_ids].detach().cpu().numpy()
 
-    def save(self, path: str, name: str = None):
+    def save(self, path: str, name: str = "model") -> None:
         """
         Saves the model.
-        :param path: The path to the file.
-        :param name: The name of the file.
+        :param path: The path to the directory where the model will be saved.
+        :param name: The name of the model.
         """
-        if name == None:
-            name = self.name
-
-        torch.save(
-            {
-                "R": self.R,
-                "num_factors": self.num_factors,
-                "alpha": self.alpha,
-                "lambd": self.lambd,
-                "X": self.X,
-                "Y": self.Y,
-                "beta_u": self.beta_u,
-                "beta_i": self.beta_i,
-                "mprs": self.mprs,
-                "losses": self.losses,
-                "device": self.device,
-                "dtype": self.dtype,
-                "name_suffix": self.name_suffix,
-            },
-            os.path.join(path, f"{name}.pt"),
-        )
-
-    @staticmethod
-    def load(path: str):
+        torch.save(self.state_dict(), os.path.join(path, f"{name}{self.name_suffix}.pt"))
+    
+    def load(self, path: str, name: str = "model") -> None:
         """
         Loads the model.
-        :param path: The path to the file.
-        :return: The model.
+        :param path: The path to the directory where the model will be loaded from.
+        :param name: The name of the model.
         """
-        checkpoint = torch.load(path)
-        model = LogisticMatrixFactorization(
-            checkpoint["R"],
-            checkpoint["num_factors"],
-            checkpoint["alpha"],
-            checkpoint["lambd"],
-            checkpoint["device"],
-            checkpoint["dtype"],
-            checkpoint["name_suffix"],
-        )
-        model.X = checkpoint["X"]
-        model.Y = checkpoint["Y"]
-        model.beta_u = checkpoint["beta_u"]
-        model.beta_i = checkpoint["beta_i"]
-        model.mprs = checkpoint["mprs"]
-        model.losses = checkpoint["losses"]
-
-        return model
+        self.load_state_dict(torch.load(os.path.join(path, f"{name}{self.name_suffix}.pt")))
