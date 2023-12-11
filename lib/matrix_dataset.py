@@ -76,6 +76,14 @@ class MatrixDataset:
         :return: The interaction.
         """
         return self._R[user_id, item_id]
+    
+    def get_interactions_ids(self, user_id: int) -> torch.Tensor:
+        """
+        Returns the list of item ids that the user interacted with.
+        :param user_id: The user id.
+        :return: A binary vector of the items the user interacted with.
+        """
+        return self._R[user_id].nonzero().squeeze()
 
     def usernames_to_ids(self, usernames: List[str]) -> List[int]:
         """

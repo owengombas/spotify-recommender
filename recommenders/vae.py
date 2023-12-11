@@ -9,6 +9,7 @@ from torch import optim
 import bottleneck as bn
 import numpy as np
 from torch.utils.tensorboard import SummaryWriter
+from typing import Tuple
 
 
 def loss_function(
@@ -38,10 +39,12 @@ def NDCG_binary_at_k_batch(X_pred: np.ndarray, heldout_batch: np.ndarray, k: int
 
     tp = 1.0 / np.log2(np.arange(2, k + 2))
 
-    DCG = (
-        heldout_batch[np.arange(batch_users)[:, np.newaxis], idx_topk] * tp
-    ).sum(axis=1)
-    IDCG = np.array([(tp[: min(n, k)]).sum() for n in np.count_nonzero(heldout_batch, axis=1)])
+    DCG = (heldout_batch[np.arange(batch_users)[:, np.newaxis], idx_topk] * tp).sum(
+        axis=1
+    )
+    IDCG = np.array(
+        [(tp[: min(n, k)]).sum() for n in np.count_nonzero(heldout_batch, axis=1)]
+    )
     return DCG / IDCG
 
 
@@ -325,9 +328,7 @@ class MultiVAE(nn.Module):
 
                 anneal = anneal_cap
                 if total_anneal_steps > 0:
-                    anneal = min(
-                        anneal_cap, 1.0 * update_count / total_anneal_steps
-                    )
+                    anneal = min(anneal_cap, 1.0 * update_count / total_anneal_steps)
 
                 recon_batch, mu, logvar = self(data)
 
@@ -344,10 +345,62 @@ class MultiVAE(nn.Module):
                 n100_list.append(n100)
                 r20_list.append(r20)
                 r50_list.append(r50)
-        
+
         total_loss /= len(range(0, N, batch_size))
         n100_list = np.concatenate(n100_list)
         r20_list = np.concatenate(r20_list)
         r50_list = np.concatenate(r50_list)
 
         return total_loss, np.mean(n100_list), np.mean(r20_list), np.mean(r50_list)
+
+    def get_latent_representations(
+        self, matrix: torch.Tensor
+    ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
+        self.eval()
+        with torch.no_grad():
+            mu, logvar = self.encode(matrix)
+            z = self.reparameterize(mu, logvar)
+            std = torch.exp(0.5 * logvar)
+        return z, mu, std, logvar
+
+    def sort_similar_users(
+        self, user_id: int, latent_representations: torch.Tensor
+    ) -> torch.Tensor:
+        user_z = latent_representations[user_id]
+        # Compute cosine similarity between user_z and all other users
+        distances = torch.nn.CosineSimilarity(dim=-1)(latent_representations, user_z)
+        # Sort by similarity
+        sorted_distances = torch.argsort(distances, descending=True)
+        return sorted_distances
+
+    def recommend(
+        self,
+        user_id: int,
+        matrix: torch.Tensor,
+        latent_representations: torch.Tensor,
+        filter_items: bool = False,
+        top_k: int = -1,
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
+        """
+        Generate recommendations for a given user.
+
+        Args:
+            user_id (int): The ID of the user for whom to generate recommendations.
+            matrix (torch.Tensor): The user-item interaction matrix.
+            latent_representations (torch.Tensor): Latent representations of users.
+            filter_items (torch.Tensor, optional): Items to be filtered out. Defaults to None.
+            top_similar_users (int, optional): Number of top similar users to consider. Defaults to -1 (not used).
+            num_items (int, optional): Number of items to recommend. Defaults to -1 (all).
+
+        Returns:
+            torch.Tensor: Indices of recommended items.
+        """
+        # Filter out items the user has already interacted with
+        interacted_items = matrix[user_id].nonzero()
+        recommendations = latent_representations[user_id]
+        if filter_items: recommendations[
+            interacted_items
+        ] = -np.inf  # set already interacted items to -inf
+        top_k_values, recommended_item_indices = torch.topk(recommendations, top_k)
+
+        return recommended_item_indices, top_k_values
