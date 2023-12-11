@@ -6,6 +6,123 @@ from typing import List, Optional
 from torch.utils.data import DataLoader
 from torch.utils.data.dataset import Dataset
 from torch import optim
+import bottleneck as bn
+import numpy as np
+from torch.utils.tensorboard import SummaryWriter
+
+
+def loss_function(
+    recon_x: torch.Tensor,
+    x: torch.Tensor,
+    mu: torch.Tensor,
+    logvar: torch.Tensor,
+    anneal: torch.Tensor = 1.0,
+) -> torch.Tensor:
+    # BCE = F.binary_cross_entropy(recon_x, x)
+    BCE = -torch.mean(torch.sum(F.log_softmax(recon_x, 1) * x, -1))
+    KLD = -0.5 * torch.mean(torch.sum(1 + logvar - mu.pow(2) - logvar.exp(), dim=1))
+    return BCE + anneal * KLD
+
+
+def NDCG_binary_at_k_batch(X_pred: np.ndarray, heldout_batch: np.ndarray, k: int = 100):
+    """
+    Normalized Discounted Cumulative Gain@k for binary relevance
+    ASSUMPTIONS: all the 0's in heldout_data indicate 0 relevance
+    """
+    batch_users = X_pred.shape[0]
+    idx_topk_part = bn.argpartition(-X_pred, k, axis=1)
+    topk_part = X_pred[np.arange(batch_users)[:, np.newaxis], idx_topk_part[:, :k]]
+    idx_part = np.argsort(-topk_part, axis=1)
+
+    idx_topk = idx_topk_part[np.arange(batch_users)[:, np.newaxis], idx_part]
+
+    tp = 1.0 / np.log2(np.arange(2, k + 2))
+
+    DCG = (
+        heldout_batch[np.arange(batch_users)[:, np.newaxis], idx_topk] * tp
+    ).sum(axis=1)
+    IDCG = np.array([(tp[: min(n, k)]).sum() for n in np.count_nonzero(heldout_batch, axis=1)])
+    return DCG / IDCG
+
+
+def Recall_at_k_batch(X_pred: np.ndarray, heldout_batch: np.ndarray, k: int = 100):
+    batch_users = X_pred.shape[0]
+
+    idx = bn.argpartition(-X_pred, k, axis=1)
+    X_pred_binary = np.zeros_like(X_pred, dtype=bool)
+    X_pred_binary[np.arange(batch_users)[:, np.newaxis], idx[:, :k]] = True
+
+    X_true_binary = heldout_batch > 0
+    tmp = (np.logical_and(X_true_binary, X_pred_binary).sum(axis=1)).astype(np.float32)
+    recall = tmp / np.minimum(k, X_true_binary.sum(axis=1))
+    return recall
+
+
+class MultiDAE(nn.Module):
+    """
+    Container module for Multi-DAE.
+
+    Multi-DAE : Denoising Autoencoder with Multinomial Likelihood
+    See Variational Autoencoders for Collaborative Filtering
+    https://arxiv.org/abs/1802.05814
+
+    References:
+        [1] Liang, Dawen, et al. "Variational autoencoders for collaborative filtering."
+            Proceedings of the 2018 World Wide Web Conference. 2018.
+        [2] Variational autoencoders for collaborative filtering
+            by @dawenl.
+            https://github.com/dawenl/vae_cf
+        [3] Variational Autoencoders for Collaborative Filtering - Implementation in PyTorch
+            by @younggyoseo.
+            https://github.com/younggyoseo/vae-cf-pytorch
+    """
+
+    def __init__(self, p_dims, q_dims=None, dropout=0.5):
+        super(MultiDAE, self).__init__()
+        self.p_dims = p_dims
+        if q_dims:
+            assert (
+                q_dims[0] == p_dims[-1]
+            ), "In and Out dimensions must equal to each other"
+            assert (
+                q_dims[-1] == p_dims[0]
+            ), "Latent dimension for p- and q- network mismatches."
+            self.q_dims = q_dims
+        else:
+            self.q_dims = p_dims[::-1]
+
+        self.dims = self.q_dims + self.p_dims[1:]
+        self.layers = nn.ModuleList(
+            [
+                nn.Linear(d_in, d_out)
+                for d_in, d_out in zip(self.dims[:-1], self.dims[1:])
+            ]
+        )
+        self.drop = nn.Dropout(dropout)
+
+        self.init_weights()
+
+    def forward(self, input: torch.Tensor) -> torch.Tensor:
+        h = F.normalize(input)
+        h = self.drop(h)
+
+        for i, layer in enumerate(self.layers):
+            h = layer(h)
+            if i != len(self.weights) - 1:
+                h = F.tanh(h)
+        return h
+
+    def init_weights(self):
+        for layer in self.layers:
+            # Xavier Initialization for weights
+            size = layer.weight.size()
+            fan_out = size[0]
+            fan_in = size[1]
+            std = np.sqrt(2.0 / (fan_in + fan_out))
+            layer.weight.data.normal_(0.0, std)
+
+            # Normal Initialization for Biases
+            layer.bias.data.normal_(0.0, 0.001)
 
 
 class MultiVAE(nn.Module):
@@ -32,54 +149,47 @@ class MultiVAE(nn.Module):
             https://github.com/younggyoseo/vae-cf-pytorch
     """
 
+    """
+    Container module for Multi-VAE.
+
+    Multi-VAE : Variational Autoencoder with Multinomial Likelihood
+    See Variational Autoencoders for Collaborative Filtering
+    https://arxiv.org/abs/1802.05814
+    """
+
     def __init__(
-        self,
-        encoder_dims: List[int],
-        decoder_dims: Optional[List[int]] = None,
-        dropout_rate: float = 0.5,
-        device: torch.device = torch.device("cpu"),
-        dtype: torch.dtype = torch.float32,
-    ) -> None:
+        self, p_dims: List[int], q_dims: Optional[List[int]] = None, dropout=0.5
+    ):
         super(MultiVAE, self).__init__()
-        self.device = device
-        self.dtype = dtype
+        self.p_dims: List[int] = p_dims
+        if q_dims:
+            assert (
+                q_dims[0] == p_dims[-1]
+            ), "In and Out dimensions must equal to each other"
+            assert (
+                q_dims[-1] == p_dims[0]
+            ), "Latent dimension for p- and q- network mismatches."
+            self.q_dims = q_dims
+        else:
+            self.q_dims = p_dims[::-1]
 
-        self.encoder_dims = encoder_dims
-        self.decoder_dims = decoder_dims if decoder_dims else encoder_dims[::-1]
-
-        assert (
-            self.decoder_dims[0] == encoder_dims[-1]
-        ), "Output dimension of encoder must match input dimension of decoder."
-        assert (
-            self.decoder_dims[-1] == encoder_dims[0]
-        ), "Latent dimension mismatch between encoder and decoder."
-
-        # Modify the last dimension of encoder for mean and variance
-        modified_encoder_dims = self.encoder_dims[:-1] + [self.encoder_dims[-1] * 2]
-        self.encoder_layers = nn.ModuleList(
+        # Last dimension of q- network is for mean and variance
+        temp_q_dims = self.q_dims[:-1] + [self.q_dims[-1] * 2]
+        self.q_layers: nn.ModuleList = nn.ModuleList(
             [
-                nn.Linear(in_features, out_features)
-                for in_features, out_features in zip(
-                    modified_encoder_dims[:-1], modified_encoder_dims[1:]
-                )
+                nn.Linear(d_in, d_out)
+                for d_in, d_out in zip(temp_q_dims[:-1], temp_q_dims[1:])
             ]
         )
-        self.decoder_layers = nn.ModuleList(
+        self.p_layers = nn.ModuleList(
             [
-                nn.Linear(in_features, out_features)
-                for in_features, out_features in zip(
-                    self.decoder_dims[:-1], self.decoder_dims[1:]
-                )
+                nn.Linear(d_in, d_out)
+                for d_in, d_out in zip(self.p_dims[:-1], self.p_dims[1:])
             ]
         )
 
-        self.dropout = nn.Dropout(dropout_rate)
-        self.initialize_weights()
-        
-        self.mprs = torch.zeros(0, dtype=dtype, device=device)
-        self.losses = torch.zeros(0, dtype=dtype, device=device)
-
-        self.to(device=device, dtype=dtype)
+        self.drop = nn.Dropout(dropout)
+        self.init_weights()
 
     def forward(self, input: torch.Tensor) -> torch.Tensor:
         mu, logvar = self.encode(input)
@@ -88,18 +198,18 @@ class MultiVAE(nn.Module):
 
     def encode(self, input: torch.Tensor) -> torch.Tensor:
         h = F.normalize(input)
-        h = self.dropout(h)
+        h = self.drop(h)
 
-        for i, layer in enumerate(self.encoder_layers):
+        for i, layer in enumerate(self.q_layers):
             h = layer(h)
-            if i != len(self.encoder_layers) - 1:
-                h = torch.tanh(h)
+            if i != len(self.q_layers) - 1:
+                h = F.tanh(h)
             else:
-                mu = h[:, : self.encoder_dims[-1]]
-                logvar = h[:, self.encoder_dims[-1] :]
+                mu = h[:, : self.q_dims[-1]]
+                logvar = h[:, self.q_dims[-1] :]
         return mu, logvar
 
-    def reparameterize(self, mu: torch.Tensor, logvar: torch.Tensor) -> torch.Tensor:
+    def reparameterize(self, mu, logvar):
         if self.training:
             std = torch.exp(0.5 * logvar)
             eps = torch.randn_like(std)
@@ -107,156 +217,137 @@ class MultiVAE(nn.Module):
         else:
             return mu
 
-    def decode(self, z: torch.Tensor) -> torch.Tensor:
+    def decode(self, z):
         h = z
-        for i, layer in enumerate(self.decoder_layers):
+        for i, layer in enumerate(self.p_layers):
             h = layer(h)
-            if i != len(self.decoder_layers) - 1:
-                h = torch.tanh(h)
+            if i != len(self.p_layers) - 1:
+                h = F.tanh(h)
         return h
 
-    def initialize_weights(self) -> None:
-        for layer in self.encoder_layers + self.decoder_layers:
+    def init_weights(self):
+        for layer in self.q_layers:
+            # Xavier Initialization for weights
             size = layer.weight.size()
-            fan_out, fan_in = size[0], size[1]
+            fan_out = size[0]
+            fan_in = size[1]
             std = np.sqrt(2.0 / (fan_in + fan_out))
             layer.weight.data.normal_(0.0, std)
+
+            # Normal Initialization for Biases
             layer.bias.data.normal_(0.0, 0.001)
 
-    def loss(
-        self,
-        recon_x: torch.Tensor,
-        x: torch.Tensor,
-        mu: torch.Tensor,
-        logvar: torch.Tensor,
-        anneal: float = 1.0,
-    ) -> torch.Tensor:
-        """
-        Loss function for MultiVAE.
+        for layer in self.p_layers:
+            # Xavier Initialization for weights
+            size = layer.weight.size()
+            fan_out = size[0]
+            fan_in = size[1]
+            std = np.sqrt(2.0 / (fan_in + fan_out))
+            layer.weight.data.normal_(0.0, std)
 
-        Combines Binary Cross Entropy (BCE) and Kullback–Leibler Divergence (KLD)
-        to form the Variational Autoencoder loss.
-
-        Parameters:
-            recon_x (torch.Tensor): Reconstructed input.
-            x (torch.Tensor): Original input.
-            mu (torch.Tensor): Mean from the latent space.
-            logvar (torch.Tensor): Log variance from the latent space.
-            anneal (float): Annealing factor for KLD.
-
-        Returns:
-            torch.Tensor: Calculated loss.
-        """
-        BCE = -torch.mean(torch.sum(F.log_softmax(recon_x, 1) * x, -1))
-        KLD = -0.5 * torch.mean(torch.sum(1 + logvar - mu.pow(2) - logvar.exp(), dim=1))
-        return BCE + anneal * KLD
-
-    def mpr(self, I: torch.Tensor, R: torch.Tensor) -> float:
-        num_users, num_items = R.shape
-        total_interactions = torch.sum(R)
-
-        # Create a tensor for percentile ranks (shape: num_items)
-        percentile_ranks = (
-            torch.arange(num_items, dtype=self.dtype, device=self.device) / num_items
-        )
-
-        # Use I to index into R and rearrange it, then multiply by the percentile ranks
-        # Reshape and expand percentile ranks to match the shape of R
-        # (shape of expanded percentile ranks: 1 x num_items)
-        weighted_ranks = R.gather(1, I) * percentile_ranks.expand(num_users, -1)
-
-        # Sum over all items and users, and normalize
-        mpr = torch.sum(weighted_ranks) / total_interactions
-
-        return mpr.item()
-
-    def recommend_items(
-        self,
-        user_data: torch.Tensor,
-        interacted_indices: Optional[torch.Tensor] = None,
-        top_k: int = 10,
-    ) -> List[int]:
-        """
-        Generate item recommendations for a user using the MultiVAE model.
-
-        Args:
-        model (MultiVAE): The trained MultiVAE model.
-        user_data (torch.Tensor): The user-item interaction vector for a single user.
-        interacted_indices (Optional[torch.Tensor]): A binary vector indicating items the user has already interacted with. If None, no filtering is applied.
-        top_k (int): Number of top recommendations to return.
-
-        Returns:
-        List[int]: List of item indices recommended for the user.
-        """
-        self.eval()  # Ensure the model is in evaluation mode
-
-        # Encode user data to latent space
-        mu, logvar = self.encode(user_data)
-        z = self.reparameterize(mu, logvar)
-
-        # Decode the latent representation
-        reconstructed_user_data = self.decode(z)
-
-        # Convert to probabilities
-        proba = torch.softmax(reconstructed_user_data, dim=1)
-
-        # If interacted_indices is provided, mask out already interacted items
-        if interacted_indices is not None:
-            interaction_mask = torch.zeros(
-                proba.size(), dtype=torch.bool, device=self.device
-            )
-            interaction_mask[
-                0, interacted_indices
-            ] = True  # Assumes user_data is a single user batch
-            proba.masked_fill_(interaction_mask, 0)
-
-        # Get top k items that have the highest probability
-        recommended_items = torch.topk(proba, top_k, dim=1)[1].squeeze().tolist()
-
-        return recommended_items
+            # Normal Initialization for Biases
+            layer.bias.data.normal_(0.0, 0.001)
 
     def train_model(
         self,
-        train_loader: DataLoader,
-        optimizer: optim,
-        num_epochs: int,
-        max_anneal=1.0,
-        anneal_steps=20000,
-        log_interval=1000,
+        optimizer: optim.Optimizer,
+        train_dataloader: DataLoader,
+        num_epochs: int = 10,
+        anneal_cap: float = 0.2,
+        total_anneal_steps: int = 200000,
+        log_interval=10,
+        device: str = "cpu",
+        dtype: torch.dtype = torch.float32,
+        summary_writer: SummaryWriter = None,
     ):
-        self.train()
-        
-        global_step = 0
+        """
+        Trains the model on the given dataset.
 
-        self.losses = torch.zeros(num_epochs * len(train_loader) // log_interval, dtype=self.dtype, device=self.device)
-        self.mprs = torch.zeros(num_epochs * len(train_loader) // log_interval, dtype=self.dtype, device=self.device)
+        Args:
+            dataset (Dataset): Dataset object.
+            batch_size (int, optional): Batch size for training. Defaults to 128.
+            epochs (int, optional): Number of epochs for training. Defaults to 10.
+            lr (float, optional): Learning rate for training. Defaults to 0.001.
+            anneal (float, optional): Annealing factor for KL divergence. Defaults to 0.0.
+            weight_decay (float, optional): Weight decay for regularization. Defaults to 0.0.
+            device (str, optional): Device to use for training. Defaults to "cpu".
+        """
+        self.to(device)
+        self.train()
 
         for epoch in range(num_epochs):
-            for batch in train_loader:
-                user_data = batch[0]  # Assuming batch contains user data
+            epoch_loss = 0.0
+            for batch in train_dataloader:
+                batch = batch[0].to(device=device, dtype=dtype)
+                anneal = anneal_cap
+                if total_anneal_steps > 0:
+                    anneal_cap = min(anneal_cap, 1.0 * epoch / total_anneal_steps)
 
                 optimizer.zero_grad()
-
-                # Annealing schedule
-                anneal = torch.min(
-                    torch.tensor([max_anneal, (global_step + 1) / anneal_steps], dtype=self.dtype, device=self.device)
-                )
-
-                # Forward pass
-                reconstructed, mu, logvar = self(user_data)
-
-                # Loss calculation with annealing factor
-                loss = self.loss(reconstructed, user_data, mu, logvar, anneal)
-
-                # Backward pass and optimization
+                recon_batch, mu, logvar = self(batch)
+                loss = loss_function(recon_batch, batch, mu, logvar, anneal)
                 loss.backward()
                 optimizer.step()
+                epoch_loss += loss.item()
 
-                global_step += 1
+            if epoch % log_interval == 0:
+                print(f"Epoch {epoch + 1} Loss: {epoch_loss / len(train_dataloader)}")
+                summary_writer.add_scalars(
+                    "data/loss", {"train": epoch_loss / log_interval}, epoch
+                )
 
-                # Optional: Print loss and anneal factor
-                if global_step % log_interval == 0:
-                    self.losses[global_step // log_interval - 1] = loss.item()
-                    print(
-                        f"Epoch: {epoch}, Step: {global_step}, Loss: {loss.item()}, Anneal: {anneal}"
+    def evaluate_model(
+        self,
+        training_set: torch.Tensor,
+        test_set: torch.Tensor,
+        batch_size: int,
+        anneal_cap: float = 0.2,
+        total_anneal_steps: int = 200000,
+        log_interval=10,
+        device: str = "cpu",
+        dtype: torch.dtype = torch.float32,
+        summary_writer: SummaryWriter = None,
+    ):
+        self.eval()
+        total_loss = 0.0
+        e_idxlist = list(range(training_set.shape[0]))
+        n100_list = []
+        r20_list = []
+        r50_list = []
+        update_count = 0
+        N = training_set.shape[0]
+
+        with torch.no_grad():
+            for start_idx in range(0, N, batch_size):
+                end_idx = min(start_idx + batch_size, N)
+                data = training_set[e_idxlist[start_idx:end_idx]]
+                heldout_data = test_set[e_idxlist[start_idx:end_idx]].cpu().numpy()
+
+                anneal = anneal_cap
+                if total_anneal_steps > 0:
+                    anneal = min(
+                        anneal_cap, 1.0 * update_count / total_anneal_steps
                     )
+
+                recon_batch, mu, logvar = self(data)
+
+                loss = loss_function(recon_batch, data, mu, logvar, anneal)
+                total_loss += loss.item()
+
+                recon_batch = recon_batch.cpu().numpy()
+                recon_batch[data.cpu().numpy().nonzero()] = -np.inf
+
+                n100 = NDCG_binary_at_k_batch(recon_batch, heldout_data, 100)
+                r20 = Recall_at_k_batch(recon_batch, heldout_data, 20)
+                r50 = Recall_at_k_batch(recon_batch, heldout_data, 50)
+
+                n100_list.append(n100)
+                r20_list.append(r20)
+                r50_list.append(r50)
+        
+        total_loss /= len(range(0, N, batch_size))
+        n100_list = np.concatenate(n100_list)
+        r20_list = np.concatenate(r20_list)
+        r50_list = np.concatenate(r50_list)
+
+        return total_loss, np.mean(n100_list), np.mean(r20_list), np.mean(r50_list)

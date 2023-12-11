@@ -113,7 +113,8 @@ def plot_column_distributions(
 
 
 def plot_multivariate_gaussian_image_with_labels(
-    means, variances, labels, color_map="viridis", num_points=1000, figsize=(10, 10)
+    means, variances, labels, color_map="viridis", num_points=1000, figsize=(10, 10),
+    title="Latent Space Representation"
 ):
     # Create a grid of points
     x = np.linspace(
@@ -177,7 +178,7 @@ def plot_multivariate_gaussian_image_with_labels(
     plt.colorbar()
     plt.xlabel("Latent Variable 1")
     plt.ylabel("Latent Variable 2")
-    plt.title("Latent Space Representation with User Labels")
+    plt.title(title)
     plt.show()
 
 def plot_user_similarities_matrix(matrix: pd.DataFrame, figsize=(50, 50)):
