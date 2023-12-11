@@ -15,6 +15,10 @@ class MatrixDataset:
     def sorted_R(self) -> torch.Tensor:
         I = torch.argsort(self.R, axis=1)  # Convert to dense for sorting
         return I
+    
+    @property
+    def df(self) -> pd.DataFrame:
+        return self._df
 
     def __init__(
         self,

@@ -375,11 +375,7 @@ class MultiVAE(nn.Module):
 
     def recommend(
         self,
-        user_id: int,
         matrix: torch.Tensor,
-        latent_representations: torch.Tensor,
-        filter_items: bool = False,
-        top_k: int = -1,
     ) -> Tuple[torch.Tensor, torch.Tensor]:
         """
         Generate recommendations for a given user.
@@ -395,12 +391,12 @@ class MultiVAE(nn.Module):
         Returns:
             torch.Tensor: Indices of recommended items.
         """
-        # Filter out items the user has already interacted with
-        interacted_items = matrix[user_id].nonzero()
-        recommendations = latent_representations[user_id]
-        if filter_items: recommendations[
-            interacted_items
-        ] = -np.inf  # set already interacted items to -inf
-        top_k_values, recommended_item_indices = torch.topk(recommendations, top_k)
+        self.eval()
+        with torch.no_grad():
+            mu, logvar = self.encode(matrix)
+            z = self.reparameterize(mu, logvar)
+            predicted_scores = self.decode(z)
+        
+        recommended_items = torch.argsort(predicted_scores, descending=True)
 
-        return recommended_item_indices, top_k_values
+        return recommended_items
