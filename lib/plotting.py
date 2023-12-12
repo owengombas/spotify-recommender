@@ -181,9 +181,12 @@ def plot_multivariate_gaussian_image_with_labels(
     plt.title(title)
     plt.show()
 
-def plot_user_similarities_matrix(matrix: pd.DataFrame, figsize=(50, 50)):
+def plot_user_similarities_matrix(matrix: pd.DataFrame, figsize=(50, 50), lower_triangle=True):
     plt.figure(figsize=figsize)
-    mask = np.triu(np.ones_like(matrix, dtype=bool))
+    if lower_triangle:
+        mask = np.triu(np.ones_like(matrix, dtype=bool))
+    else:
+        mask = np.identity(n=matrix.shape[0])
     sns.heatmap(matrix, annot=False, cmap='viridis', mask=mask)
     plt.title("User Track Common Percentage Heatmap")
     plt.ylabel("User")

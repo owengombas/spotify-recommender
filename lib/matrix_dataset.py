@@ -13,7 +13,7 @@ class MatrixDataset:
 
     @property
     def sorted_R(self) -> torch.Tensor:
-        I = torch.argsort(self.R, axis=1)  # Convert to dense for sorting
+        I = torch.argsort(self.R, axis=1, descending=True)  # Convert to dense for sorting
         return I
     
     @property
