@@ -114,17 +114,17 @@ def plot_column_distributions(
 
 def plot_multivariate_gaussian_image_with_labels(
     means, variances, labels, color_map="viridis", num_points=1000, figsize=(10, 10),
-    title="Latent Space Representation"
+    title="Latent Space Representation", x_bounds = (-3, 3), y_bounds = (-3, 3), dpi=None
 ):
     # Create a grid of points
     x = np.linspace(
-        np.min(means[:, 0]) - 3 * np.sqrt(np.max(variances[:, 0])),
-        np.max(means[:, 0]) + 3 * np.sqrt(np.max(variances[:, 0])),
+        np.min(means[:, 0]) + x_bounds[0] * np.sqrt(np.max(variances[:, 0])),
+        np.max(means[:, 0]) + x_bounds[1] * np.sqrt(np.max(variances[:, 0])),
         num_points,
     )
     y = np.linspace(
-        np.min(means[:, 1]) - 3 * np.sqrt(np.max(variances[:, 1])),
-        np.max(means[:, 1]) + 3 * np.sqrt(np.max(variances[:, 1])),
+        np.min(means[:, 1]) + y_bounds[0] * np.sqrt(np.max(variances[:, 1])),
+        np.max(means[:, 1]) + y_bounds[1] * np.sqrt(np.max(variances[:, 1])),
         num_points,
     )
     X, Y = np.meshgrid(x, y)
@@ -152,7 +152,10 @@ def plot_multivariate_gaussian_image_with_labels(
     image = image / np.max(image)
 
     # Plot the image
-    plt.figure(figsize=figsize)
+    if dpi is None:
+        plt.figure(figsize=figsize)
+    else:
+        plt.figure(figsize=figsize, dpi=dpi)
 
     plt.imshow(
         image,
@@ -163,17 +166,18 @@ def plot_multivariate_gaussian_image_with_labels(
     )
 
     # Add labels near each mean
-    for mean, label in zip(means, labels):
-        plt.text(
-            mean[0] - 0.5,
-            mean[1],
-            label,
-            fontsize=8,
-            ha="right",
-            va="bottom",
-            color="white",
-            bbox=dict(facecolor="black", alpha=0.5, boxstyle="round"),
-        )
+    if labels != None:
+        for mean, label in zip(means, labels):
+            plt.text(
+                mean[0] - 0.5,
+                mean[1],
+                label,
+                fontsize=8,
+                ha="right",
+                va="bottom",
+                color="white",
+                bbox=dict(facecolor="black", alpha=0.5, boxstyle="round"),
+            )
 
     plt.colorbar()
     plt.xlabel("Latent Variable 1")
