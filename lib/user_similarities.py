@@ -10,7 +10,7 @@ def calculate_users_track_common_percentage(data: pd.DataFrame, username_col: st
     :return: Percentage of tracks that are common between users as a matrix.
     """
     # Pre-compute the total number of tracks for each user
-    user_total_tracks = data.groupby(username_col)[trackname_col].count()
+    user_total_tracks = data.groupby(username_col, observed=True)[trackname_col].count()
 
     # Create a DataFrame where each row is a track and columns are users with boolean values indicating ownership
     track_user_matrix = data.pivot_table(index=trackname_col, columns=username_col, aggfunc='size', fill_value=0)

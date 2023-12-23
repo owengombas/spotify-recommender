@@ -2,6 +2,7 @@ import torch
 import pandas as pd
 from typing import List
 import numpy as np
+from sklearn.model_selection import train_test_split
 
 
 class MatrixDataset:
@@ -55,6 +56,9 @@ class MatrixDataset:
     def compute_alpha(self):
         alpha = (torch.numel(self.R) - torch.count_nonzero(self.R)) / self.R.sum()
         return alpha
+    
+    def set_alpha(self, alpha: float):
+        self._R *= alpha
 
     def get_user(self, user_id: int) -> torch.Tensor:
         """
@@ -157,6 +161,22 @@ class MatrixDataset:
         """
         interacted = self._R[user_id].nonzero().squeeze()
         return interacted
+    
+    @staticmethod
+    def split_train_validation_test(
+        df: pd.DataFrame,
+        validation_ratio: float = 0.1,
+        test_ratio: float = 0.1,
+        random_state: int = 42,
+    ) -> ("MatrixDataset", "MatrixDataset", "MatrixDataset", "MatrixDataset", "MatrixDataset"):
+        """
+        Splits the dataset into train, validation and test sets.
+        :param validation_ratio: The ratio of the validation set.
+        :param test_ratio: The ratio of the test set.
+        :param random_state: The random state for the split.
+        :return: The train, validation and test sets.
+        """
+        pass
 
     def __str__(self):
         return str(self._R)

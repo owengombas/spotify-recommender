@@ -8,7 +8,7 @@ from torch import optim
 import numpy as np
 from torch.utils.tensorboard import SummaryWriter
 from typing import Tuple
-from recommenders.metrics import Recall_at_k_batch, NDCG_binary_at_k_batch, mpr
+from recommenders.metrics import NDCG_binary_at_k_batch, mpr, NDCG_binary_at_k_batch_torch, Recall_at_k_batch_torch
 
 
 def loss_function(
@@ -158,7 +158,7 @@ class MultiVAE(nn.Module):
         device: str = "cpu",
         dtype: torch.dtype = torch.float32,
         summary_writer: SummaryWriter = None,
-        evalulation_matrices: Tuple[torch.Tensor, torch.Tensor] = None
+        validation_dataloader: DataLoader = None,
     ):
         """
         Trains the model on the given dataset.
@@ -175,6 +175,10 @@ class MultiVAE(nn.Module):
         self.to(device)
         self.train()
 
+        loss_history = torch.zeros(num_epochs, dtype=dtype, device=device)
+        val_loss_history = torch.zeros(num_epochs, dtype=dtype, device=device)
+        l = len(train_dataloader)
+
         for epoch in range(num_epochs):
             epoch_loss = 0.0
             for batch in train_dataloader:
@@ -190,19 +194,29 @@ class MultiVAE(nn.Module):
                 loss.backward()
                 optimizer.step()
                 epoch_loss += loss.item()
+            
+            loss_history[epoch] = epoch_loss / l
+
+            # Evaluate model
+            ndcg_users: List[np.ndarray] = []
+            if validation_dataloader:
+                for batch in validation_dataloader:
+                    validation_train, validation_test = batch
+                    validation_train = validation_train.to(device=device, dtype=dtype)
+                    validation_test = validation_test.to(device=device, dtype=dtype)
+                    prediction, _, _ = self(validation_train)
+                    prediction[validation_train.nonzero(as_tuple=True)] = -np.inf # remove watched items from recommendations
+                    ndcg = NDCG_binary_at_k_batch(prediction.detach().cpu().numpy(), validation_test.detach().cpu().numpy(), 100)
+                    ndcg_users.append(ndcg)
+                ndcg_users = np.concatenate(ndcg_users)
+                val_loss_history[epoch] = np.mean(ndcg_users)
 
             if epoch % log_interval == 0:
-                mpr_value = 0.0
-                if evalulation_matrices:
-                    self.eval()
-                    R, sorted_R = evalulation_matrices
-                    R = self.recommend(R)[0]
-                    mpr_value = mpr(R, sorted_R, device=device, dtype=dtype)
-
-                print(f"Epoch {epoch + 1} Loss: {epoch_loss / len(train_dataloader)}, MPR: {mpr_value}")
-                summary_writer.add_scalars(
-                    "data/loss", {"train": epoch_loss / log_interval, "mpr": mpr_value}, epoch
+                print(
+                    f"Epoch: {epoch} \t Loss: {loss_history[epoch].item():.6f} \t NDCG: {val_loss_history[epoch].item():.6f}"
                 )
+        
+        return loss_history, val_loss_history
 
     def evaluate_model(
         self,
@@ -229,7 +243,7 @@ class MultiVAE(nn.Module):
             for start_idx in range(0, N, batch_size):
                 end_idx = min(start_idx + batch_size, N)
                 data = training_set[e_idxlist[start_idx:end_idx]]
-                heldout_data = test_set[e_idxlist[start_idx:end_idx]].cpu().numpy()
+                heldout_data = test_set[e_idxlist[start_idx:end_idx]]
 
                 anneal = anneal_cap
                 if total_anneal_steps > 0:
@@ -240,12 +254,15 @@ class MultiVAE(nn.Module):
                 loss = loss_function(recon_batch, data, mu, logvar, anneal)
                 total_loss += loss.item()
 
-                recon_batch = recon_batch.cpu().numpy()
-                recon_batch[data.cpu().numpy().nonzero()] = -np.inf
+                # recon_batch = recon_batch.cpu().numpy()
+                # recon_batch[data.cpu().numpy().nonzero()] = -np.inf
+                # using pytorch
+                # Assuming recon_batch and data are PyTorch tensors
+                recon_batch[data.nonzero(as_tuple=True)] = -np.inf
 
-                n100 = NDCG_binary_at_k_batch(recon_batch, heldout_data, 100)
-                r20 = Recall_at_k_batch(recon_batch, heldout_data, 20)
-                r50 = Recall_at_k_batch(recon_batch, heldout_data, 50)
+                n100 = NDCG_binary_at_k_batch_torch(recon_batch, heldout_data, 100, device=device, dtype=dtype)
+                r20 = Recall_at_k_batch_torch(recon_batch, heldout_data, 20)
+                r50 = Recall_at_k_batch_torch(recon_batch, heldout_data, 50)
 
                 n100_list.append(n100)
                 r20_list.append(r20)
