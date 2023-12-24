@@ -1,3 +1,4 @@
+import collections
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -159,7 +160,8 @@ class MultiVAE(nn.Module):
         dtype: torch.dtype = torch.float32,
         summary_writer: SummaryWriter = None,
         validation_dataloader: DataLoader = None,
-    ):
+        ndcg_k: int = 75,
+    ) -> Tuple[torch.Tensor, torch.Tensor, "MultiVAE"]:
         """
         Trains the model on the given dataset.
 
@@ -172,17 +174,19 @@ class MultiVAE(nn.Module):
             weight_decay (float, optional): Weight decay for regularization. Defaults to 0.0.
             device (str, optional): Device to use for training. Defaults to "cpu".
         """
-        self.to(device)
-        self.train()
+        self.to(device, dtype)
 
         loss_history = torch.zeros(num_epochs, dtype=dtype, device=device)
         val_loss_history = torch.zeros(num_epochs, dtype=dtype, device=device)
         l = len(train_dataloader)
 
+        best_model_state: collections.OrderedDict = None
+        best_val_loss = -np.inf
+
         for epoch in range(num_epochs):
             epoch_loss = 0.0
+            self.train()
             for batch in train_dataloader:
-                self.train()
                 batch = batch[0].to(device=device, dtype=dtype)
                 anneal = anneal_cap
                 if total_anneal_steps > 0:
@@ -200,80 +204,86 @@ class MultiVAE(nn.Module):
             # Evaluate model
             ndcg_users: List[np.ndarray] = []
             if validation_dataloader:
-                for batch in validation_dataloader:
-                    validation_train, validation_test = batch
-                    validation_train = validation_train.to(device=device, dtype=dtype)
-                    validation_test = validation_test.to(device=device, dtype=dtype)
-                    prediction, _, _ = self(validation_train)
-                    prediction[validation_train.nonzero(as_tuple=True)] = -np.inf # remove watched items from recommendations
-                    ndcg = NDCG_binary_at_k_batch(prediction.detach().cpu().numpy(), validation_test.detach().cpu().numpy(), 100)
-                    ndcg_users.append(ndcg)
-                ndcg_users = np.concatenate(ndcg_users)
-                val_loss_history[epoch] = np.mean(ndcg_users)
+                self.eval()
+                with torch.no_grad():
+                    for batch in validation_dataloader:
+                        validation_train, validation_test = batch
+                        validation_train = validation_train.to(device=device, dtype=dtype)
+                        validation_test = validation_test.to(device=device, dtype=dtype)
+                        prediction, _, _ = self(validation_train)
+                        prediction[validation_train.nonzero(as_tuple=True)] = -np.inf # remove watched items from recommendations
+                        ndcg = NDCG_binary_at_k_batch_torch(prediction, validation_test, ndcg_k, device=device, dtype=dtype)
+                        ndcg_users.append(ndcg)
+                    ndcg_users = torch.concatenate(ndcg_users)
+                    val_loss_history[epoch] = torch.mean(ndcg_users)
 
-            if epoch % log_interval == 0:
-                print(
-                    f"Epoch: {epoch} \t Loss: {loss_history[epoch].item():.6f} \t NDCG: {val_loss_history[epoch].item():.6f}"
-                )
+                    if val_loss_history[epoch] > best_val_loss:
+                        best_val_loss = val_loss_history[epoch]
+                        best_model_state = self.state_dict()
+                        print(f"Best model found at epoch {epoch} with NDCG: {best_val_loss.item():.6f}")
+
+                    if epoch % log_interval == 0:
+                        print(
+                            f"Epoch: {epoch} \t Loss: {loss_history[epoch].item():.6f} \t NDCG: {val_loss_history[epoch].item():.6f}"
+                        )
         
-        return loss_history, val_loss_history
+        best_model = MultiVAE(self.p_dims, self.q_dims)
+        best_model.load_state_dict(best_model_state)
+        best_model.to(device, dtype)
+        best_model.eval()
+
+        return loss_history, val_loss_history, best_model
 
     def evaluate_model(
         self,
-        training_set: torch.Tensor,
-        test_set: torch.Tensor,
+        validation_dataloader: DataLoader,
         batch_size: int,
         anneal_cap: float = 0.2,
         total_anneal_steps: int = 200000,
-        log_interval=10,
         device: str = "cpu",
         dtype: torch.dtype = torch.float32,
         summary_writer: SummaryWriter = None,
     ):
+        self.to(device, dtype)
         self.eval()
         total_loss = 0.0
-        e_idxlist = list(range(training_set.shape[0]))
         n100_list = []
         r20_list = []
         r50_list = []
         update_count = 0
-        N = training_set.shape[0]
+        N = len(validation_dataloader.dataset)
 
         with torch.no_grad():
-            for start_idx in range(0, N, batch_size):
-                end_idx = min(start_idx + batch_size, N)
-                data = training_set[e_idxlist[start_idx:end_idx]]
-                heldout_data = test_set[e_idxlist[start_idx:end_idx]]
+            for batch in validation_dataloader:
+                validation_train, validation_test = batch
+                validation_train: torch.Tensor = validation_train.to(device=device, dtype=dtype)
+                validation_test: torch.Tensor = validation_test.to(device=device, dtype=dtype)
 
                 anneal = anneal_cap
                 if total_anneal_steps > 0:
                     anneal = min(anneal_cap, 1.0 * update_count / total_anneal_steps)
 
-                recon_batch, mu, logvar = self(data)
+                recon_batch, mu, logvar = self(validation_train)
 
-                loss = loss_function(recon_batch, data, mu, logvar, anneal)
+                loss = loss_function(recon_batch, validation_train, mu, logvar, anneal)
                 total_loss += loss.item()
 
-                # recon_batch = recon_batch.cpu().numpy()
-                # recon_batch[data.cpu().numpy().nonzero()] = -np.inf
-                # using pytorch
-                # Assuming recon_batch and data are PyTorch tensors
-                recon_batch[data.nonzero(as_tuple=True)] = -np.inf
+                recon_batch[validation_train.nonzero(as_tuple=True)] = -np.inf
 
-                n100 = NDCG_binary_at_k_batch_torch(recon_batch, heldout_data, 100, device=device, dtype=dtype)
-                r20 = Recall_at_k_batch_torch(recon_batch, heldout_data, 20)
-                r50 = Recall_at_k_batch_torch(recon_batch, heldout_data, 50)
+                n100 = NDCG_binary_at_k_batch_torch(recon_batch, validation_test, 100, device=device, dtype=dtype)
+                r20 = Recall_at_k_batch_torch(recon_batch, validation_test, 20, device=device, dtype=dtype)
+                r50 = Recall_at_k_batch_torch(recon_batch, validation_test, 50, device=device, dtype=dtype)
 
                 n100_list.append(n100)
                 r20_list.append(r20)
                 r50_list.append(r50)
 
         total_loss /= len(range(0, N, batch_size))
-        n100_list = np.concatenate(n100_list)
-        r20_list = np.concatenate(r20_list)
-        r50_list = np.concatenate(r50_list)
+        n100_list = torch.cat(n100_list)
+        r20_list = torch.cat(r20_list)
+        r50_list = torch.cat(r50_list)
 
-        return total_loss, np.mean(n100_list), np.mean(r20_list), np.mean(r50_list)
+        return total_loss, torch.mean(n100_list), torch.mean(r20_list), torch.mean(r50_list)
 
     def get_latent_representations(
         self, matrix: torch.Tensor

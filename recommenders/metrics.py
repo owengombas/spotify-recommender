@@ -21,7 +21,7 @@ def mpr(
     return mpr
 
 
-def NDCG_binary_at_k_batch(X_pred: np.ndarray, heldout_batch: np.ndarray, k: int = 100):
+def NDCG_binary_at_k_batch(X_pred: np.ndarray, heldout_batch: np.ndarray, k: int = 75):
     """
     Normalized Discounted Cumulative Gain@k for binary relevance
     ASSUMPTIONS: all the 0's in heldout_data indicate 0 relevance
@@ -43,11 +43,10 @@ def NDCG_binary_at_k_batch(X_pred: np.ndarray, heldout_batch: np.ndarray, k: int
     DCG = (heldout_batch[np.arange(batch_users)[:, np.newaxis], idx_topk] * tp).sum(
         axis=1
     )
-    nn = heldout_batch.nonzero()
     IDCG = np.array(
         [(tp[: min(n, k)]).sum() for n in np.count_nonzero(heldout_batch, axis=1)]
     )
-    return DCG / (IDCG + 1e-8)
+    return DCG / IDCG
 
 
 def Recall_at_k_batch(X_pred, heldout_batch, k=100):
@@ -81,62 +80,55 @@ def NDCG_binary_at_k_batch_torch(
     """
     batch_users = X_pred.size(0)
 
-    # Return the indices that would sort an array in descending order (max k)
-    idx_topk_part: torch.Tensor = torch.topk(X_pred, k, dim=1, sorted=False)[1]
+    # Use topk to find the top-k indices
+    _, idx_topk = X_pred.topk(k, dim=1)
+    tp = 1.0 / torch.log2(torch.arange(2, k + 2, device=device, dtype=dtype))
 
-    # Get the top k predictions for each user
-    topk_part: torch.Tensor = X_pred.gather(1, idx_topk_part)
+    # Gathering the top-k items
+    topk_part = torch.gather(X_pred, 1, idx_topk)
 
-    # Return the indices that would sort an array in descending order (max k)
-    idx_part: torch.Tensor = torch.argsort(-topk_part, dim=1)
+    # Calculating DCG
+    DCG = (torch.gather(heldout_batch, 1, idx_topk) * tp).sum(dim=1)
 
-    # Get the top k predictions for each user sorted in descending order
-    idx_topk: torch.Tensor = idx_topk_part.gather(1, idx_part)
+    # Calculating IDCG without a for loop
+    count_nonzero = heldout_batch.count_nonzero(dim=1)
+    tp_expanded = tp.unsqueeze(0).expand(batch_users, -1)
+    IDCG = torch.where(
+        count_nonzero.unsqueeze(1) > torch.arange(k, device=device, dtype=dtype),
+        tp_expanded,
+        torch.zeros_like(tp_expanded, device=device, dtype=dtype),
+    ).sum(dim=1)
 
-    # Discounted gain
-    tp = 1.0 / torch.log2(torch.arange(2, k + 2, dtype=dtype))
-
-    # Discounted cumulative gain
-    DCG: torch.Tensor = (heldout_batch.gather(1, idx_topk) * tp).sum(dim=1, dtype=dtype)
-
-    # Count the number of non-zero relevance scores in each row
-    rel_count: torch.Tensor = heldout_batch.sum(dim=1, dtype=dtype)
-
-    # Use broadcasting to create a mask where each row contains the sequence [1, ..., min(n, k)]
-    mask: torch.Tensor = torch.arange(1, k + 1, dtype=dtype).unsqueeze(
-        0
-    ) <= rel_count.unsqueeze(1)
-
-    # Ideal discounted cumulative gain
-    IDCG: torch.Tensor = (mask.float() * tp).sum(dim=1, dtype=dtype)
-
-    return DCG / IDCG  # Normalized discounted cumulative gain
+    return DCG / IDCG
 
 
 def Recall_at_k_batch_torch(
-    X_pred: torch.Tensor, heldout_batch: torch.Tensor, k: int = 100
+    X_pred: torch.Tensor, heldout_batch: torch.Tensor, k: int = 100, dtype=torch.float32, device="cpu"
 ):
     """
-    Recall@k in PyTorch. Measures how many of the true items are in the top k recommendations.
+    Recall@k in PyTorch.
+
+    :param X_pred: The predicted scores (as a PyTorch Tensor).
+    :param heldout_batch: The ground truth, it's the matrix of the heldout data (as a PyTorch Tensor).
+    :param k: The number of recommendations to consider.
+    :return: Recall@k.
     """
     batch_users = X_pred.size(0)
 
-    # Return the indices that would partition the array in descending order (top k)
-    idx = torch.topk(X_pred, k, dim=1, sorted=False)[1]
+    # Using topk for getting the indices of the top k predictions
+    _, idx = X_pred.topk(k, dim=1)
 
-    # Create a binary tensor of the same shape as X_pred
-    X_pred_binary = torch.zeros_like(X_pred, dtype=torch.bool)
-
-    # Mark the top k predictions as True
+    # Creating a binary matrix for predictions
+    X_pred_binary = torch.zeros_like(X_pred, dtype=torch.bool, device=device)
     X_pred_binary.scatter_(1, idx, True)
 
-    # Convert heldout_batch to a binary tensor
-    X_true_binary = heldout_batch > 0
+    # Creating a binary matrix for ground truth
+    X_true_binary = (heldout_batch > 0)
 
-    # Calculate the number of true positives
-    true_positives = torch.logical_and(X_true_binary, X_pred_binary).sum(dim=1).float()
+    # Calculating the logical AND and then summing over the rows
+    tmp = (X_true_binary & X_pred_binary).sum(dim=1).float()
 
-    # Calculate recall
-    recall = true_positives / torch.clamp(X_true_binary.sum(dim=1), max=k).float()
+    # Calculating recall
+    recall = tmp / torch.minimum(torch.tensor(k, device=device, dtype=dtype), X_true_binary.sum(dim=1))
 
     return recall
