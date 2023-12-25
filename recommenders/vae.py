@@ -158,10 +158,8 @@ class MultiVAE(nn.Module):
         log_interval=10,
         device: str = "cpu",
         dtype: torch.dtype = torch.float32,
-        summary_writer: SummaryWriter = None,
         validation_dataloader: DataLoader = None,
-        ndcg_k: int = 75,
-    ) -> Tuple[torch.Tensor, torch.Tensor, "MultiVAE"]:
+    ) -> Tuple["MultiVAE", torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
         """
         Trains the model on the given dataset.
 
@@ -177,7 +175,11 @@ class MultiVAE(nn.Module):
         self.to(device, dtype)
 
         loss_history = torch.zeros(num_epochs, dtype=dtype, device=device)
-        val_loss_history = torch.zeros(num_epochs, dtype=dtype, device=device)
+        validation_loss_history = torch.zeros(num_epochs, dtype=dtype, device=device)
+        ndcg_history = torch.zeros(num_epochs, dtype=dtype, device=device)
+        r20_history = torch.zeros(num_epochs, dtype=dtype, device=device)
+        r50_history = torch.zeros(num_epochs, dtype=dtype, device=device)
+
         l = len(train_dataloader)
 
         best_model_state: collections.OrderedDict = None
@@ -202,47 +204,44 @@ class MultiVAE(nn.Module):
             loss_history[epoch] = epoch_loss / l
 
             # Evaluate model
-            ndcg_users: List[np.ndarray] = []
             if validation_dataloader:
                 self.eval()
-                with torch.no_grad():
-                    for batch in validation_dataloader:
-                        validation_train, validation_test = batch
-                        validation_train = validation_train.to(device=device, dtype=dtype)
-                        validation_test = validation_test.to(device=device, dtype=dtype)
-                        prediction, _, _ = self(validation_train)
-                        prediction[validation_train.nonzero(as_tuple=True)] = -np.inf # remove watched items from recommendations
-                        ndcg = NDCG_binary_at_k_batch_torch(prediction, validation_test, ndcg_k, device=device, dtype=dtype)
-                        ndcg_users.append(ndcg)
-                    ndcg_users = torch.concatenate(ndcg_users)
-                    val_loss_history[epoch] = torch.mean(ndcg_users)
+                total_loss, ndcg, r20, r50 = self.evaluate_model(
+                    validation_dataloader=validation_dataloader,
+                    anneal_cap=anneal_cap,
+                    total_anneal_steps=total_anneal_steps,
+                    device=device,
+                    dtype=dtype
+                )
+                validation_loss_history[epoch] = total_loss
+                ndcg_history[epoch] = ndcg
+                r20_history[epoch] = r20
+                r50_history[epoch] = r50
 
-                    if val_loss_history[epoch] > best_val_loss:
-                        best_val_loss = val_loss_history[epoch]
-                        best_model_state = self.state_dict()
-                        print(f"Best model found at epoch {epoch} with NDCG: {best_val_loss.item():.6f}")
+                if validation_loss_history[epoch] > best_val_loss:
+                    best_val_loss = validation_loss_history[epoch]
+                    best_model_state = self.state_dict()
+                    # print(f"Best model found at epoch {epoch} with NDCG: {best_val_loss.item():.6f}")
 
-                    if epoch % log_interval == 0:
-                        print(
-                            f"Epoch: {epoch} \t Loss: {loss_history[epoch].item():.6f} \t NDCG: {val_loss_history[epoch].item():.6f}"
-                        )
+                if epoch % log_interval == 0:
+                    print(
+                        f"Epoch: {epoch} \t Loss: {loss_history[epoch].item():.6f} \t Val Loss: {validation_loss_history[epoch].item():.6f} \t NDCG_100: {ndcg.item():.6f} \t Recall_20: {r20.item():.6f} \t Recall_50: {r50.item():.6f}"
+                    )
         
         best_model = MultiVAE(self.p_dims, self.q_dims)
         best_model.load_state_dict(best_model_state)
         best_model.to(device, dtype)
         best_model.eval()
 
-        return loss_history, val_loss_history, best_model
+        return best_model, loss_history, validation_loss_history, ndcg_history, r20_history, r50_history
 
     def evaluate_model(
         self,
         validation_dataloader: DataLoader,
-        batch_size: int,
         anneal_cap: float = 0.2,
         total_anneal_steps: int = 200000,
         device: str = "cpu",
         dtype: torch.dtype = torch.float32,
-        summary_writer: SummaryWriter = None,
     ):
         self.to(device, dtype)
         self.eval()
@@ -252,6 +251,7 @@ class MultiVAE(nn.Module):
         r50_list = []
         update_count = 0
         N = len(validation_dataloader.dataset)
+        batch_size = validation_dataloader.batch_size
 
         with torch.no_grad():
             for batch in validation_dataloader:
@@ -283,7 +283,7 @@ class MultiVAE(nn.Module):
         r20_list = torch.cat(r20_list)
         r50_list = torch.cat(r50_list)
 
-        return total_loss, torch.mean(n100_list), torch.mean(r20_list), torch.mean(r50_list)
+        return total_loss, torch.nanmean(n100_list), torch.nanmean(r20_list), torch.nanmean(r50_list)
 
     def get_latent_representations(
         self, matrix: torch.Tensor
