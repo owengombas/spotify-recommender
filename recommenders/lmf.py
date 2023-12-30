@@ -12,6 +12,7 @@ from recommenders.metrics import (
     NDCG_binary_at_k_batch_torch,
     Recall_at_k_batch_torch,
 )
+from torchmetrics.retrieval import RetrievalNormalizedDCG
 import os
 
 
@@ -101,7 +102,7 @@ class LogisticMatrixFactorization(nn.Module):
         :param user: If True, compute derivatives for users; otherwise, compute derivatives for items.
         :return: Tuple of derivatives for latent vectors and biases.
         """
-        ones = torch.ones_like(R, dtype=self.dtype, device=self.device)
+        ones = torch.ones((R.shape[0], R.shape[1]), dtype=self.dtype, device=self.device)
 
         if user:
             vec_deriv = torch.matmul(R, self.item_vectors)
@@ -131,7 +132,7 @@ class LogisticMatrixFactorization(nn.Module):
         return vec_deriv, bias_deriv
 
     def log_likelihood(self, R: torch.Tensor) -> torch.Tensor:
-        ones = torch.ones_like(R, dtype=self.dtype, device=self.device)
+        ones = torch.ones((R.shape[0], R.shape[1]), dtype=self.dtype, device=self.device)
 
         loglik = 0
         A = torch.mm(self.user_vectors, self.item_vectors.t())
@@ -190,7 +191,7 @@ class LogisticMatrixFactorization(nn.Module):
         verbose: bool = True,
         log_interval: int = 10,
         tqdm: bool = True,
-    ):
+    ) -> "LogisticMatrixFactorization":
         """
         Train the matrix factorization model.
         :param num_epochs: Number of training epochs.
@@ -234,9 +235,6 @@ class LogisticMatrixFactorization(nn.Module):
             device=self.device,
             requires_grad=False,
         )
-
-        optimizer = optim.Adagrad(self.parameters(), lr=learning_rate)
-
         user_vec_deriv_sum = torch.zeros(
             (self.num_users, self.num_factors),
             device=self.device,
@@ -261,6 +259,11 @@ class LogisticMatrixFactorization(nn.Module):
             dtype=self.dtype,
             requires_grad=False,
         )
+
+        best_ndcg = 0.0
+        best_model: LogisticMatrixFactorization = None
+        optimizer = optim.Adagrad(self.parameters(), lr=learning_rate)
+
         for epoch in tqdm(range(num_epochs)) if tqdm else range(num_epochs):
             optimizer.zero_grad()
 
@@ -289,30 +292,35 @@ class LogisticMatrixFactorization(nn.Module):
             # We calculate the log-likelihood
             loglik = -self.log_likelihood(R)
 
-            # We calculate the MPR
-            I = torch.argsort(self.predict_all(True), dim=1, descending=True)
-            mpr_value = mpr(R, I, device=self.device, dtype=self.dtype)
-            self.losses[epoch] = loglik
-            self.mpr_history[epoch] = mpr_value
 
             (
                 validation_loss,
                 ndcg_value,
                 recall20_value,
                 recall50_value,
-            ) = self.evaluate_model(validation_train, validation_test)
+                mpr_value,
+            ) = self.evaluate_model(R, validation_train, validation_test)
+            # We calculate the MPR
+            self.losses[epoch] = loglik
+            self.mpr_history[epoch] = mpr_value
             self.validation_losses[epoch] = validation_loss
             self.ndcg_history[epoch] = ndcg_value
             self.recall20_history[epoch] = recall20_value
             self.recall50_history[epoch] = recall50_value
 
+            if ndcg_value > best_ndcg:
+                best_ndcg = ndcg_value
+                best_model = self.copy()
+
             if verbose and (epoch + 1) % log_interval == 0:
                 print(
                     f"Epoch: {epoch+1} \t Loss: {loglik:.4f} \t MPR: {mpr_value:.4f} \t NDCG@100: {ndcg_value:.4f} \t Recall@20: {recall20_value:.4f} \t Recall@50: {recall50_value:.4f}"
                 )
+        return best_model
 
     def evaluate_model(
         self,
+        R: torch.Tensor,
         validation_train: torch.Tensor,
         validation_test: torch.Tensor,
     ):
@@ -331,17 +339,19 @@ class LogisticMatrixFactorization(nn.Module):
 
             recon_batch[validation_train.nonzero(as_tuple=True)] = -np.inf
 
-            n100 = NDCG_binary_at_k_batch_torch(
-                recon_batch, validation_test, 100, device=self.device, dtype=self.dtype
-            )
+            NDCG = RetrievalNormalizedDCG(top_k=100, empty_target_action="skip")
+            indexes = torch.arange(validation_test.size(0)).unsqueeze(1).expand(-1, validation_test.size(1))
+            n100 = NDCG(recon_batch, validation_test, indexes)
             r20 = Recall_at_k_batch_torch(
                 recon_batch, validation_test, 20, device=self.device, dtype=self.dtype
             )
             r50 = Recall_at_k_batch_torch(
                 recon_batch, validation_test, 50, device=self.device, dtype=self.dtype
             )
+            I = torch.argsort(self.predict_all(True), dim=1, descending=True)
+            mpr_value = mpr(R, I, device=self.device, dtype=self.dtype)
 
-        return loss, torch.nanmean(n100), torch.nanmean(r20), torch.nanmean(r50)
+        return loss, torch.nanmean(n100), torch.nanmean(r20), torch.nanmean(r50), mpr_value
 
     def recommend(
         self,
@@ -398,3 +408,27 @@ class LogisticMatrixFactorization(nn.Module):
         self.load_state_dict(
             torch.load(os.path.join(path, f"{name}{self.name_suffix}.pt"))
         )
+
+    def copy(self):
+        """
+        Returns a copy of the model.
+        :return: A copy of the model.
+        """
+        model = LogisticMatrixFactorization(
+            self.num_users,
+            self.num_items,
+            self.num_factors,
+            self.reg_param,
+            self.device,
+            self.dtype,
+            self.name_suffix,
+        )
+        model.user_vectors = nn.Parameter(
+            self.user_vectors.clone(), requires_grad=False
+        )
+        model.item_vectors = nn.Parameter(
+            self.item_vectors.clone(), requires_grad=False
+        )
+        model.user_biases = nn.Parameter(self.user_biases.clone(), requires_grad=False)
+        model.item_biases = nn.Parameter(self.item_biases.clone(), requires_grad=False)
+        return model

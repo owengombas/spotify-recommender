@@ -9,6 +9,12 @@ def mpr(
     device: torch.device = torch.device("cpu"),
     dtype: torch.dtype = torch.float32,
 ) -> torch.Tensor:
+    """
+    Mean percentile rank (MPR) metric.
+    :param R: The predicted scores.
+    :param I: The ground truth, it's the matrix of the heldout data (heldout data is the data that we use to test the model).
+    :return: The MPR metric (The lower the better)
+    """
     num_users, num_items = I.shape
     total_interactions = torch.sum(R)
 
@@ -61,6 +67,36 @@ def Recall_at_k_batch(X_pred, heldout_batch, k=100):
     recall = tmp / np.minimum(k, X_true_binary.sum(axis=1))
     return recall
 
+def DCG_binary_at_k_batch_torch(
+    X_pred: torch.Tensor,
+    heldout_batch: torch.Tensor,
+    k: int = 100,
+    device="cpu",
+    dtype=torch.float32,
+):
+    """
+    Normalized Discounted Cumulative Gain@k for binary relevance in PyTorch without using for loops
+    ASSUMPTIONS: all the 0's in heldout_data indicate 0 relevance
+
+    :param X_pred: The predicted scores.
+    :param heldout_batch: The ground truth, it's the matrix of the heldout data (heldout data is the data that we use to test the model).
+    :param k: The number of recommendations to consider.
+    :return: The Normalized Discounted Cumulative Gain@k for binary relevance.
+    """
+    batch_users = X_pred.shape[0]
+    idx_topk_part = torch.argsort(-X_pred, axis=1)[:, :k]
+    topk_part = X_pred[torch.arange(batch_users, device=device, dtype=torch.int32)[:, None], idx_topk_part[:, :k]]
+    idx_part = torch.argsort(-topk_part, axis=1)
+
+    idx_topk = idx_topk_part[torch.arange(batch_users, device=device, dtype=torch.int32)[:, None], idx_part]
+
+    tp = 1.0 / torch.log2(torch.arange(2, k + 2, device=device, dtype=torch.int32))
+
+    DCG = (heldout_batch[torch.arange(batch_users, device=device, dtype=torch.int32)[:, None], idx_topk] * tp).sum(
+        axis=1
+    )
+
+    return DCG, tp
 
 def NDCG_binary_at_k_batch_torch(
     X_pred: torch.Tensor,
@@ -78,28 +114,13 @@ def NDCG_binary_at_k_batch_torch(
     :param k: The number of recommendations to consider.
     :return: The Normalized Discounted Cumulative Gain@k for binary relevance.
     """
-    batch_users = X_pred.size(0)
+    DCG, tp = DCG_binary_at_k_batch_torch(X_pred, heldout_batch, k, device, dtype)
 
-    # Use topk to find the top-k indices
-    _, idx_topk = X_pred.topk(k, dim=1)
-    tp = 1.0 / torch.log2(torch.arange(2, k + 2, device=device, dtype=dtype))
+    IDCG = torch.tensor(
+        [(tp[: min(n, k)]).sum() for n in torch.count_nonzero(heldout_batch, axis=1)], device=device, dtype=dtype
+    )
 
-    # Gathering the top-k items
-    topk_part = torch.gather(X_pred, 1, idx_topk)
-
-    # Calculating DCG
-    DCG = (torch.gather(heldout_batch, 1, idx_topk) * tp).sum(dim=1)
-
-    # Calculating IDCG without a for loop
-    count_nonzero = heldout_batch.count_nonzero(dim=1)
-    tp_expanded = tp.unsqueeze(0).expand(batch_users, -1)
-    IDCG = torch.where(
-        count_nonzero.unsqueeze(1) > torch.arange(k, device=device, dtype=dtype),
-        tp_expanded,
-        torch.zeros_like(tp_expanded, device=device, dtype=dtype),
-    ).sum(dim=1)
-
-    return DCG / IDCG
+    return DCG / IDCG, DCG, IDCG
 
 
 def Recall_at_k_batch_torch(

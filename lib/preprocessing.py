@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 from typing import List, Tuple, Dict, Any, Optional, Callable
 from sklearn.model_selection import train_test_split
+import torch
 
 
 def remove_outliers_iqr(
@@ -183,9 +184,9 @@ def populate_train_test_dataframes(
         if n_items >= min_items_threshold:
             idx = np.zeros(n_items, dtype=bool)
             idx[
-                np.random.choice(n_items, int(n_items * test_percentage), replace=False)
+                np.random.choice(n_items, int(n_items * test_percentage), replace=False).astype(int)
             ] = True
-            list_df_train.append(user[~idx])
+            list_df_train.append(user[np.logical_not(idx)])
             list_df_test.append(user[idx])
         else:
             list_df_train.append(user)
@@ -193,7 +194,24 @@ def populate_train_test_dataframes(
         if verbose and data % log_interval == 0:
             print(f"Processed {data} users out of {df[username_column].nunique()}")
 
-    df_train = pd.concat(list_df_train) if len(list_df_train) > 0 else pd.DataFrame()
-    df_test = pd.concat(list_df_test) if len(list_df_test) > 0 else pd.DataFrame()
+    df_train = pd.concat(list_df_train)
+    df_test = pd.concat(list_df_test)
 
     return df_train, df_test
+
+def min_max_scale(tensor: torch.Tensor, bounds: Tuple[float, float], optimums: Optional[Tuple[float, float]] = None) -> torch.Tensor:
+    """
+    Min-max scale a tensor.
+    :param tensor: The tensor.
+    :param bounds: The bounds.
+    :return: The min-max scaled tensor.
+    """
+    if optimums is None:
+        minimum, maximum = tensor.min().item(), tensor.max().item()
+    else:
+        minimum, maximum = optimums
+    
+    bound_minimum, bound_maximum = bounds
+
+    return (tensor - minimum) / (maximum - minimum) * (bound_maximum - bound_minimum) + bound_minimum, minimum, maximum
+

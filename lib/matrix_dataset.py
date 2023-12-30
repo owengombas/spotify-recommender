@@ -3,6 +3,8 @@ import pandas as pd
 from typing import List
 import numpy as np
 from sklearn.model_selection import train_test_split
+import lib.preprocessing as preprocessing
+from typing import Tuple, Optional
 
 
 class MatrixDataset:
@@ -59,6 +61,15 @@ class MatrixDataset:
     
     def set_alpha(self, alpha: float):
         self._R *= alpha
+    
+    def min_max_scale(self, bounds: Tuple[float, float], optimums: Optional[Tuple[float, float]] = None):
+        """
+        Min-max scale the dataset.
+        :param bounds: The bounds.
+        :param optimums: The optimums.
+        """
+        self._R, minimum, maximum = preprocessing.min_max_scale(self._R, bounds, optimums)
+        return minimum, maximum
 
     def get_user(self, user_id: int) -> torch.Tensor:
         """

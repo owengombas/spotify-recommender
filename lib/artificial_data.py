@@ -12,7 +12,12 @@ fake = Faker()
 
 def generate_from_normal_distribution(mean: float, std: float) -> np.ndarray:
     def inner(n_samples: int) -> np.ndarray:
-        return np.random.normal(mean, std, n_samples)
+        v = np.random.normal(0, 1, n_samples)
+        # min 0
+        v = np.abs(v)
+        # max 1
+        v = v / np.max(v)
+        return v
 
     return inner
 
