@@ -294,7 +294,7 @@ class MultiVAE(nn.Module):
                 recon_batch[validation_train.nonzero(as_tuple=True)] = -np.inf
 
                 NDCG = RetrievalNormalizedDCG(top_k=100)
-                indexes = torch.arange(validation_test.size(0)).unsqueeze(1).expand(-1, validation_test.size(1))
+                indexes = torch.arange(validation_test.size(0), device=device, dtype=torch.long).unsqueeze(1).expand(-1, validation_test.size(1))
                 n100 = NDCG(recon_batch, validation_test, indexes)
                 r20 = Recall_at_k_batch_torch(
                     recon_batch, validation_test, 20, device=device, dtype=dtype
