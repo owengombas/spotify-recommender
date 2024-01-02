@@ -153,3 +153,23 @@ def Recall_at_k_batch_torch(
     recall = tmp / torch.minimum(torch.tensor(k, device=device, dtype=dtype), X_true_binary.sum(dim=1))
 
     return recall
+
+def similarities_score(
+    X: torch.Tensor,
+    Y: torch.Tensor,
+    device: torch.device = torch.device("cpu"),
+    dtype: torch.dtype = torch.float32,
+) -> torch.Tensor:
+    """
+    Compute the mean cosine similarity between the rows of two matrices.
+    :param X: The first matrix.
+    :param Y: The second matrix.
+    :return: The mean cosine similarity.
+    """
+    X = X.to(device=device, dtype=dtype)
+    Y = Y.to(device=device, dtype=dtype)
+    X_norm = torch.norm(X, p=2, dim=1, keepdim=True)
+    Y_norm = torch.norm(Y, p=2, dim=1, keepdim=True)
+    X_normalized = X.div(X_norm)
+    Y_normalized = Y.div(Y_norm)
+    return torch.mean(torch.mm(X_normalized, Y_normalized.t()))

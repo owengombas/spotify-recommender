@@ -1,7 +1,11 @@
 from lib.spoti import SpotiUser
+from faker import Faker
 
-ID = """
-tea
+faker = Faker()
+anonimized = faker.name().split(" ")[0].lower()
+
+ID = f"""
+{anonimized}
 """
 
 

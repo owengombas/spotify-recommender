@@ -17,6 +17,9 @@ export default function Home() {
 
   return (
     <main className="flex flex-col items-center justify-center py-5">
+      <div className="flex flex-col items-center justify-center mb-10">
+        You are logged as: owengombas
+      </div>
       <div className="flex flex-col items-center justify-center">
         <SpotifyEmbed trackID={song} height={80} />
       </div>

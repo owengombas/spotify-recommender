@@ -11,6 +11,7 @@ from recommenders.metrics import (
     mpr,
     NDCG_binary_at_k_batch_torch,
     Recall_at_k_batch_torch,
+    similarities_score,
 )
 from torchmetrics.retrieval import RetrievalNormalizedDCG
 import os
@@ -91,6 +92,9 @@ class LogisticMatrixFactorization(nn.Module):
         self.recall50_history = torch.zeros(
             0, dtype=self.dtype, device=self.device, requires_grad=False
         )
+        self.similarity_history = torch.zeros(
+            0, dtype=self.dtype, device=self.device, requires_grad=False
+        )
 
         self.to(self.device, self.dtype)
 
@@ -102,7 +106,9 @@ class LogisticMatrixFactorization(nn.Module):
         :param user: If True, compute derivatives for users; otherwise, compute derivatives for items.
         :return: Tuple of derivatives for latent vectors and biases.
         """
-        ones = torch.ones((R.shape[0], R.shape[1]), dtype=self.dtype, device=self.device)
+        ones = torch.ones(
+            (R.shape[0], R.shape[1]), dtype=self.dtype, device=self.device
+        )
 
         if user:
             vec_deriv = torch.matmul(R, self.item_vectors)
@@ -132,7 +138,9 @@ class LogisticMatrixFactorization(nn.Module):
         return vec_deriv, bias_deriv
 
     def log_likelihood(self, R: torch.Tensor) -> torch.Tensor:
-        ones = torch.ones((R.shape[0], R.shape[1]), dtype=self.dtype, device=self.device)
+        ones = torch.ones(
+            (R.shape[0], R.shape[1]), dtype=self.dtype, device=self.device
+        )
 
         loglik = 0
         A = torch.mm(self.user_vectors, self.item_vectors.t())
@@ -191,6 +199,9 @@ class LogisticMatrixFactorization(nn.Module):
         verbose: bool = True,
         log_interval: int = 10,
         tqdm: bool = True,
+        validation_df_features: pd.DataFrame = None,
+        validation_features_columns: List[str] = None,
+        similarity_max_item: int = 50,
     ) -> "LogisticMatrixFactorization":
         """
         Train the matrix factorization model.
@@ -235,6 +246,12 @@ class LogisticMatrixFactorization(nn.Module):
             device=self.device,
             requires_grad=False,
         )
+        self.similarity_history = torch.zeros(
+            num_epochs,
+            dtype=self.dtype,
+            device=self.device,
+            requires_grad=False,
+        )
         user_vec_deriv_sum = torch.zeros(
             (self.num_users, self.num_factors),
             device=self.device,
@@ -260,7 +277,7 @@ class LogisticMatrixFactorization(nn.Module):
             requires_grad=False,
         )
 
-        best_ndcg = 0.0
+        best_val = 0.0
         best_model: LogisticMatrixFactorization = None
         optimizer = optim.Adagrad(self.parameters(), lr=learning_rate)
 
@@ -292,14 +309,21 @@ class LogisticMatrixFactorization(nn.Module):
             # We calculate the log-likelihood
             loglik = -self.log_likelihood(R)
 
-
             (
                 validation_loss,
                 ndcg_value,
                 recall20_value,
                 recall50_value,
                 mpr_value,
-            ) = self.evaluate_model(R, validation_train, validation_test)
+                similarity,
+            ) = self.evaluate_model(
+                R,
+                validation_train,
+                validation_test,
+                validation_df_features,
+                validation_features_columns,
+                similarity_max_item,
+            )
             # We calculate the MPR
             self.losses[epoch] = loglik
             self.mpr_history[epoch] = mpr_value
@@ -307,14 +331,15 @@ class LogisticMatrixFactorization(nn.Module):
             self.ndcg_history[epoch] = ndcg_value
             self.recall20_history[epoch] = recall20_value
             self.recall50_history[epoch] = recall50_value
+            self.similarity_history[epoch] = similarity
 
-            if ndcg_value > best_ndcg:
-                best_ndcg = ndcg_value
+            if similarity > best_val:
+                best_val = similarity
                 best_model = self.copy()
 
             if verbose and (epoch + 1) % log_interval == 0:
                 print(
-                    f"Epoch: {epoch+1} \t Loss: {loglik:.4f} \t MPR: {mpr_value:.4f} \t NDCG@100: {ndcg_value:.4f} \t Recall@20: {recall20_value:.4f} \t Recall@50: {recall50_value:.4f}"
+                    f"Epoch: {epoch+1} \t Loss: {loglik:.4f} \t MPR: {mpr_value:.4f} \t NDCG@100: {ndcg_value:.4f} \t Recall@20: {recall20_value:.4f} \t Recall@50: {recall50_value:.4f} \t Similarity: {similarity:.4f}"
                 )
         return best_model
 
@@ -323,6 +348,9 @@ class LogisticMatrixFactorization(nn.Module):
         R: torch.Tensor,
         validation_train: torch.Tensor,
         validation_test: torch.Tensor,
+        df_features: pd.DataFrame,
+        features_columns: List[str],
+        similarity_max_item: int,
     ):
         """
         Evaluates the model on the validation set.
@@ -340,7 +368,13 @@ class LogisticMatrixFactorization(nn.Module):
             recon_batch[validation_train.nonzero(as_tuple=True)] = -np.inf
 
             NDCG = RetrievalNormalizedDCG(top_k=100, empty_target_action="skip")
-            indexes = torch.arange(validation_test.size(0), device=self.device, dtype=torch.long).unsqueeze(1).expand(-1, validation_test.size(1))
+            indexes = (
+                torch.arange(
+                    validation_test.size(0), device=self.device, dtype=torch.long
+                )
+                .unsqueeze(1)
+                .expand(-1, validation_test.size(1))
+            )
             n100 = NDCG(recon_batch, validation_test, indexes)
             r20 = Recall_at_k_batch_torch(
                 recon_batch, validation_test, 20, device=self.device, dtype=self.dtype
@@ -351,7 +385,74 @@ class LogisticMatrixFactorization(nn.Module):
             I = torch.argsort(self.predict_all(True), dim=1, descending=True)
             mpr_value = mpr(R, I, device=self.device, dtype=self.dtype)
 
-        return loss, torch.nanmean(n100), torch.nanmean(r20), torch.nanmean(r50), mpr_value
+            similarity_score_list = []
+            for user_id in df_features["username"].cat.codes.unique():
+                user_tracks_df = df_features[df_features["username"].cat.codes == user_id]
+                user_tracks_df = user_tracks_df.sort_values(
+                    by="affinity", ascending=False
+                )
+                user_tracks_features = torch.tensor(
+                    user_tracks_df[features_columns].to_numpy(),
+                    dtype=self.dtype,
+                    device=self.device,
+                )
+                max_item = min(
+                    similarity_max_item,
+                    len(user_tracks_features),
+                )
+
+                predicted_tracks_idx, predicted_tracks_scores = self.recommend(
+                    R, user_id, top_k=max_item, filter_user_items=True
+                )
+
+                predicted_tracks_features_df = df_features.copy()
+                predicted_tracks_features_df["item_id"] = df_features[
+                    "id"
+                ].cat.codes.astype("int")
+                predicted_tracks_features_df.set_index("item_id", inplace=True)
+                predicted_tracks_features_df = predicted_tracks_features_df.iloc[
+                    predicted_tracks_idx
+                ]
+                predicted_tracks_features_df["score"] = pd.Series(
+                    predicted_tracks_scores,
+                    index=predicted_tracks_features_df.index,
+                )
+                predicted_tracks_features_df = predicted_tracks_features_df[
+                    ~predicted_tracks_features_df.index.isin(user_tracks_df.index)
+                ]
+                predicted_tracks_features_df.drop_duplicates(
+                    subset=["id"], inplace=True
+                )
+                predicted_tracks_features_df = predicted_tracks_features_df.sort_values(
+                    by="score", ascending=False
+                )
+
+                predicted_tracks_features = torch.tensor(
+                    predicted_tracks_features_df[features_columns].to_numpy(),
+                    dtype=self.dtype,
+                    device=self.device,
+                )
+                max_item = min(
+                    similarity_max_item,
+                    max_item,
+                )
+                similarity_score = similarities_score(
+                    user_tracks_features[:max_item],
+                    predicted_tracks_features[:max_item],
+                    device=self.device,
+                    dtype=self.dtype,
+                )
+                similarity_score_list.append(similarity_score)
+            similarity = torch.nanmean(torch.tensor(similarity_score_list))
+
+        return (
+            loss,
+            torch.nanmean(n100),
+            torch.nanmean(r20),
+            torch.nanmean(r50),
+            mpr_value,
+            similarity,
+        )
 
     def recommend(
         self,

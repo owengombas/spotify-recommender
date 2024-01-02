@@ -27,6 +27,7 @@ DEFAULT_SCOPE = (
 NUMERICAL_FEATURES = [
     "danceability",
     "energy",
+    "mode",
     "speechiness",
     "acousticness",
     "instrumentalness",
@@ -36,6 +37,7 @@ NUMERICAL_FEATURES = [
     "loudness",
     "duration_ms",
     "release_year",
+    "time_signature",
     "popularity",
 ]
 
@@ -63,34 +65,43 @@ class SpotiUser:
         self._username: str = username
         self._scope = DEFAULT_SCOPE
         self._sp: spotipy.Spotify = None
-    
+
     def infos(self) -> pd.DataFrame:
         result = self.sp.current_user()
         return pd.DataFrame([result])
-    
+
     def get_email(self) -> str:
         return self.infos()["email"].iloc[0]
 
     def load_top_tracks(
         self,
-        penality_factors: Dict[str, float] = {
+        top_tracks_affinity_start: Dict[str, float] = {
             "short_term": 1.0,
             "medium_term": 1.0,
             "long_term": 1.0,
         },
+        top_tracks_affinity_end: Dict[str, float] = {
+            "short_term": 0,
+            "medium_term": 0,
+            "long_term": 0,
+        },
+        top_tracks_include_end=False,
         base_path: str = "data",
     ) -> pd.DataFrame:
         df: pd.DataFrame = pd.read_json(
             os.path.join(base_path, f"{self._username}_top_tracks.json")
         )
+
         for time_range, df_sub_time_range in df.groupby("time_range"):
-            # Add affinity column, to goes from 0 to 1, it's just a incremental index
-            size = len(df_sub_time_range)
-            penality_factor = penality_factors[time_range]
-            df_sub_time_range["affinity"] = range(1, size + 1)[::-1]
-            df.loc[df_sub_time_range.index, "affinity"] = (
-                df_sub_time_range["affinity"] * penality_factor
-            ) / size
+            # Add affinity column, 1 to 0.1
+            decreasing_affinity = np.linspace(
+                top_tracks_affinity_start[time_range],
+                top_tracks_affinity_end[time_range],
+                num=len(df_sub_time_range),
+                endpoint=top_tracks_include_end,
+            )
+            df.loc[df_sub_time_range.index, "affinity"] = decreasing_affinity
+
         df["type"] = "top_track"
         df["username"] = self.username
         df["release_year"] = df["album_release_date"].apply(
@@ -99,20 +110,38 @@ class SpotiUser:
         df["normalized_genres"] = genre_normalizer.normalize_genres(df["genres"])
         return df
 
-    def load_liked_tracks(self, base_path: str = "data") -> pd.DataFrame:
+    def load_liked_tracks(
+        self,
+        base_path: str = "data",
+        start_affinity=1.0,
+        end_affinity=0.1,
+        include_endpoint=False,
+    ) -> pd.DataFrame:
         df = pd.read_json(
             os.path.join(base_path, f"{self._username}_liked_tracks.json")
         )
         df["added_at"] = pd.to_datetime(df["added_at"])
+        df.sort_values(by="added_at", inplace=True)
         df["type"] = "liked_track"
         df["username"] = self.username
         df["release_year"] = df["album_release_date"].apply(
             lambda x: int(x.split("-")[0])
         )
         df["normalized_genres"] = genre_normalizer.normalize_genres(df["genres"])
+
+        for time_range, df_sub_time_range in df.groupby("username"):
+            # Add affinity column, 1 to 0.1
+            decreasing_affinity = np.linspace(
+                start_affinity,
+                end_affinity,
+                num=len(df_sub_time_range),
+                endpoint=include_endpoint,
+            )
+            df.loc[df_sub_time_range.index, "affinity"] = decreasing_affinity
+
         return df
 
-    def load_playlists(self, base_path: str = "data") -> pd.DataFrame:
+    def load_playlists(self, base_path: str = "data", affinity: float = 0.2) -> pd.DataFrame:
         df = pd.read_json(
             os.path.join(base_path, f"{self._username}_playlists_tracks.json")
         )
@@ -123,22 +152,41 @@ class SpotiUser:
             lambda x: int(x.split("-")[0])
         )
         df["normalized_genres"] = genre_normalizer.normalize_genres(df["genres"])
+        df["affinity"] = affinity
         return df
 
     def load_all(
         self,
-        penality_factors: Dict[str, float] = {
+        top_tracks_affinity_start: Dict[str, float] = {
             "short_term": 1.0,
             "medium_term": 1.0,
             "long_term": 1.0,
         },
+        top_tracks_affinity_end: Dict[str, float] = {
+            "short_term": 0,
+            "medium_term": 0,
+            "long_term": 0,
+        },
+        top_tracks_include_end=False,
+        liked_tracks_start_affinity=1.0,
+        liked_tracks_end_affinity=0.1,
+        liked_tracks_include_endpoint=False,
+        playlists_affinity=0.2,
         base_path: str = "data",
     ) -> pd.DataFrame:
         df_top_tracks = self.load_top_tracks(
-            penality_factors=penality_factors, base_path=base_path
+            top_tracks_affinity_start=top_tracks_affinity_start,
+            top_tracks_affinity_end=top_tracks_affinity_end,
+            top_tracks_include_end=top_tracks_include_end,
+            base_path=base_path,
         )
-        df_liked_tracks = self.load_liked_tracks(base_path=base_path)
-        df_playlists = self.load_playlists(base_path=base_path)
+        df_liked_tracks = self.load_liked_tracks(
+            base_path=base_path,
+            start_affinity=liked_tracks_start_affinity,
+            end_affinity=liked_tracks_end_affinity,
+            include_endpoint=liked_tracks_include_endpoint,
+        )
+        df_playlists = self.load_playlists(base_path=base_path, affinity=playlists_affinity)
 
         df = pd.concat(
             [df_top_tracks, df_liked_tracks, df_playlists], ignore_index=True
@@ -345,27 +393,49 @@ class SpotiUser:
 
         return result_df
 
+
 def load_all_tracks(
     base_path: str = "data",
     users: List[SpotiUser] = None,
     load_spotify_tracks: bool = True,
-    penality_factors: Dict[str, float] = {
+    top_tracks_affinity_start: Dict[str, float] = {
         "short_term": 1.0,
         "medium_term": 1.0,
         "long_term": 1.0,
     },
+    top_tracks_affinity_end: Dict[str, float] = {
+        "short_term": 0,
+        "medium_term": 0,
+        "long_term": 0,
+    },
+    top_tracks_include_end=False,
+    liked_tracks_start_affinity=1.0,
+    liked_tracks_end_affinity=0.1,
+    liked_tracks_include_endpoint=False,
+    playlists_affinity=0.2,
 ) -> pd.DataFrame:
     df = pd.DataFrame()
 
+    for user in users:
+        df_user = user.load_all(
+            top_tracks_affinity_start=top_tracks_affinity_start,
+            top_tracks_affinity_end=top_tracks_affinity_end,
+            top_tracks_include_end=top_tracks_include_end,
+            liked_tracks_start_affinity=liked_tracks_start_affinity,
+            liked_tracks_end_affinity=liked_tracks_end_affinity,
+            liked_tracks_include_endpoint=liked_tracks_include_endpoint,
+            playlists_affinity=playlists_affinity,
+            base_path=base_path,
+        )
+        df = pd.concat([df, df_user], ignore_index=True)
+
     if load_spotify_tracks:
-        df = pd.read_json(
+        df_spotify = pd.read_json(
             os.path.join(base_path, "tracks.json"), orient="records"
         ).reset_index(drop=True)
-        df["username"] = "Spotify"
-
-    for user in users:
-        df_user = user.load_all(penality_factors=penality_factors, base_path=base_path)
-        df = pd.concat([df, df_user], ignore_index=True)
+        df_spotify["username"] = "Spotify"
+        df_spotify["affinity"] = 0.0
+        df = pd.concat([df, df_spotify], ignore_index=True)
 
     df = df.reset_index(drop=True)
 

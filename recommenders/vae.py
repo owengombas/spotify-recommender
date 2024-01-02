@@ -15,8 +15,11 @@ from recommenders.metrics import (
     NDCG_binary_at_k_batch_torch,
     Recall_at_k_batch_torch,
     mpr,
+    similarities_score,
 )
 from torchmetrics.retrieval import RetrievalNormalizedDCG
+import pandas as pd
+
 
 def loss_function(
     recon_x: torch.Tensor,
@@ -165,6 +168,10 @@ class MultiVAE(nn.Module):
         device: str = "cpu",
         dtype: torch.dtype = torch.float32,
         validation_dataloader: DataLoader = None,
+        validation_features_df: pd.DataFrame = None,
+        validation_user_item_matrix: torch.Tensor = None,
+        validation_features_columns: List[str] = None,
+        validation_similarity_max_item: int = 100,
     ) -> Tuple[
         "MultiVAE", torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor
     ]:
@@ -188,6 +195,7 @@ class MultiVAE(nn.Module):
         r20_history = torch.zeros(num_epochs, dtype=dtype, device=device)
         r50_history = torch.zeros(num_epochs, dtype=dtype, device=device)
         mpr_history = torch.zeros(num_epochs, dtype=dtype, device=device)
+        similarities_score_history = torch.zeros(num_epochs, dtype=dtype, device=device)
 
         l = len(train_dataloader)
 
@@ -215,10 +223,21 @@ class MultiVAE(nn.Module):
             # Evaluate model
             if validation_dataloader:
                 self.eval()
-                total_loss, ndcg, r20, r50, mpr_value = self.evaluate_model(
+                (
+                    total_loss,
+                    ndcg,
+                    r20,
+                    r50,
+                    mpr_value,
+                    similarities_score,
+                ) = self.evaluate_model(
                     validation_dataloader=validation_dataloader,
                     anneal_cap=anneal_cap,
                     total_anneal_steps=total_anneal_steps,
+                    df_features=validation_features_df,
+                    features_columns=validation_features_columns,
+                    user_item_matrix=validation_user_item_matrix,
+                    similarity_max_item=validation_similarity_max_item,
                     device=device,
                     dtype=dtype,
                 )
@@ -227,15 +246,16 @@ class MultiVAE(nn.Module):
                 r20_history[epoch] = r20
                 r50_history[epoch] = r50
                 mpr_history[epoch] = mpr_value
+                similarities_score_history[epoch] = similarities_score
 
-                if validation_loss_history[epoch] > best_val_loss:
-                    best_val_loss = validation_loss_history[epoch]
+                if similarities_score > best_val_loss:
+                    best_val_loss = similarities_score
                     best_model_state = self.state_dict()
                     # print(f"Best model found at epoch {epoch} with NDCG: {best_val_loss.item():.6f}")
 
                 if epoch % log_interval == 0:
                     print(
-                        f"Epoch: {epoch} \t Loss: {loss_history[epoch].item():.6f} \t Val Loss: {validation_loss_history[epoch].item():.6f} \t NDCG_100: {ndcg.item():.6f} \t Recall_20: {r20.item():.6f} \t Recall_50: {r50.item():.6f} \t MPR: {mpr_value.item():.6f}"
+                        f"Epoch: {epoch} \t Loss: {loss_history[epoch].item():.6f} \t Val Loss: {validation_loss_history[epoch].item():.6f} \t NDCG_100: {ndcg.item():.6f} \t Recall_20: {r20.item():.6f} \t Recall_50: {r50.item():.6f} \t MPR: {mpr_value.item():.6f}, \t Similarity Score: {similarities_score.item():.6f}"
                     )
 
         best_model = MultiVAE(self.p_dims, self.q_dims)
@@ -251,13 +271,18 @@ class MultiVAE(nn.Module):
             r20_history,
             r50_history,
             mpr_history,
+            similarities_score_history,
         )
 
     def evaluate_model(
         self,
         validation_dataloader: DataLoader,
+        user_item_matrix: torch.Tensor,
+        df_features: pd.DataFrame,
+        features_columns: List[str],
         anneal_cap: float = 0.2,
         total_anneal_steps: int = 200000,
+        similarity_max_item: int = 100,
         device: str = "cpu",
         dtype: torch.dtype = torch.float32,
     ):
@@ -268,6 +293,7 @@ class MultiVAE(nn.Module):
         r20_list = []
         r50_list = []
         mpr_list = []
+        similarity_score_list = []
         update_count = 0
         N = len(validation_dataloader.dataset)
         batch_size = validation_dataloader.batch_size
@@ -293,8 +319,14 @@ class MultiVAE(nn.Module):
 
                 recon_batch[validation_train.nonzero(as_tuple=True)] = -np.inf
 
-                NDCG = RetrievalNormalizedDCG(top_k=100)
-                indexes = torch.arange(validation_test.size(0), device=device, dtype=torch.long).unsqueeze(1).expand(-1, validation_test.size(1))
+                NDCG = RetrievalNormalizedDCG(top_k=100, empty_target_action="skip")
+                indexes = (
+                    torch.arange(
+                        validation_test.size(0), device=device, dtype=torch.long
+                    )
+                    .unsqueeze(1)
+                    .expand(-1, validation_test.size(1))
+                )
                 n100 = NDCG(recon_batch, validation_test, indexes)
                 r20 = Recall_at_k_batch_torch(
                     recon_batch, validation_test, 20, device=device, dtype=dtype
@@ -316,11 +348,74 @@ class MultiVAE(nn.Module):
                 r20_list.append(r20)
                 r50_list.append(r50)
 
+                update_count += 1
+
+        for user_id in df_features["username"].cat.codes.unique():
+            user_row = user_item_matrix[user_id]
+            # Ground truth
+            user_tracks_df = df_features[
+                df_features["username"].cat.codes == user_id.item()
+            ]
+            user_tracks_df = user_tracks_df.sort_values(by="affinity", ascending=False)
+            user_tracks_features = torch.tensor(
+                user_tracks_df[features_columns].to_numpy(), dtype=dtype, device=device
+            )
+            max_item = min(similarity_max_item, len(user_tracks_features))
+
+            # Predicted
+            mu, logvar = self.encode(user_row.unsqueeze(0))
+            z = self.reparameterize(mu, logvar)
+            predicted_scores = self.decode(z)
+            predicted_scores = predicted_scores.cpu().flatten()
+            topk = torch.topk(predicted_scores, max_item)
+            predicted_tracks_idx = topk.indices.cpu().detach().numpy()
+            predicted_tracks_scores = topk.values.cpu().detach().numpy()
+            max_item = min(
+                len(predicted_tracks_idx),
+                max_item,
+            )
+
+            predicted_tracks_features_df = df_features.copy()
+            predicted_tracks_features_df["item_id"] = df_features[
+                "id"
+            ].cat.codes.astype("int")
+            predicted_tracks_features_df.set_index("item_id", inplace=True)
+            predicted_tracks_features_df = predicted_tracks_features_df.iloc[
+                predicted_tracks_idx
+            ]
+            predicted_tracks_features_df["score"] = pd.Series(
+                predicted_tracks_scores,
+                index=predicted_tracks_features_df.index,
+            )
+            predicted_tracks_features_df = predicted_tracks_features_df[
+                ~predicted_tracks_features_df.index.isin(user_tracks_df.index)
+            ]
+            predicted_tracks_features_df.drop_duplicates(subset=["id"], inplace=True)
+            predicted_tracks_features_df = predicted_tracks_features_df.sort_values(
+                by="score", ascending=False
+            )
+
+            predicted_tracks_features = torch.tensor(
+                predicted_tracks_features_df[features_columns].to_numpy(),
+                dtype=dtype,
+                device=device,
+            )
+            similarity_score = similarities_score(
+                user_tracks_features,
+                predicted_tracks_features,
+                device=device,
+                dtype=dtype,
+            )
+            similarity_score_list.append(similarity_score)
+
         total_loss /= len(range(0, N, batch_size))
         n100_list = torch.tensor(n100_list, dtype=dtype, device=device)
         r20_list = torch.cat(r20_list)
         r50_list = torch.cat(r50_list)
         mpr_list = torch.tensor(mpr_list, dtype=dtype, device=device)
+        similarity_score_list = torch.tensor(
+            similarity_score_list, dtype=dtype, device=device
+        )
 
         return (
             total_loss,
@@ -328,6 +423,7 @@ class MultiVAE(nn.Module):
             torch.nanmean(r20_list),
             torch.nanmean(r50_list),
             torch.nanmean(mpr_list),
+            torch.nanmean(similarity_score_list),
         )
 
     def get_latent_representations(

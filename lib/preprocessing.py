@@ -147,12 +147,16 @@ def split_users_train_validation_test(
         random_state=seed,
         shuffle=False,
     )
-    train_df, validation_df = train_test_split(
-        dev_df,
-        test_size=validation_percentage,
-        random_state=seed,
-        shuffle=False,
-    )
+    if validation_percentage > 0:
+        train_df, validation_df = train_test_split(
+            dev_df,
+            test_size=validation_percentage,
+            random_state=seed,
+            shuffle=False,
+        )
+    else:
+        train_df = dev_df
+        validation_df = pd.DataFrame()
 
     return train_df, validation_df, test_df
 
