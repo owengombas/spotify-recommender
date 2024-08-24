@@ -1,0 +1,562 @@
+[
+  {
+    "collaborative": false,
+    "description": "songs to get into kpop starting with soft ones and ending with absolute bangers ",
+    "external_urls": {
+      "spotify": "https://open.spotify.com/playlist/4jWEj1nAFAfI8bjedELsDY"
+    },
+    "href": "https://api.spotify.com/v1/playlists/4jWEj1nAFAfI8bjedELsDY",
+    "id": "4jWEj1nAFAfI8bjedELsDY",
+    "images": [
+      {
+        "height": null,
+        "url": "https://image-cdn-fa.spotifycdn.com/image/ab67706c0000bebb2be0b8e45b7efe1d3fda8732",
+        "width": null
+      }
+    ],
+    "name": "kpop perhaps? ",
+    "owner": {
+      "display_name": "mischfits",
+      "external_urls": { "spotify": "https://open.spotify.com/user/iceblou" },
+      "href": "https://api.spotify.com/v1/users/iceblou",
+      "id": "iceblou",
+      "type": "user",
+      "uri": "spotify:user:iceblou"
+    },
+    "primary_color": null,
+    "public": true,
+    "snapshot_id": "Mjk2LDExNDFmZDY4MzYyMGY4MTY5YTJmOTA4ZTQyMTc5M2FiNGI1MWEwMTY=",
+    "tracks": {
+      "href": "https://api.spotify.com/v1/playlists/4jWEj1nAFAfI8bjedELsDY/tracks",
+      "total": 71
+    },
+    "type": "playlist",
+    "uri": "spotify:playlist:4jWEj1nAFAfI8bjedELsDY",
+    "username": "joann"
+  },
+  {
+    "collaborative": false,
+    "description": "",
+    "external_urls": {
+      "spotify": "https://open.spotify.com/playlist/0zWJ8KNjRpAn3pfLCw3N6Z"
+    },
+    "href": "https://api.spotify.com/v1/playlists/0zWJ8KNjRpAn3pfLCw3N6Z",
+    "id": "0zWJ8KNjRpAn3pfLCw3N6Z",
+    "images": [
+      {
+        "height": null,
+        "url": "https://image-cdn-ak.spotifycdn.com/image/ab67706c0000bebbf7183d46a3791ceac295b8c2",
+        "width": null
+      }
+    ],
+    "name": "enjoying your company type beat",
+    "owner": {
+      "display_name": "mischfits",
+      "external_urls": { "spotify": "https://open.spotify.com/user/iceblou" },
+      "href": "https://api.spotify.com/v1/users/iceblou",
+      "id": "iceblou",
+      "type": "user",
+      "uri": "spotify:user:iceblou"
+    },
+    "primary_color": null,
+    "public": true,
+    "snapshot_id": "NTAsOTZkODdjZWQyMzJmODNmNDg1OWM0Y2I2NGFkMzJmZjNkNmExMWEzNg==",
+    "tracks": {
+      "href": "https://api.spotify.com/v1/playlists/0zWJ8KNjRpAn3pfLCw3N6Z/tracks",
+      "total": 35
+    },
+    "type": "playlist",
+    "uri": "spotify:playlist:0zWJ8KNjRpAn3pfLCw3N6Z",
+    "username": "joann"
+  },
+  {
+    "collaborative": false,
+    "description": "the reason this playlist exists is bc you\u2019re a leo sun",
+    "external_urls": {
+      "spotify": "https://open.spotify.com/playlist/6YZDVNDT5tyfWgJOQrQOtk"
+    },
+    "href": "https://api.spotify.com/v1/playlists/6YZDVNDT5tyfWgJOQrQOtk",
+    "id": "6YZDVNDT5tyfWgJOQrQOtk",
+    "images": [
+      {
+        "height": null,
+        "url": "https://image-cdn-ak.spotifycdn.com/image/ab67706c0000bebb4d8f4c45bfb676e4db0c2afb",
+        "width": null
+      }
+    ],
+    "name": "girlboss music",
+    "owner": {
+      "display_name": "mischfits",
+      "external_urls": { "spotify": "https://open.spotify.com/user/iceblou" },
+      "href": "https://api.spotify.com/v1/users/iceblou",
+      "id": "iceblou",
+      "type": "user",
+      "uri": "spotify:user:iceblou"
+    },
+    "primary_color": null,
+    "public": true,
+    "snapshot_id": "NDEsOTM1NGQ2YWQ5ZWNjOTk0MDhlMjE4NTljYTkxZjM4NWEyOWM2NTJiNw==",
+    "tracks": {
+      "href": "https://api.spotify.com/v1/playlists/6YZDVNDT5tyfWgJOQrQOtk/tracks",
+      "total": 27
+    },
+    "type": "playlist",
+    "uri": "spotify:playlist:6YZDVNDT5tyfWgJOQrQOtk",
+    "username": "joann"
+  },
+  {
+    "collaborative": false,
+    "description": "a playlist for yeonjun",
+    "external_urls": {
+      "spotify": "https://open.spotify.com/playlist/0bKgXaNLE9kjCWdC6yq4qB"
+    },
+    "href": "https://api.spotify.com/v1/playlists/0bKgXaNLE9kjCWdC6yq4qB",
+    "id": "0bKgXaNLE9kjCWdC6yq4qB",
+    "images": [
+      {
+        "height": null,
+        "url": "https://image-cdn-ak.spotifycdn.com/image/ab67706c0000bebbac580c1e5112096a8c6077e1",
+        "width": null
+      }
+    ],
+    "name": "5:53 thinking of you",
+    "owner": {
+      "display_name": "mischfits",
+      "external_urls": { "spotify": "https://open.spotify.com/user/iceblou" },
+      "href": "https://api.spotify.com/v1/users/iceblou",
+      "id": "iceblou",
+      "type": "user",
+      "uri": "spotify:user:iceblou"
+    },
+    "primary_color": null,
+    "public": true,
+    "snapshot_id": "MjMsNWMyNDdjOTI1ZGUwYWE1ODdmMzQxZjFlMDc5MTMwZGIyZTEyOWFlMA==",
+    "tracks": {
+      "href": "https://api.spotify.com/v1/playlists/0bKgXaNLE9kjCWdC6yq4qB/tracks",
+      "total": 15
+    },
+    "type": "playlist",
+    "uri": "spotify:playlist:0bKgXaNLE9kjCWdC6yq4qB",
+    "username": "joann"
+  },
+  {
+    "collaborative": false,
+    "description": "pov: you meet someone new, fall in love with them deeply while thinking this could work out but in the end you get your heart broken anyways",
+    "external_urls": {
+      "spotify": "https://open.spotify.com/playlist/1mfZUbJmMNbzDigIJfcMlL"
+    },
+    "href": "https://api.spotify.com/v1/playlists/1mfZUbJmMNbzDigIJfcMlL",
+    "id": "1mfZUbJmMNbzDigIJfcMlL",
+    "images": [
+      {
+        "height": null,
+        "url": "https://image-cdn-ak.spotifycdn.com/image/ab67706c0000bebb02c0d00e441c24a68cf7d68d",
+        "width": null
+      }
+    ],
+    "name": "we fell in love in october ",
+    "owner": {
+      "display_name": "mischfits",
+      "external_urls": { "spotify": "https://open.spotify.com/user/iceblou" },
+      "href": "https://api.spotify.com/v1/users/iceblou",
+      "id": "iceblou",
+      "type": "user",
+      "uri": "spotify:user:iceblou"
+    },
+    "primary_color": null,
+    "public": true,
+    "snapshot_id": "NTEsYWQzY2NkYTM1NjMzNzc1MGExZDQ0NmYwMTdmZDZjODIyNzVmNTRlMA==",
+    "tracks": {
+      "href": "https://api.spotify.com/v1/playlists/1mfZUbJmMNbzDigIJfcMlL/tracks",
+      "total": 29
+    },
+    "type": "playlist",
+    "uri": "spotify:playlist:1mfZUbJmMNbzDigIJfcMlL",
+    "username": "joann"
+  },
+  {
+    "collaborative": false,
+    "description": "bitch are you in love?",
+    "external_urls": {
+      "spotify": "https://open.spotify.com/playlist/6oaY5HXpDLjQkY1wjMR1hT"
+    },
+    "href": "https://api.spotify.com/v1/playlists/6oaY5HXpDLjQkY1wjMR1hT",
+    "id": "6oaY5HXpDLjQkY1wjMR1hT",
+    "images": [
+      {
+        "height": null,
+        "url": "https://image-cdn-ak.spotifycdn.com/image/ab67706c0000bebb1164c452224d470f59a9fa71",
+        "width": null
+      }
+    ],
+    "name": "i wanna make my heart a home for two",
+    "owner": {
+      "display_name": "mischfits",
+      "external_urls": { "spotify": "https://open.spotify.com/user/iceblou" },
+      "href": "https://api.spotify.com/v1/users/iceblou",
+      "id": "iceblou",
+      "type": "user",
+      "uri": "spotify:user:iceblou"
+    },
+    "primary_color": null,
+    "public": true,
+    "snapshot_id": "NTgsMTI4ZWVkNmVkY2M4ZDY3YzQ0YjY0YmQ0YmE2NzFhZjE1OGZjZTBkOQ==",
+    "tracks": {
+      "href": "https://api.spotify.com/v1/playlists/6oaY5HXpDLjQkY1wjMR1hT/tracks",
+      "total": 35
+    },
+    "type": "playlist",
+    "uri": "spotify:playlist:6oaY5HXpDLjQkY1wjMR1hT",
+    "username": "joann"
+  },
+  {
+    "collaborative": false,
+    "description": "i never thought i would enjoy rap, trap, r&amp;b or pop. look at me now lol",
+    "external_urls": {
+      "spotify": "https://open.spotify.com/playlist/6XR7F8ooAVoJhqWxIN1R73"
+    },
+    "href": "https://api.spotify.com/v1/playlists/6XR7F8ooAVoJhqWxIN1R73",
+    "id": "6XR7F8ooAVoJhqWxIN1R73",
+    "images": [
+      {
+        "height": null,
+        "url": "https://image-cdn-ak.spotifycdn.com/image/ab67706c0000bebb64f0a68228c91e9a8187e069",
+        "width": null
+      }
+    ],
+    "name": "\ud83e\udd0d",
+    "owner": {
+      "display_name": "mischfits",
+      "external_urls": { "spotify": "https://open.spotify.com/user/iceblou" },
+      "href": "https://api.spotify.com/v1/users/iceblou",
+      "id": "iceblou",
+      "type": "user",
+      "uri": "spotify:user:iceblou"
+    },
+    "primary_color": null,
+    "public": true,
+    "snapshot_id": "MTM2LDE0MGRjMmQzMzg5NjU4ZWJkZjQ4ZTljN2JjMDQ0NzJiNDcxZTI5ZmQ=",
+    "tracks": {
+      "href": "https://api.spotify.com/v1/playlists/6XR7F8ooAVoJhqWxIN1R73/tracks",
+      "total": 75
+    },
+    "type": "playlist",
+    "uri": "spotify:playlist:6XR7F8ooAVoJhqWxIN1R73",
+    "username": "joann"
+  },
+  {
+    "collaborative": false,
+    "description": ".\u272b*\uff9f\uff65\uff9f\uff61.\u2605.*\uff61\uff65\uff9f\u272b*..\u30fb\uff9f\u2727*\uff65\uff9f*\u272d *\u272d\u02da\uff65\uff9f\u2727*\uff65\uff9f*\u272d",
+    "external_urls": {
+      "spotify": "https://open.spotify.com/playlist/1C0F9tQNgiWNCCnqECBzW9"
+    },
+    "href": "https://api.spotify.com/v1/playlists/1C0F9tQNgiWNCCnqECBzW9",
+    "id": "1C0F9tQNgiWNCCnqECBzW9",
+    "images": [
+      {
+        "height": null,
+        "url": "https://image-cdn-ak.spotifycdn.com/image/ab67706c0000bebb2d6b26feee2dac8d92bb358a",
+        "width": null
+      }
+    ],
+    "name": "japanese songs",
+    "owner": {
+      "display_name": "mischfits",
+      "external_urls": { "spotify": "https://open.spotify.com/user/iceblou" },
+      "href": "https://api.spotify.com/v1/users/iceblou",
+      "id": "iceblou",
+      "type": "user",
+      "uri": "spotify:user:iceblou"
+    },
+    "primary_color": null,
+    "public": true,
+    "snapshot_id": "NTIsMDFiYjI5ZDk0MDdkNGI0NTk3ODE2MjAyYTMyMWMxYzg3NGNiMzI5Mw==",
+    "tracks": {
+      "href": "https://api.spotify.com/v1/playlists/1C0F9tQNgiWNCCnqECBzW9/tracks",
+      "total": 40
+    },
+    "type": "playlist",
+    "uri": "spotify:playlist:1C0F9tQNgiWNCCnqECBzW9",
+    "username": "joann"
+  },
+  {
+    "collaborative": false,
+    "description": "hardcore &#x2F; punk &#x2F; poppunk &#x2F; emo ",
+    "external_urls": {
+      "spotify": "https://open.spotify.com/playlist/2NO5gLr0w1XQxA7GQoS6pT"
+    },
+    "href": "https://api.spotify.com/v1/playlists/2NO5gLr0w1XQxA7GQoS6pT",
+    "id": "2NO5gLr0w1XQxA7GQoS6pT",
+    "images": [
+      {
+        "height": null,
+        "url": "https://image-cdn-fa.spotifycdn.com/image/ab67706c0000bebbead8125e19d2bdab60c666f6",
+        "width": null
+      }
+    ],
+    "name": "keh ahnig i bi edgy uso weisch",
+    "owner": {
+      "display_name": "mischfits",
+      "external_urls": { "spotify": "https://open.spotify.com/user/iceblou" },
+      "href": "https://api.spotify.com/v1/users/iceblou",
+      "id": "iceblou",
+      "type": "user",
+      "uri": "spotify:user:iceblou"
+    },
+    "primary_color": null,
+    "public": true,
+    "snapshot_id": "NTcsNjk4NDQ1MDUzNDRlZTNhY2Y0OGViNzA3ZmU2NjA5OTM4NzVkOGI4NA==",
+    "tracks": {
+      "href": "https://api.spotify.com/v1/playlists/2NO5gLr0w1XQxA7GQoS6pT/tracks",
+      "total": 52
+    },
+    "type": "playlist",
+    "uri": "spotify:playlist:2NO5gLr0w1XQxA7GQoS6pT",
+    "username": "joann"
+  },
+  {
+    "collaborative": false,
+    "description": "shoegaze and other things",
+    "external_urls": {
+      "spotify": "https://open.spotify.com/playlist/07v6mPMpj6VXG9zDDaS986"
+    },
+    "href": "https://api.spotify.com/v1/playlists/07v6mPMpj6VXG9zDDaS986",
+    "id": "07v6mPMpj6VXG9zDDaS986",
+    "images": [
+      {
+        "height": null,
+        "url": "https://image-cdn-ak.spotifycdn.com/image/ab67706c0000bebbfb7151093ce179e4d09e90c7",
+        "width": null
+      }
+    ],
+    "name": "gazing at my shoes",
+    "owner": {
+      "display_name": "mischfits",
+      "external_urls": { "spotify": "https://open.spotify.com/user/iceblou" },
+      "href": "https://api.spotify.com/v1/users/iceblou",
+      "id": "iceblou",
+      "type": "user",
+      "uri": "spotify:user:iceblou"
+    },
+    "primary_color": null,
+    "public": true,
+    "snapshot_id": "MTQ4LDg1MDhkZjI5ZDM0MjI5OGFlYzYyMDVmYThlYTJjOWFkYmMzYTNjOTM=",
+    "tracks": {
+      "href": "https://api.spotify.com/v1/playlists/07v6mPMpj6VXG9zDDaS986/tracks",
+      "total": 90
+    },
+    "type": "playlist",
+    "uri": "spotify:playlist:07v6mPMpj6VXG9zDDaS986",
+    "username": "joann"
+  },
+  {
+    "collaborative": false,
+    "description": "2019 misch would enjoy this very much",
+    "external_urls": {
+      "spotify": "https://open.spotify.com/playlist/6Xp6pRnEpbSn4dLXGec7F3"
+    },
+    "href": "https://api.spotify.com/v1/playlists/6Xp6pRnEpbSn4dLXGec7F3",
+    "id": "6Xp6pRnEpbSn4dLXGec7F3",
+    "images": [
+      {
+        "height": null,
+        "url": "https://image-cdn-ak.spotifycdn.com/image/ab67706c0000bebbee4a356c3ecc2ff99192a58a",
+        "width": null
+      }
+    ],
+    "name": "are you feeling emo?",
+    "owner": {
+      "display_name": "mischfits",
+      "external_urls": { "spotify": "https://open.spotify.com/user/iceblou" },
+      "href": "https://api.spotify.com/v1/users/iceblou",
+      "id": "iceblou",
+      "type": "user",
+      "uri": "spotify:user:iceblou"
+    },
+    "primary_color": null,
+    "public": true,
+    "snapshot_id": "MTIxLDFmNjIyZGUwNGE2YTNkODc3ZWZjY2YwM2ZiOGRlZmZhZTFjZDY1ZmY=",
+    "tracks": {
+      "href": "https://api.spotify.com/v1/playlists/6Xp6pRnEpbSn4dLXGec7F3/tracks",
+      "total": 70
+    },
+    "type": "playlist",
+    "uri": "spotify:playlist:6Xp6pRnEpbSn4dLXGec7F3",
+    "username": "joann"
+  },
+  {
+    "collaborative": false,
+    "description": "songs i recently discovered or especially like right now; pretty self explanatory lol",
+    "external_urls": {
+      "spotify": "https://open.spotify.com/playlist/2UVuja4pCtlHDh8tfWDf7w"
+    },
+    "href": "https://api.spotify.com/v1/playlists/2UVuja4pCtlHDh8tfWDf7w",
+    "id": "2UVuja4pCtlHDh8tfWDf7w",
+    "images": [
+      {
+        "height": null,
+        "url": "https://image-cdn-ak.spotifycdn.com/image/ab67706c0000bebb0350cacbdb437899512a0487",
+        "width": null
+      }
+    ],
+    "name": "funky discovery ",
+    "owner": {
+      "display_name": "mischfits",
+      "external_urls": { "spotify": "https://open.spotify.com/user/iceblou" },
+      "href": "https://api.spotify.com/v1/users/iceblou",
+      "id": "iceblou",
+      "type": "user",
+      "uri": "spotify:user:iceblou"
+    },
+    "primary_color": null,
+    "public": true,
+    "snapshot_id": "NzIsZDQ5NWI3MTJlOGFlMmNmNGZlN2Q1MWM5ZDg1NTk4NGYyMjlhNThmMw==",
+    "tracks": {
+      "href": "https://api.spotify.com/v1/playlists/2UVuja4pCtlHDh8tfWDf7w/tracks",
+      "total": 47
+    },
+    "type": "playlist",
+    "uri": "spotify:playlist:2UVuja4pCtlHDh8tfWDf7w",
+    "username": "joann"
+  },
+  {
+    "collaborative": false,
+    "description": "hyper pop rave vocaloid emo slut anthems ",
+    "external_urls": {
+      "spotify": "https://open.spotify.com/playlist/44zNhJGXFPW8kns8Sbh3uJ"
+    },
+    "href": "https://api.spotify.com/v1/playlists/44zNhJGXFPW8kns8Sbh3uJ",
+    "id": "44zNhJGXFPW8kns8Sbh3uJ",
+    "images": [
+      {
+        "height": null,
+        "url": "https://image-cdn-ak.spotifycdn.com/image/ab67706c0000bebbf22ecbfc619b77e0e876f0a2",
+        "width": null
+      }
+    ],
+    "name": "how gaslighting would sound like if it was a music genre",
+    "owner": {
+      "display_name": "mischfits",
+      "external_urls": { "spotify": "https://open.spotify.com/user/iceblou" },
+      "href": "https://api.spotify.com/v1/users/iceblou",
+      "id": "iceblou",
+      "type": "user",
+      "uri": "spotify:user:iceblou"
+    },
+    "primary_color": null,
+    "public": true,
+    "snapshot_id": "NDksZTEzNGUyMjE4OWFiN2VmNWU3YTVkZDZlYTVkNmFmY2FmMGNiNjg5Zg==",
+    "tracks": {
+      "href": "https://api.spotify.com/v1/playlists/44zNhJGXFPW8kns8Sbh3uJ/tracks",
+      "total": 32
+    },
+    "type": "playlist",
+    "uri": "spotify:playlist:44zNhJGXFPW8kns8Sbh3uJ",
+    "username": "joann"
+  },
+  {
+    "collaborative": false,
+    "description": "kpop and korean r&amp;b &lt;3",
+    "external_urls": {
+      "spotify": "https://open.spotify.com/playlist/3F8N6xuFUIxj0AiskMcV0g"
+    },
+    "href": "https://api.spotify.com/v1/playlists/3F8N6xuFUIxj0AiskMcV0g",
+    "id": "3F8N6xuFUIxj0AiskMcV0g",
+    "images": [
+      {
+        "height": null,
+        "url": "https://image-cdn-ak.spotifycdn.com/image/ab67706c0000bebb7ce54b46e219791f45d60635",
+        "width": null
+      }
+    ],
+    "name": "naega byeonhae",
+    "owner": {
+      "display_name": "mischfits",
+      "external_urls": { "spotify": "https://open.spotify.com/user/iceblou" },
+      "href": "https://api.spotify.com/v1/users/iceblou",
+      "id": "iceblou",
+      "type": "user",
+      "uri": "spotify:user:iceblou"
+    },
+    "primary_color": null,
+    "public": true,
+    "snapshot_id": "MjE1LGFiY2IwNzUzNTkwYzhiZWQ1ZjU0MDUxMWZlMWJlOGEzYzIzNDc2NDQ=",
+    "tracks": {
+      "href": "https://api.spotify.com/v1/playlists/3F8N6xuFUIxj0AiskMcV0g/tracks",
+      "total": 207
+    },
+    "type": "playlist",
+    "uri": "spotify:playlist:3F8N6xuFUIxj0AiskMcV0g",
+    "username": "joann"
+  },
+  {
+    "collaborative": false,
+    "description": "i never get tired of these",
+    "external_urls": {
+      "spotify": "https://open.spotify.com/playlist/26gxFjYr0jT5RSukWgdwvu"
+    },
+    "href": "https://api.spotify.com/v1/playlists/26gxFjYr0jT5RSukWgdwvu",
+    "id": "26gxFjYr0jT5RSukWgdwvu",
+    "images": [
+      {
+        "height": null,
+        "url": "https://image-cdn-ak.spotifycdn.com/image/ab67706c0000bebb30ef0f7dda27a32d854e7128",
+        "width": null
+      }
+    ],
+    "name": "all time faves \uff61.\u2606.*\uff61",
+    "owner": {
+      "display_name": "mischfits",
+      "external_urls": { "spotify": "https://open.spotify.com/user/iceblou" },
+      "href": "https://api.spotify.com/v1/users/iceblou",
+      "id": "iceblou",
+      "type": "user",
+      "uri": "spotify:user:iceblou"
+    },
+    "primary_color": null,
+    "public": true,
+    "snapshot_id": "MTQxLGU5MWFhZWYzZThhYmJhYTg5ODRhMGM1NjNlMWI4MTQ3MzA3ODMwMGQ=",
+    "tracks": {
+      "href": "https://api.spotify.com/v1/playlists/26gxFjYr0jT5RSukWgdwvu/tracks",
+      "total": 136
+    },
+    "type": "playlist",
+    "uri": "spotify:playlist:26gxFjYr0jT5RSukWgdwvu",
+    "username": "joann"
+  },
+  {
+    "collaborative": false,
+    "description": "otaku time lmao",
+    "external_urls": {
+      "spotify": "https://open.spotify.com/playlist/0qeuoPjbei55m5WkU4gBvg"
+    },
+    "href": "https://api.spotify.com/v1/playlists/0qeuoPjbei55m5WkU4gBvg",
+    "id": "0qeuoPjbei55m5WkU4gBvg",
+    "images": [
+      {
+        "height": null,
+        "url": "https://image-cdn-ak.spotifycdn.com/image/ab67706c0000bebb82d4eec1d762ee84c2b76d02",
+        "width": null
+      }
+    ],
+    "name": "anime bangers",
+    "owner": {
+      "display_name": "mischfits",
+      "external_urls": { "spotify": "https://open.spotify.com/user/iceblou" },
+      "href": "https://api.spotify.com/v1/users/iceblou",
+      "id": "iceblou",
+      "type": "user",
+      "uri": "spotify:user:iceblou"
+    },
+    "primary_color": null,
+    "public": true,
+    "snapshot_id": "ODMsNDkzZDdjNzY1ODJhNzY0ZjBlZjA2ZDg5NTNmNzEyNTAxY2FjNDVjMw==",
+    "tracks": {
+      "href": "https://api.spotify.com/v1/playlists/0qeuoPjbei55m5WkU4gBvg/tracks",
+      "total": 78
+    },
+    "type": "playlist",
+    "uri": "spotify:playlist:0qeuoPjbei55m5WkU4gBvg",
+    "username": "joann"
+  }
+]

@@ -1,45 +1,38 @@
 from __future__ import annotations
-from constants import users_list, data_path
+
+from IPython.display import display
 from lib import (
     spoti,
-    genre_normalizer,
     plotting,
-    preprocessing,
     dimensionality_reduction,
 )
 import pandas as pd
-import matplotlib.pyplot as plt
-import seaborn as sns
-import plotly.express as px
 import plotly.graph_objects as go
-import json
-import os
 from sklearn.decomposition import PCA
 import torch
-import torch.nn as nn
-import torch.optim as optim
-from sklearn.preprocessing import StandardScaler, MinMaxScaler
-from sklearn.model_selection import train_test_split
-from tqdm import tqdm
-from torch.utils.data import Dataset, DataLoader
-from torch.utils.tensorboard import SummaryWriter
-from sklearn.metrics import mean_squared_error
-import random
-import time
-from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.neighbors import NearestNeighbors as SklearnNearestNeighbors
-from sklearn.metrics import pairwise_distances
-import pickle
 import numpy as np
-from typing import List, Dict, Tuple, Optional, Any, Callable
+from typing import List, Dict, Optional, Any
 from sklearn.decomposition import PCA
-from sklearn.manifold import TSNE
-from IPython.display import display, HTML
 from sklearn.base import BaseEstimator
 from recommenders.metrics import similarities_score
 
 
 class NearestNeighborsRecommender(SklearnNearestNeighbors, BaseEstimator):
+    """
+    Recommender system that uses nearest neighbors algorithm.
+
+    Inherits from SklearnNearestNeighbors and BaseEstimator.
+
+    Properties:
+        n_neighbors (int): Number of neighbors to use for kneighbors queries.
+        username_column (str): Column name in the DataFrame for username.
+        affinity_column (str): Column name in the DataFrame for affinity.
+        tracks_column (str): Column name in the DataFrame for tracks.
+        features_columns (List[str]): List of column names to be used as features.
+        dataframe (pd.DataFrame): DataFrame on which the model is fitted.
+    """
+
     @property
     def n_neighbors(self) -> int:
         return self._n_neighbors
@@ -80,6 +73,14 @@ class NearestNeighborsRecommender(SklearnNearestNeighbors, BaseEstimator):
     def features_columns(self, features_columns: List[str]):
         self._features_columns = features_columns
 
+    @property
+    def dataframe(self) -> pd.DataFrame:
+        return self._dataframe
+
+    @dataframe.setter
+    def dataframe(self, dataframe: pd.DataFrame):
+        self._dataframe = dataframe
+
     def __init__(
         self,
         n_neighbors: int = 10,
@@ -95,6 +96,23 @@ class NearestNeighborsRecommender(SklearnNearestNeighbors, BaseEstimator):
         affinity_column="affinity",
         tracks_column="id",
     ):
+        """
+        Initializes the NearestNeighborsRecommender object.
+
+        Args:
+            n_neighbors (int, optional): Number of neighbors to use for kneighbors queries.
+            metric (str, optional): The distance metric to use.
+            p (int, optional): Power parameter for the Minkowski metric.
+            leaf_size (int, optional): Leaf size passed to BallTree or KDTree.
+            radius (float, optional): Range of parameter space to use by default for radius_neighbors queries.
+            n_jobs (int, optional): The number of parallel jobs to run for neighbors search.
+            algorithm (str, optional): Algorithm used to compute the nearest neighbors.
+            metric_params (Optional[Dict[str, Any]], optional): Additional keyword arguments for the metric function.
+            features_columns (List[str], optional): List of column names to be used as features.
+            username_column (str, optional): Column name for usernames.
+            affinity_column (str, optional): Column name for affinity.
+            tracks_column (str, optional): Column name for tracks.
+        """
         super().__init__(
             n_neighbors=n_neighbors,
             metric=metric,
@@ -111,6 +129,20 @@ class NearestNeighborsRecommender(SklearnNearestNeighbors, BaseEstimator):
         self.features_columns: List[str] = features_columns
         self.tracks_column: str = tracks_column
 
+    def fit(self, df: pd.DataFrame) -> NearestNeighborsRecommender:
+        """
+        Fit the model using df as training data.
+
+        Args:
+            df (pd.DataFrame): DataFrame to fit the model.
+
+        Returns:
+            NearestNeighborsRecommender: The fitted recommender model.
+        """
+        self.dataframe = df
+        super().fit(df[self._features_columns])
+        return self
+
     def pick_user_tracks(
         self,
         df: pd.DataFrame,
@@ -119,7 +151,16 @@ class NearestNeighborsRecommender(SklearnNearestNeighbors, BaseEstimator):
         max_tracks: int = -1,
     ) -> pd.DataFrame:
         """
-        Returns the tracks of the given user.
+        Picks tracks associated with a given user.
+
+        Args:
+            df (pd.DataFrame): DataFrame containing user-track information.
+            username (str): Username for which to pick tracks.
+            sort_by_affinity (bool, optional): Sort tracks by affinity if True. Defaults to True.
+            max_tracks (int, optional): Maximum number of tracks to return. Defaults to -1 (all tracks).
+
+        Returns:
+            pd.DataFrame: DataFrame containing the user's tracks.
         """
         user_df = df[df[self._username_column] == username]
 
@@ -142,8 +183,23 @@ class NearestNeighborsRecommender(SklearnNearestNeighbors, BaseEstimator):
         max_tracks: int = -1,
     ) -> pd.DataFrame:
         """
-        Returns the neighbours of the given tracks.
+        Recommends tracks based on a given set of tracks.
+
+        Args:
+            tracks (pd.DataFrame): DataFrame containing tracks to base recommendations on.
+            based_on (pd.DataFrame, optional): DataFrame to use for finding recommendations. Defaults to None (uses self.dataframe).
+            n_neighbors (int, optional): Number of neighbors to use for recommendations. Defaults to None.
+            sort_by_distance (bool, optional): Sort recommendations by distance if True. Defaults to True.
+            filter_out_tracks (bool, optional): Exclude tracks in the 'tracks' DataFrame from the recommendations if True. Defaults to True.
+            filter_out_if_seen (bool, optional): Exclude tracks seen by the user if True. Defaults to True.
+            max_tracks (int, optional): Maximum number of recommended tracks to return. Defaults to -1 (all recommended tracks).
+
+        Returns:
+            pd.DataFrame: DataFrame containing recommended tracks.
         """
+        if based_on is None:
+            based_on = self.dataframe
+
         distances, indices = self.kneighbors(
             tracks[self._features_columns], n_neighbors
         )
@@ -180,6 +236,17 @@ class NearestNeighborsRecommender(SklearnNearestNeighbors, BaseEstimator):
         df_recommended_tracks: pd.DataFrame,
         username: str = None,
     ) -> go.Figure:
+        """
+        Plots the recommendation space using the provided DataFrames.
+
+        Args:
+            df_recommended_from (pd.DataFrame): DataFrame from which recommendations are made.
+            df_recommended_tracks (pd.DataFrame): DataFrame containing recommended tracks.
+            username (str, optional): Username to highlight in the plot. Defaults to None.
+
+        Returns:
+            go.Figure: Plotly figure representing the recommendation space.
+        """
         latent_columns = self._features_columns
 
         df_plot = df_recommended_from.copy()
@@ -210,6 +277,7 @@ class NearestNeighborsRecommender(SklearnNearestNeighbors, BaseEstimator):
         username: str,
         df_train: pd.DataFrame,
         df_test: pd.DataFrame,
+        max_items: int = np.inf,
         n_neighbours: int = None,
         verbose: bool = False,
     ):
@@ -218,7 +286,7 @@ class NearestNeighborsRecommender(SklearnNearestNeighbors, BaseEstimator):
         df_user = df_user.sort_values(by="affinity", ascending=False)
         recommendations = self.recommend_from(
             df_user,
-            based_on=df_train,
+            based_on=None,
             n_neighbors=n_neighbours,
             filter_out_if_seen=False,
             filter_out_tracks=False,
@@ -229,7 +297,7 @@ class NearestNeighborsRecommender(SklearnNearestNeighbors, BaseEstimator):
         heldout_sorted = df_test[df_test["username"] == username].sort_values(
             by="affinity", ascending=False
         )
-        check_k = min(len(heldout_sorted), len(recommendations))
+        check_k = min(len(heldout_sorted), len(recommendations), max_items)
         if verbose:
             print(f"Check k: {check_k}")
             display(df_user[:check_k][spoti.PRETTY_PRINT_FEATURES])
@@ -254,67 +322,132 @@ class NearestNeighborsRecommender(SklearnNearestNeighbors, BaseEstimator):
         self,
         df_train: pd.DataFrame,
         df_test: pd.DataFrame,
+        max_items: int = np.inf,
         n_neighbors: int = None,
         verbose: bool = False,
     ):
+        """
+        Computes the retrievial score for the model for every user in df_test.
+
+        Args:
+            df_train (pd.DataFrame): DataFrame containing training data.
+            df_test (pd.DataFrame): DataFrame containing test data.
+            max_items (int, optional): Maximum number of items to consider. Defaults to np.inf.
+            n_neighbors (int, optional): Number of neighbors to use for recommendations. Defaults to None.
+            verbose (bool, optional): Print verbose output if True. Defaults to False.
+
+        Returns:
+            float: Retrieval score.
+        """
         users = df_test["username"].unique()
         precision = 0
         for user in users:
             precision += self.retrievial_score_for_user(
-                user, df_train, df_test, n_neighbours=n_neighbors, verbose=verbose
+                user,
+                df_train,
+                df_test,
+                n_neighbours=n_neighbors,
+                verbose=verbose,
+                max_items=max_items,
             )
         return precision / len(users)
-    
+
     def similarities_score_for_user(
         self,
         username: str,
-        df_train: pd.DataFrame,
-        df_test: pd.DataFrame,
+        df_ground_truth: pd.DataFrame,
         n_neighbours: int = None,
-        max_items: int = -1,
+        max_items: int = np.inf,
         verbose: bool = False,
     ):
-        df_user = df_train[df_train["username"] == username]
-        df_user = df_user.drop_duplicates(subset=["id"])
+        """
+        Computes the similarities score for a given user.
+
+        Args:
+            username (str): Username for which to compute the similarities score.
+            df_train (pd.DataFrame): DataFrame containing training data.
+            df_test (pd.DataFrame): DataFrame containing test data.
+            n_neighbours (int, optional): Number of neighbors to use for recommendations. Defaults to None.
+            max_items (int, optional): Maximum number of items to consider. Defaults to np.inf.
+            verbose (bool, optional): Print verbose output if True. Defaults to False.
+
+        Returns:
+            float: Similarities score.
+        """
+        # Get the user's tracks which is the ground truth
+        df_user = df_ground_truth[df_ground_truth["username"] == username]
         df_user = df_user.sort_values(by="affinity", ascending=False)
+        df_user = df_user.drop_duplicates(subset=["id"])
+
+        # Get the recommendations for the user from the model
         recommendations = self.recommend_from(
             df_user,
-            based_on=df_train,
+            based_on=None,
             n_neighbors=n_neighbours,
             filter_out_if_seen=False,
             filter_out_tracks=False,
         )
-        recommendations.drop_duplicates(subset=["id"], inplace=True)
+
+        # Sort the recommendations by distance and remove duplicates
         recommendations.sort_values(by="distance", ascending=False, inplace=True)
-        heldout_sorted = df_test[df_test["username"] == username].sort_values(
-            by="affinity", ascending=False
-        )
-        check_k = min(len(heldout_sorted), len(recommendations), max_items)
+        recommendations.drop_duplicates(subset=["id"], inplace=True)
+
+        # Remove the user's tracks from the recommendations: df_user[:check_k]["id"]
+        recommendations = recommendations[~recommendations["id"].isin(df_user["id"].head(max_items))]
+
+        check_k = max_items
         if verbose:
             print(f"Check k: {check_k}")
             display(df_user[:check_k][spoti.PRETTY_PRINT_FEATURES])
-            display(heldout_sorted[:check_k][spoti.PRETTY_PRINT_FEATURES])
             display(recommendations[:check_k][spoti.PRETTY_PRINT_FEATURES])
-        tensor_heldout = torch.tensor(heldout_sorted[:check_k][self._features_columns].values)
-        tensor_recommendations = torch.tensor(recommendations[:check_k][self._features_columns].values)
+
+        # Convert the DataFrames to tensors
+        tensor_heldout = torch.tensor(
+            df_user[:check_k][self._features_columns].values
+        )
+        tensor_recommendations = torch.tensor(
+            recommendations[:check_k][self._features_columns].values
+        )
+
+        assert len(tensor_heldout) == len(tensor_recommendations) == check_k, f"Lengths of tensors do not match: {len(tensor_heldout)}, {len(tensor_recommendations)}, {check_k}"
+
+        # Compute the similarities score
         value = similarities_score(tensor_heldout, tensor_recommendations)
+
         if verbose:
             print(f"Similarities score: {value}")
+
         return value
 
     def similarities_score(
         self,
-        df_train: pd.DataFrame,
-        df_test: pd.DataFrame,
-        max_items: int = -1,
+        df_ground_truth: pd.DataFrame,
+        max_items: int = np.inf,
         n_neighbors: int = None,
         verbose: bool = False,
+        users: List[str] = None,
     ):
-        users = df_test["username"].unique()
+        """
+        Computes the similarities score for the model for every user in df_test.
+
+        Args:
+            df_train (pd.DataFrame): DataFrame containing training data.
+            df_test (pd.DataFrame): DataFrame containing test data.
+            max_items (int, optional): Maximum number of items to consider. Defaults to np.inf.
+            n_neighbors (int, optional): Number of neighbors to use for recommendations. Defaults to None.
+            verbose (bool, optional): Print verbose output if True. Defaults to False.
+
+        Returns:
+            float: Similarities score.
+        """
         precision = 0
         for user in users:
             precision += self.similarities_score_for_user(
-                user, df_train, df_test, n_neighbours=n_neighbors, verbose=verbose, max_items=max_items
+                user,
+                df_ground_truth,
+                n_neighbours=n_neighbors,
+                verbose=verbose,
+                max_items=max_items,
             )
         return precision / len(users)
 

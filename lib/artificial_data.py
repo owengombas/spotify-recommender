@@ -4,25 +4,43 @@ import numpy as np
 import pandas as pd
 from typing import List, Tuple, Callable, Dict
 from IPython.display import display
-from uuid import uuid4
 from faker import Faker
 
 fake = Faker()
 
 
 def generate_from_normal_distribution(mean: float, std: float) -> np.ndarray:
+    """
+    Generate a function that returns samples from a normal distribution.
+
+    Args:
+        mean (float): The mean of the normal distribution.
+        std (float): The standard deviation of the normal distribution.
+
+    Returns:
+        Callable[[int], np.ndarray]: A function that takes an integer n_samples and returns an array of n_samples drawn from the normal distribution.
+    """
+
     def inner(n_samples: int) -> np.ndarray:
-        v = np.random.normal(0, 1, n_samples)
-        # min 0
-        v = np.abs(v)
-        # max 1
-        v = v / np.max(v)
+        v = np.random.normal(mean, std, n_samples)
         return v
 
     return inner
 
 
 class ArtificialTrackDataset:
+    """
+    A class representing an artificial dataset of tracks with various features.
+
+    Attributes:
+        data (pd.DataFrame): The underlying pandas DataFrame holding the dataset.
+        numerical_features (List[str]): List of names of numerical features.
+        n_samples (int): Number of samples in the dataset.
+        default_value (float): Default value for numerical features.
+        constant_features (Dict[str, str]): Dictionary of constant features and their values.
+        ids (List[str]): List of unique identifiers for each sample in the dataset.
+    """
+
     data: pd.DataFrame
 
     def __init__(
@@ -36,7 +54,7 @@ class ArtificialTrackDataset:
         self.n_samples = n_samples
         self.default_value = default_value
         self.constant_features = constant_features
-        self.ids = [fake.text(max_nb_chars=15)[:-1] for _ in range(n_samples)]
+        self.ids = [fake.text(max_nb_chars=64)[:-1] for _ in range(n_samples)]
         self.data = pd.DataFrame()
 
         self.set_ids(self.ids)
@@ -49,16 +67,40 @@ class ArtificialTrackDataset:
     def merge(self, other: ArtificialTrackDataset) -> ArtificialTrackDataset:
         """
         Merge two datasets
+
+        Args:
+            other (ArtificialTrackDataset): The dataset to merge with.
+
+        Returns:
+            ArtificialTrackDataset: The merged dataset.
         """
         new_dataset = self.copy()
         new_dataset.data = pd.concat([self.data, other.data], ignore_index=True)
         return new_dataset
 
     def _set_constant_features(self, constant_features: Dict[str, str]):
+        """
+        Set the constant features of the dataset with the given values.
+
+        Args:
+            constant_features (Dict[str, str]): Dictionary of constant features and their values.
+
+        Returns:
+            None
+        """
         for key, value in constant_features.items():
             self.data[key] = value
 
     def set_ids(self, ids: List[str]):
+        """
+        Set the ids of the dataset with the given values.
+
+        Args:
+            ids (List[str]): List of unique identifiers for each sample in the dataset.
+
+        Returns:
+            None
+        """
         self.ids = ids
         self.data["id"] = self.ids
 
@@ -73,17 +115,36 @@ class ArtificialTrackDataset:
         max_percentage: float = 0.5,
     ) -> Tuple["ArtificialTrackDataset", float]:
         """
-        Replace a percentage of the ids with the given ids
+        Replace a percentage of the ids with the given IDs.
+        It uses a beta distribution to generate the percentage that has more chance to be low.
+
+        Args:
+            other (ArtificialTrackDataset): The dataset to replace with.
+            min_percentage (float): Minimum percentage of tracks to replace.
+            max_percentage (float): Maximum percentage of tracks to replace.
+
+        Returns:
+            Tuple[ArtificialTrackDataset, float]: The new dataset and the percentage of tracks replaced.
         """
         new_dataset = self.copy()
-        n_replace = int(
-            new_dataset.n_samples * np.random.uniform(min_percentage, max_percentage)
-        )
-        replace_ids_index = np.random.choice(
-            new_dataset.n_samples, n_replace, replace=False
-        )
+        other = other.copy()
+        # Put more chance to have a low percentage, not using a uniform distribution
+        percentage = np.random.beta(1, 4)
+        percentage = min_percentage + (max_percentage - min_percentage) * percentage
+        n_replace = int(new_dataset.n_samples * percentage)
+        n_replace = min(n_replace, new_dataset.n_samples, other.n_samples)
+        other.data = other.data.sample(frac=1)
 
-        new_dataset.data.iloc[replace_ids_index] = other.data.iloc[replace_ids_index]
+        # replace the values of the first n_replace of the id column
+        new_dataset.data["id"][:n_replace] = other.data["id"][:n_replace]
+        new_dataset.data[self.numerical_features][:n_replace] = other.data[
+            self.numerical_features
+        ][:n_replace]
+
+        new_dataset.data["username"] = self.data["username"].iloc[0]
+        new_dataset.data = new_dataset.data.reset_index(drop=True)
+        new_dataset.n_samples = new_dataset.data.shape[0]
+
         new_dataset._set_constant_features(self.constant_features)
 
         return new_dataset, n_replace / new_dataset.n_samples
@@ -95,15 +156,35 @@ class ArtificialTrackDataset:
             1, 0.1
         ),
     ) -> "ArtificialTrackDataset":
+        """
+        Randomize the numerical features of the dataset.
+
+        Args:
+            numerical_features (List[str]): List of names of numerical features.
+            generator (Callable[[int], np.ndarray]): A function that takes an integer n_samples and returns an array of n_samples drawn from a distribution.
+
+        Returns:
+            ArtificialTrackDataset: The new dataset.
+        """
         if numerical_features is None:
             numerical_features = self.numerical_features
         for feature in numerical_features:
-            self.data[feature] = generator(self.n_samples)
+            self.data[feature] = generator(self.data.shape[0])
         return self
 
     def copy(
         self, ids: List[str] = None, constant_features: Dict[str, str] = None
     ) -> ArtificialTrackDataset:
+        """
+        Copy the dataset.
+
+        Args:
+            ids (List[str]): List of unique identifiers for each sample in the dataset.
+            constant_features (Dict[str, str]): Dictionary of constant features and their values.
+
+        Returns:
+            ArtificialTrackDataset: The new dataset.
+        """
         if constant_features is None:
             constant_features = self.constant_features
 
@@ -128,6 +209,14 @@ class ArtificialTrackDataset:
     ) -> ArtificialTrackDataset:
         """
         Multiply component wise the numerical features of two datasets
+
+        Args:
+            other (ArtificialTrackDataset): The dataset to multiply with.
+            ids (List[str]): List of unique identifiers for each sample in the dataset.
+            constant_features (Dict[str, str]): Dictionary of constant features and their values.
+
+        Returns:
+            ArtificialTrackDataset: The new dataset.
         """
         assert self.n_samples == other.n_samples
         assert self.numerical_features == other.numerical_features
@@ -146,6 +235,14 @@ class ArtificialTrackDataset:
     ) -> ArtificialTrackDataset:
         """
         Add component wise the numerical features of two datasets
+
+        Args:
+            other (ArtificialTrackDataset): The dataset to add with.
+            ids (List[str]): List of unique identifiers for each sample in the dataset.
+            constant_features (Dict[str, str]): Dictionary of constant features and their values.
+
+        Returns:
+            ArtificialTrackDataset: The new dataset.
         """
         assert self.n_samples == other.n_samples
         assert self.numerical_features == other.numerical_features
@@ -164,6 +261,14 @@ class ArtificialTrackDataset:
     ) -> ArtificialTrackDataset:
         """
         Divide component wise the numerical features of two datasets
+
+        Args:
+            other (ArtificialTrackDataset): The dataset to divide with.
+            ids (List[str]): List of unique identifiers for each sample in the dataset.
+            constant_features (Dict[str, str]): Dictionary of constant features and their values.
+
+        Returns:
+            ArtificialTrackDataset: The new dataset.
         """
         assert self.n_samples == other.n_samples
         assert self.numerical_features == other.numerical_features
@@ -182,6 +287,14 @@ class ArtificialTrackDataset:
     ) -> ArtificialTrackDataset:
         """
         Subtract component wise the numerical features of two datasets
+
+        Args:
+            other (ArtificialTrackDataset): The dataset to substract with.
+            ids (List[str]): List of unique identifiers for each sample in the dataset.
+            constant_features (Dict[str, str]): Dictionary of constant features and their values.
+
+        Returns:
+            ArtificialTrackDataset: The new dataset.
         """
         assert self.n_samples == other.n_samples
         assert self.numerical_features == other.numerical_features
@@ -195,71 +308,41 @@ class ArtificialTrackDataset:
     def opposite(self, constant_features: List[str] = None) -> ArtificialTrackDataset:
         """
         Opposite component wise the numerical features of a dataset
+
+        Args:
+            constant_features (Dict[str, str]): Dictionary of constant features and their values.
+
+        Returns:
+            ArtificialTrackDataset: The new dataset.
         """
         new_dataset = self.copy(constant_features)
         new_dataset.data[self.numerical_features] = -self.data[self.numerical_features]
         return new_dataset
 
-    def sqrt(self, constant_features: List[str] = None) -> ArtificialTrackDataset:
-        """
-        Square root component wise the numerical features of a dataset
-        """
-        new_dataset = self.copy(constant_features)
-        new_dataset.data[self.numerical_features] = np.sqrt(
-            self.data[self.numerical_features]
-        )
-        return new_dataset
-
-    def square(self, constant_features: List[str] = None) -> ArtificialTrackDataset:
-        """
-        Square component wise the numerical features of a dataset
-        """
-        new_dataset = self.copy(constant_features)
-        new_dataset.data[self.numerical_features] = np.square(
-            self.data[self.numerical_features]
-        )
-        return new_dataset
-
-    def pow(
-        self, power: float, constant_features: List[str] = None
-    ) -> ArtificialTrackDataset:
-        """
-        Raise to the power component wise the numerical features of a dataset
-        """
-        new_dataset = self.copy(constant_features)
-        new_dataset.data[self.numerical_features] = np.power(
-            self.data[self.numerical_features], power
-        )
-        return new_dataset
-
-    def exp(self, constant_features: List[str] = None) -> ArtificialTrackDataset:
-        """
-        Exponential component wise the numerical features of a dataset
-        """
-        new_dataset = self.copy(constant_features)
-        new_dataset.data[self.numerical_features] = np.exp(
-            self.data[self.numerical_features]
-        )
-        return new_dataset
-
-    def log(self, constant_features: List[str] = None) -> ArtificialTrackDataset:
-        """
-        Logarithm component wise the numerical features of a dataset
-        """
-        new_dataset = self.copy(constant_features)
-        new_dataset.data[self.numerical_features] = np.log(
-            self.data[self.numerical_features]
-        )
-        return new_dataset
-
     def to_tensor(
         self, device: str = "cpu", dtype: torch.dtype = torch.float32
     ) -> torch.Tensor:
+        """
+        Convert the dataset to a torch tensor.
+
+        Args:
+            device (str): The device to use.
+            dtype (torch.dtype): The dtype to use.
+
+        Returns:
+            torch.Tensor: The tensor representation of the dataset.
+        """
         return torch.tensor(
             self.data[self.numerical_features].values, dtype=dtype, device=device
         )
 
     def to_numpy(self) -> np.ndarray:
+        """
+        Convert the dataset to a numpy array.
+
+        Returns:
+            np.ndarray: The numpy array representation of the dataset.
+        """
         return self.data[self.numerical_features].values
 
     def __getitem__(self, index: int) -> ArtificialTrackDataset:
@@ -279,19 +362,35 @@ class ArtificialTrackDataset:
 
 def generate_dataset_with_similarities(
     num_users: int,
-    n_samples: int,
+    n_samples: List[int],
     numerical_features: List[str],
     affinity_feature: str,
     min_track_mixing_percentage: float = 0.1,
     max_track_mixing_percentage: float = 0.5,
     mix_with_someone_else_chance: float = 0.5,
 ) -> ArtificialTrackDataset:
+    """
+    Generate an artificial dataset with similarities between different users.
+
+    Args:
+        num_users (int): The number of users to simulate.
+        n_samples (List[int]): A list of integers specifying the number of samples for each user.
+        numerical_features (List[str]): List of names of numerical features.
+        affinity_feature (str): The feature used to mix tracks between users.
+        min_track_mixing_percentage (float): Minimum percentage of tracks to mix between users.
+        max_track_mixing_percentage (float): Maximum percentage of tracks to mix between users.
+        mix_with_someone_else_chance (float): Probability of a user mixing tracks with another user.
+
+    Returns:
+        ArtificialTrackDataset: The combined dataset after applying the mixing logic.
+    """
+
     user_datasets: List[ArtificialTrackDataset] = []
 
     for user in range(num_users):
         user_dataset = ArtificialTrackDataset(
             numerical_features=numerical_features,
-            n_samples=n_samples,
+            n_samples=n_samples[user],
             default_value=0.0,
             constant_features={"username": fake.name()},
         ).randomize()
@@ -300,11 +399,10 @@ def generate_dataset_with_similarities(
     for i in range(num_users):
         # pick a random chance to mix with another user
         if np.random.uniform() < mix_with_someone_else_chance:
-            index: int = np.random.randint(0, num_users)
             next_user: int = np.random.randint(0, num_users)
             # make sure we don't mix with ourselves
             while next_user == i:
-                next_user = np.random.randint(0, num_users)
+                next_user: int = np.random.randint(0, num_users)
 
             user_datasets[i], replacement_percentage = user_datasets[
                 i
@@ -322,5 +420,8 @@ def generate_dataset_with_similarities(
     df = user_datasets[0]
     for user_dataset in range(1, num_users):
         df = df.merge(user_datasets[user_dataset])
+
+    df.n_samples = df.data.shape[0]
+    df.randomize([affinity_feature])
 
     return df

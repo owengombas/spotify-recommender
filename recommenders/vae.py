@@ -7,18 +7,16 @@ from typing import List, Optional
 from torch.utils.data import DataLoader
 from torch import optim
 import numpy as np
-from torch.utils.tensorboard import SummaryWriter
 from typing import Tuple
 from recommenders.metrics import (
-    NDCG_binary_at_k_batch,
     mpr,
-    NDCG_binary_at_k_batch_torch,
     Recall_at_k_batch_torch,
     mpr,
     similarities_score,
 )
 from torchmetrics.retrieval import RetrievalNormalizedDCG
 import pandas as pd
+import copy
 
 
 def loss_function(
@@ -28,6 +26,19 @@ def loss_function(
     logvar: torch.Tensor,
     anneal: torch.Tensor = 1.0,
 ) -> torch.Tensor:
+    """
+    Computes the loss function for the VAE.
+
+    Args:
+        recon_x (torch.Tensor): Reconstructed input.
+        x (torch.Tensor): Input.
+        mu (torch.Tensor): Mean of the latent distribution.
+        logvar (torch.Tensor): Log variance of the latent distribution.
+        anneal (torch.Tensor, optional): Annealing factor for KL divergence. Defaults to 1.0.
+
+    Returns:
+        torch.Tensor: Loss value.
+    """
     # BCE = F.binary_cross_entropy(recon_x, x)
     BCE = -torch.mean(torch.sum(F.log_softmax(recon_x, 1) * x, -1))
     KLD = -0.5 * torch.mean(torch.sum(1 + logvar - mu.pow(2) - logvar.exp(), dim=1))
@@ -42,7 +53,7 @@ class MultiVAE(nn.Module):
     comprises of encoder (q-network) and decoder (p-network) layers. The encoder
     produces a latent representation, and the decoder reconstructs the input data.
 
-    Attributes:
+    Args:
         encoder_dims (List[int]): Dimensions for the encoder layers.
         decoder_dims (List[int]): Dimensions for the decoder layers.
         dropout_rate (float): Dropout rate for regularization.
@@ -56,14 +67,6 @@ class MultiVAE(nn.Module):
         [3] Variational Autoencoders for Collaborative Filtering - Implementation in PyTorch
             by @younggyoseo.
             https://github.com/younggyoseo/vae-cf-pytorch
-    """
-
-    """
-    Container module for Multi-VAE.
-
-    Multi-VAE : Variational Autoencoder with Multinomial Likelihood
-    See Variational Autoencoders for Collaborative Filtering
-    https://arxiv.org/abs/1802.05814
     """
 
     def __init__(
@@ -172,6 +175,8 @@ class MultiVAE(nn.Module):
         validation_user_item_matrix: torch.Tensor = None,
         validation_features_columns: List[str] = None,
         validation_similarity_max_item: int = 100,
+        validation_users_train: List[str] = None,
+        validation_users_val: List[str] = None,
     ) -> Tuple[
         "MultiVAE", torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor
     ]:
@@ -195,7 +200,12 @@ class MultiVAE(nn.Module):
         r20_history = torch.zeros(num_epochs, dtype=dtype, device=device)
         r50_history = torch.zeros(num_epochs, dtype=dtype, device=device)
         mpr_history = torch.zeros(num_epochs, dtype=dtype, device=device)
-        similarities_score_history = torch.zeros(num_epochs, dtype=dtype, device=device)
+        similarities_train_score_history = torch.zeros(
+            num_epochs, dtype=dtype, device=device
+        )
+        similarities_validation_score_history = torch.zeros(
+            num_epochs, dtype=dtype, device=device
+        )
 
         l = len(train_dataloader)
 
@@ -229,7 +239,8 @@ class MultiVAE(nn.Module):
                     r20,
                     r50,
                     mpr_value,
-                    similarities_score,
+                    similarities_train_score,
+                    similarities_validation_score,
                 ) = self.evaluate_model(
                     validation_dataloader=validation_dataloader,
                     anneal_cap=anneal_cap,
@@ -238,6 +249,8 @@ class MultiVAE(nn.Module):
                     features_columns=validation_features_columns,
                     user_item_matrix=validation_user_item_matrix,
                     similarity_max_item=validation_similarity_max_item,
+                    users_train=validation_users_train,
+                    users_validation=validation_users_val,
                     device=device,
                     dtype=dtype,
                 )
@@ -246,19 +259,27 @@ class MultiVAE(nn.Module):
                 r20_history[epoch] = r20
                 r50_history[epoch] = r50
                 mpr_history[epoch] = mpr_value
-                similarities_score_history[epoch] = similarities_score
+                similarities_train_score_history[epoch] = similarities_train_score
+                similarities_validation_score_history[
+                    epoch
+                ] = similarities_validation_score
 
-                if similarities_score > best_val_loss:
-                    best_val_loss = similarities_score
-                    best_model_state = self.state_dict()
-                    # print(f"Best model found at epoch {epoch} with NDCG: {best_val_loss.item():.6f}")
+                if similarities_validation_score > best_val_loss:
+                    best_val_loss = similarities_validation_score
+                    # copy the model state
+                    best_model_state = copy.deepcopy(self.state_dict())
+                    print(
+                        f"Best model found at epoch {epoch} with score: {similarities_validation_score.item():.6f}"
+                    )
 
                 if epoch % log_interval == 0:
                     print(
-                        f"Epoch: {epoch} \t Loss: {loss_history[epoch].item():.6f} \t Val Loss: {validation_loss_history[epoch].item():.6f} \t NDCG_100: {ndcg.item():.6f} \t Recall_20: {r20.item():.6f} \t Recall_50: {r50.item():.6f} \t MPR: {mpr_value.item():.6f}, \t Similarity Score: {similarities_score.item():.6f}"
+                        f"Epoch: {epoch} \t Loss: {loss_history[epoch].item():.6f} \t Val Loss: {validation_loss_history[epoch].item():.6f} \t NDCG_100: {ndcg.item():.6f} \t Recall_20: {r20.item():.6f} \t Recall_50: {r50.item():.6f} \t MPR: {mpr_value.item():.6f}, \t Similarity Score (train): {similarities_validation_score.item():.6f} \t Similarity Score (validation): {similarities_validation_score.item():.6f}"
                     )
 
-        best_model = MultiVAE(self.p_dims, self.q_dims)
+        best_model = MultiVAE(
+            p_dims=self.p_dims, q_dims=self.q_dims, dropout=self.drop.p
+        )
         best_model.load_state_dict(best_model_state)
         best_model.to(device, dtype)
         best_model.eval()
@@ -271,7 +292,8 @@ class MultiVAE(nn.Module):
             r20_history,
             r50_history,
             mpr_history,
-            similarities_score_history,
+            similarities_train_score_history,
+            similarities_validation_score_history,
         )
 
     def evaluate_model(
@@ -280,12 +302,33 @@ class MultiVAE(nn.Module):
         user_item_matrix: torch.Tensor,
         df_features: pd.DataFrame,
         features_columns: List[str],
+        users_train: List[str],
+        users_validation: List[str],
         anneal_cap: float = 0.2,
         total_anneal_steps: int = 200000,
         similarity_max_item: int = 100,
+        users: List[str] = None,
         device: str = "cpu",
         dtype: torch.dtype = torch.float32,
     ):
+        """
+        Evaluate the model on the given dataset
+
+        Args:
+            validation_dataloader (DataLoader): The validation dataloader.
+            user_item_matrix (torch.Tensor): The user-item interaction matrix.
+            df_features (pd.DataFrame): The dataframe containing the features.
+            features_columns (List[str]): The list of features columns.
+            anneal_cap (float, optional): Annealing factor for KL divergence. Defaults to 0.2.
+            total_anneal_steps (int, optional): Total number of annealing steps. Defaults to 200000.
+            similarity_max_item (int, optional): Number of items to consider for similarity score. Defaults to 100.
+            validation_users (List[str], optional): The list of users to consider for the similarity score. Defaults to None.
+            device (str, optional): The device to use. Defaults to "cpu".
+            dtype (torch.dtype, optional): The dtype to use. Defaults to torch.float32.
+
+        Returns:
+            Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]: The loss, NDCG, Recall@20, Recall@50, MPR and similarity score.
+        """
         self.to(device, dtype)
         self.eval()
         total_loss = 0.0
@@ -293,7 +336,8 @@ class MultiVAE(nn.Module):
         r20_list = []
         r50_list = []
         mpr_list = []
-        similarity_score_list = []
+        similarity_train_score_list = []
+        similarity_validation_score_list = []
         update_count = 0
         N = len(validation_dataloader.dataset)
         batch_size = validation_dataloader.batch_size
@@ -350,9 +394,10 @@ class MultiVAE(nn.Module):
 
                 update_count += 1
 
-        for user_id in df_features["username"].cat.codes.unique():
+        users = users_train + users_validation
+        for index, user_id in enumerate(users):
             user_row = user_item_matrix[user_id]
-            # Ground truth
+            # Retrieve the ground truth
             user_tracks_df = df_features[
                 df_features["username"].cat.codes == user_id.item()
             ]
@@ -360,61 +405,92 @@ class MultiVAE(nn.Module):
             user_tracks_features = torch.tensor(
                 user_tracks_df[features_columns].to_numpy(), dtype=dtype, device=device
             )
-            max_item = min(similarity_max_item, len(user_tracks_features))
 
-            # Predicted
+            # Get the recommendations for the user
             mu, logvar = self.encode(user_row.unsqueeze(0))
             z = self.reparameterize(mu, logvar)
             predicted_scores = self.decode(z)
             predicted_scores = predicted_scores.cpu().flatten()
-            topk = torch.topk(predicted_scores, max_item)
-            predicted_tracks_idx = topk.indices.cpu().detach().numpy()
-            predicted_tracks_scores = topk.values.cpu().detach().numpy()
-            max_item = min(
-                len(predicted_tracks_idx),
-                max_item,
+            # sort the items by score
+            sorted_predicted_idx = torch.argsort(predicted_scores, descending=True)
+            sorted_predicted_scores = (
+                torch.gather(predicted_scores, 0, sorted_predicted_idx)
+                .cpu()
+                .detach()
+                .numpy()
             )
+            sorted_predicted_idx = sorted_predicted_idx.cpu().detach().numpy()
 
+            # Add the scores to the dataframe
             predicted_tracks_features_df = df_features.copy()
             predicted_tracks_features_df["item_id"] = df_features[
                 "id"
             ].cat.codes.astype("int")
             predicted_tracks_features_df.set_index("item_id", inplace=True)
             predicted_tracks_features_df = predicted_tracks_features_df.iloc[
-                predicted_tracks_idx
+                sorted_predicted_idx
             ]
             predicted_tracks_features_df["score"] = pd.Series(
-                predicted_tracks_scores,
+                sorted_predicted_scores,
                 index=predicted_tracks_features_df.index,
             )
-            predicted_tracks_features_df = predicted_tracks_features_df[
-                ~predicted_tracks_features_df.index.isin(user_tracks_df.index)
-            ]
-            predicted_tracks_features_df.drop_duplicates(subset=["id"], inplace=True)
+
+            # Remove duplicates
             predicted_tracks_features_df = predicted_tracks_features_df.sort_values(
                 by="score", ascending=False
             )
+            predicted_tracks_features_df.drop_duplicates(subset=["id"], inplace=True)
 
+            # Remove the tracks that the user already listened to
+            predicted_tracks_features_df = predicted_tracks_features_df[
+                ~predicted_tracks_features_df["id"].isin(
+                    user_tracks_df["id"].head(similarity_max_item)
+                )
+            ]
+
+            # Get the features of the recommended tracks
             predicted_tracks_features = torch.tensor(
                 predicted_tracks_features_df[features_columns].to_numpy(),
                 dtype=dtype,
                 device=device,
             )
+
+            # Make sure that the number of tracks is the same
+            user_tracks_features = user_tracks_features[:similarity_max_item]
+            predicted_tracks_features = predicted_tracks_features[:similarity_max_item]
+
+            assert (
+                len(predicted_tracks_features)
+                == len(user_tracks_features)
+                == similarity_max_item
+            ), f"Number of tracks is not {similarity_max_item} ({len(predicted_tracks_features)} and {len(user_tracks_features)})"
+
+            # Calculate the similarity score
             similarity_score = similarities_score(
                 user_tracks_features,
                 predicted_tracks_features,
-                device=device,
-                dtype=dtype,
             )
-            similarity_score_list.append(similarity_score)
+
+            if user_id in users_train:
+                similarity_train_score_list.append(
+                    similarity_score.cpu().detach().item()
+                )
+
+            if user_id in users_validation:
+                similarity_validation_score_list.append(
+                    similarity_score.cpu().detach().item()
+                )
 
         total_loss /= len(range(0, N, batch_size))
         n100_list = torch.tensor(n100_list, dtype=dtype, device=device)
         r20_list = torch.cat(r20_list)
         r50_list = torch.cat(r50_list)
         mpr_list = torch.tensor(mpr_list, dtype=dtype, device=device)
-        similarity_score_list = torch.tensor(
-            similarity_score_list, dtype=dtype, device=device
+        similarity_train_score_list = torch.tensor(
+            similarity_train_score_list, dtype=dtype, device=device
+        )
+        similarity_validation_score_list = torch.tensor(
+            similarity_validation_score_list, dtype=dtype, device=device
         )
 
         return (
@@ -423,7 +499,8 @@ class MultiVAE(nn.Module):
             torch.nanmean(r20_list),
             torch.nanmean(r50_list),
             torch.nanmean(mpr_list),
-            torch.nanmean(similarity_score_list),
+            torch.nanmean(similarity_train_score_list),
+            torch.nanmean(similarity_validation_score_list),
         )
 
     def get_latent_representations(

@@ -53,6 +53,10 @@ PRETTY_PRINT_FEATURES = [
 
 
 class SpotiUser:
+    """
+    Represents a Spotify user and provides methods to interact with the Spotify API.
+    """
+
     @property
     def username(self) -> str:
         return self._username
@@ -62,15 +66,36 @@ class SpotiUser:
         return self._sp
 
     def __init__(self, username: str) -> None:
+        """
+        Initialize a SpotiUser object.
+
+        Args:
+            username (str): Username of the user, it can be an alias it doesn't have to be the real username.
+
+        Returns:
+            None
+        """
         self._username: str = username
         self._scope = DEFAULT_SCOPE
         self._sp: spotipy.Spotify = None
 
     def infos(self) -> pd.DataFrame:
+        """
+        Get the user's infos.
+
+        Returns:
+            pd.DataFrame: DataFrame containing the user's infos.
+        """
         result = self.sp.current_user()
         return pd.DataFrame([result])
 
     def get_email(self) -> str:
+        """
+        Get the user's email.
+
+        Returns:
+            str: User's email.
+        """
         return self.infos()["email"].iloc[0]
 
     def load_top_tracks(
@@ -88,6 +113,18 @@ class SpotiUser:
         top_tracks_include_end=False,
         base_path: str = "data",
     ) -> pd.DataFrame:
+        """
+        Load the top tracks from the user (already downloaded from Spotify)
+
+        Args:
+            top_tracks_affinity_start (Dict[str, float], optional): Affinity start for top tracks. Defaults to {"short_term": 1.0, "medium_term": 1.0, "long_term": 1.0}.
+            top_tracks_affinity_end (Dict[str, float], optional): Affinity end for top tracks. Defaults to {"short_term": 0, "medium_term": 0, "long_term": 0}.
+            top_tracks_include_end (bool, optional): If True, includes the end value in the affinity range. Defaults to False.
+            base_path (str, optional): Base path to load data from. Defaults to "data".
+
+        Returns:
+            pd.DataFrame: DataFrame containing the top tracks.
+        """
         df: pd.DataFrame = pd.read_json(
             os.path.join(base_path, f"{self._username}_top_tracks.json")
         )
@@ -117,6 +154,18 @@ class SpotiUser:
         end_affinity=0.1,
         include_endpoint=False,
     ) -> pd.DataFrame:
+        """
+        Load the liked tracks from the user (already downloaded from Spotify)
+
+        Args:
+            base_path (str, optional): Base path to load data from. Defaults to "data".
+            start_affinity (float, optional): Affinity start for liked tracks. Defaults to 1.0.
+            end_affinity (float, optional): Affinity end for liked tracks. Defaults to 0.1.
+            include_endpoint (bool, optional): If True, includes the end value in the affinity range. Defaults to False.
+
+        Returns:
+            pd.DataFrame: DataFrame containing the liked tracks.
+        """
         df = pd.read_json(
             os.path.join(base_path, f"{self._username}_liked_tracks.json")
         )
@@ -141,7 +190,19 @@ class SpotiUser:
 
         return df
 
-    def load_playlists(self, base_path: str = "data", affinity: float = 0.2) -> pd.DataFrame:
+    def load_playlists(
+        self, base_path: str = "data", affinity: float = 0.2
+    ) -> pd.DataFrame:
+        """
+        Load the playlists from the user (already downloaded from Spotify)
+
+        Args:
+            base_path (str, optional): Base path to load data from. Defaults to "data".
+            affinity (float, optional): Affinity for playlists. Defaults to 0.2.
+
+        Returns:
+            pd.DataFrame: DataFrame containing the playlists.
+        """
         df = pd.read_json(
             os.path.join(base_path, f"{self._username}_playlists_tracks.json")
         )
@@ -174,6 +235,22 @@ class SpotiUser:
         playlists_affinity=0.2,
         base_path: str = "data",
     ) -> pd.DataFrame:
+        """
+        Load all tracks from the user.
+
+        Args:
+            top_tracks_affinity_start (Dict[str, float], optional): Affinity start for top tracks. Defaults to {"short_term": 1.0, "medium_term": 1.0, "long_term": 1.0}.
+            top_tracks_affinity_end (Dict[str, float], optional): Affinity end for top tracks. Defaults to {"short_term": 0, "medium_term": 0, "long_term": 0}.
+            top_tracks_include_end (bool, optional): If True, includes the end value in the affinity range. Defaults to False.
+            liked_tracks_start_affinity (float, optional): Affinity start for liked tracks. Defaults to 1.0.
+            liked_tracks_end_affinity (float, optional): Affinity end for liked tracks. Defaults to 0.1.
+            liked_tracks_include_endpoint (bool, optional): If True, includes the end value in the affinity range. Defaults to False.
+            playlists_affinity (float, optional): Affinity for playlists. Defaults to 0.2.
+            base_path (str, optional): Base path to load data from. Defaults to "data".
+
+        Returns:
+            pd.DataFrame: DataFrame containing all loaded tracks.
+        """
         df_top_tracks = self.load_top_tracks(
             top_tracks_affinity_start=top_tracks_affinity_start,
             top_tracks_affinity_end=top_tracks_affinity_end,
@@ -186,7 +263,9 @@ class SpotiUser:
             end_affinity=liked_tracks_end_affinity,
             include_endpoint=liked_tracks_include_endpoint,
         )
-        df_playlists = self.load_playlists(base_path=base_path, affinity=playlists_affinity)
+        df_playlists = self.load_playlists(
+            base_path=base_path, affinity=playlists_affinity
+        )
 
         df = pd.concat(
             [df_top_tracks, df_liked_tracks, df_playlists], ignore_index=True
@@ -196,6 +275,12 @@ class SpotiUser:
         return df
 
     def get_auth_url(self) -> str:
+        """
+        Get the URL to authenticate the user, to can be send to the user.
+
+        Returns:
+            str: URL to authenticate the user
+        """
         dotenv.load_dotenv()
         auth_manager = SpotifyOAuth(
             scope=self._scope,
@@ -205,6 +290,12 @@ class SpotiUser:
         return auth_manager.get_authorize_url()
 
     def log_user(self) -> spotipy.Spotify:
+        """
+        Log the user in and return a spotipy.Spotify object.
+
+        Returns:
+            spotipy.Spotify: Spotify object
+        """
         dotenv.load_dotenv()
         auth_manager = SpotifyOAuth(
             scope=self._scope,
@@ -214,6 +305,15 @@ class SpotiUser:
         self._sp = spotipy.Spotify(auth_manager=auth_manager)
 
     def _preprocess_artists(self, df: pd.DataFrame) -> pd.DataFrame:
+        """
+        Preprocess the artists column of the DataFrame by extracting the artist name and ID.
+
+        Args:
+            df (pd.DataFrame): DataFrame containing the tracks
+
+        Returns:
+            pd.DataFrame: DataFrame containing the tracks with the artists column preprocessed
+        """
         if "artists" not in df.columns:
             return df
 
@@ -222,6 +322,15 @@ class SpotiUser:
         return df
 
     def _preprocess_album(self, df: pd.DataFrame) -> pd.DataFrame:
+        """
+        Preprocess the album column of the DataFrame by extracting the album name, release date and total tracks.
+
+        Args:
+            df (pd.DataFrame): DataFrame containing the tracks
+
+        Returns:
+            pd.DataFrame: DataFrame containing the tracks with the album column preprocessed
+        """
         if "album" not in df.columns:
             return df
 
@@ -233,6 +342,17 @@ class SpotiUser:
     def get_playlist_tracks(
         self, playlist_id: str, limit: int = 100, offset: int = 0
     ) -> pd.DataFrame:
+        """
+        Get the tracks from a playlist from Spotify.
+
+        Args:
+            playlist_id (str): Playlist ID
+            limit (int, optional): Number of tracks to get per page. Defaults to 100.
+            offset (int, optional): Offset to start from. Defaults to 0.
+
+        Returns:
+            pd.DataFrame: DataFrame containing the tracks.
+        """
         first_result = self.sp.playlist_tracks(playlist_id, limit=limit, offset=offset)
 
         def add_tracks(x: Dict) -> Dict:
@@ -279,6 +399,16 @@ class SpotiUser:
         return tracks_df
 
     def get_playlists(self, limit: int = 50, offset: int = 0) -> pd.DataFrame:
+        """
+        Get the user's playlists list from Spotify.
+
+        Args:
+            limit (int, optional): Number of playlists to get per page. Defaults to 50.
+            offset (int, optional): Offset to start from. Defaults to 0.
+
+        Returns:
+            pd.DataFrame: DataFrame containing the playlists.
+        """
         first_result = self.sp.current_user_playlists(limit=limit, offset=offset)
         playlists_df = pd.DataFrame(first_result["items"])
         if first_result["next"]:
@@ -292,6 +422,15 @@ class SpotiUser:
         return playlists_df
 
     def get_artists(self, artist_ids: List[str]) -> pd.DataFrame:
+        """
+        Get artists infos from Spotify.
+
+        Args:
+            artist_ids (List[str]): List of artists IDs
+
+        Returns:
+            pd.DataFrame: DataFrame containing the artists infos
+        """
         artists = self.sp.artists(artist_ids)
         artists_df = pd.DataFrame(artists["artists"])
         return artists_df
@@ -303,6 +442,18 @@ class SpotiUser:
         time_range: str = "medium_term",
         wait_seconds: float = 2.0,
     ) -> pd.DataFrame:
+        """
+        Get the user's top tracks from Spotify.
+
+        Args:
+            limit (int, optional): Number of tracks to get per page. Defaults to 20.
+            offset (int, optional): Offset to start from. Defaults to 0.
+            time_range (str, optional): Time range to get the tracks from. Defaults to "medium_term", can be "short_term", "medium_term" or "long_term".
+            wait_seconds (float, optional): Number of seconds to wait between requests. Defaults to 2.0.
+
+        Returns:
+            pd.DataFrame: DataFrame containing the top tracks.
+        """
         results = self.sp.current_user_top_tracks(
             limit=limit, offset=offset, time_range=time_range
         )
@@ -316,6 +467,16 @@ class SpotiUser:
     def populate_track_features(
         self, tracks: pd.DataFrame, wait_seconds: float = 2.0
     ) -> pd.DataFrame:
+        """
+        Populates the DataFrame with track features from Spotify.
+
+        Args:
+            tracks (pd.DataFrame): DataFrame containing the tracks
+            wait_seconds (float, optional): Number of seconds to wait between requests. Defaults to 2.0.
+
+        Returns:
+            pd.DataFrame: DataFrame containing the tracks with track features
+        """
         if "id" not in tracks.columns:
             return tracks
 
@@ -335,6 +496,16 @@ class SpotiUser:
         return df
 
     def playlists(self, limit: int = 50, offset: int = 0) -> pd.DataFrame:
+        """
+        Get the user's playlists list from Spotify.
+
+        Args:
+            limit (int, optional): Number of playlists to get per page. Defaults to 50.
+            offset (int, optional): Offset to start from. Defaults to 0.
+
+        Returns:
+            pd.DataFrame: DataFrame containing the playlists.
+        """
         result = self.sp.current_user_playlists(limit=limit, offset=offset)
         result_df = pd.DataFrame(result["items"])
         return result_df
@@ -342,6 +513,16 @@ class SpotiUser:
     def populate_artist_infos(
         self, df: pd.DataFrame, wait_seconds: float = 2.0
     ) -> pd.DataFrame:
+        """
+        Populates the DataFrame with artist infos from Spotify.
+
+        Args:
+            df (pd.DataFrame): DataFrame containing the tracks
+            wait_seconds (float, optional): Number of seconds to wait between requests. Defaults to 2.0.
+
+        Returns:
+            pd.DataFrame: DataFrame containing the tracks with artist infos
+        """
         if "artists_ids" not in df.columns:
             return df
 
@@ -365,6 +546,18 @@ class SpotiUser:
         pages_max: int = 1,
         wait_seconds: float = 2.0,
     ) -> pd.DataFrame:
+        """
+        Get the user's liked tracks from Spotify.
+
+        Args:
+            limit (int, optional): Number of tracks to get per page. Defaults to 50.
+            offset (int, optional): Offset to start from. Defaults to 0.
+            pages_max (int, optional): Maximum number of pages to get. Defaults to 1.
+            wait_seconds (float, optional): Number of seconds to wait between requests. Defaults to 2.0.
+
+        Returns:
+            pd.DataFrame: DataFrame containing the liked tracks.
+        """
         if pages_max is None:
             pages_max = np.inf
 
@@ -414,6 +607,25 @@ def load_all_tracks(
     liked_tracks_include_endpoint=False,
     playlists_affinity=0.2,
 ) -> pd.DataFrame:
+    """
+    Loads all tracks from specified users and, optionally, from Spotify's preloaded tracks.
+
+    Args:
+        base_path (str, optional): Base path to load data from. Defaults to "data".
+        users (List[SpotiUser], optional): List of SpotiUser objects to load data for. Defaults to None.
+        load_spotify_tracks (bool, optional): If True, loads Spotify's preloaded tracks. Defaults to True.
+        top_tracks_affinity_start (Dict[str, float], optional): Affinity start for top tracks. Defaults to {"short_term": 1.0, "medium_term": 1.0, "long_term": 1.0}.
+        top_tracks_affinity_end (Dict[str, float], optional): Affinity end for top tracks. Defaults to {"short_term": 0, "medium_term": 0, "long_term": 0}.
+        top_tracks_include_end (bool, optional): If True, includes the end value in the affinity range. Defaults to False.
+        liked_tracks_start_affinity (float, optional): Affinity start for liked tracks. Defaults to 1.0.
+        liked_tracks_end_affinity (float, optional): Affinity end for liked tracks. Defaults to 0.1.
+        liked_tracks_include_endpoint (bool, optional): If True, includes the end value in the affinity range. Defaults to False.
+        playlists_affinity (float, optional): Affinity for playlists. Defaults to 0.2.
+
+    Returns:
+        pd.DataFrame: DataFrame containing all loaded tracks.
+    """
+
     df = pd.DataFrame()
 
     for user in users:

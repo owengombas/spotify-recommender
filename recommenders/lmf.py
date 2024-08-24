@@ -1,15 +1,12 @@
+from IPython.display import display
 import numpy as np
 import pandas as pd
 from typing import List, Tuple
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from torch.utils.data import Dataset, DataLoader
-from tqdm import tqdm
 from recommenders.metrics import (
-    NDCG_binary_at_k_batch,
     mpr,
-    NDCG_binary_at_k_batch_torch,
     Recall_at_k_batch_torch,
     similarities_score,
 )
@@ -19,7 +16,27 @@ import os
 
 class LogisticMatrixFactorization(nn.Module):
     """
-    Matrix Factorization model with logistic loss.
+    Implements a Matrix Factorization model with a logistic loss for recommendation systems.
+
+    Attributes:
+        num_users (int): Number of users in the dataset.
+        num_items (int): Number of items in the dataset.
+        num_factors (int): Number of latent factors for matrix factorization.
+        reg_param (float): Regularization parameter.
+        device (str): Device on which computations are performed (e.g., 'cpu' or 'cuda').
+        dtype (torch.dtype): Data type for tensors (e.g., torch.float32 or torch.float64).
+        name_suffix (str): Suffix added to the model's name for identification.
+        user_vectors (torch.Tensor): User latent factor matrix.
+        item_vectors (torch.Tensor): Item latent factor matrix.
+        user_biases (torch.Tensor): User bias vector.
+        item_biases (torch.Tensor): Item bias vector.
+        losses (torch.Tensor): Tensor storing loss values during training.
+        validation_losses (torch.Tensor): Tensor storing validation loss values during training.
+        mpr_history (torch.Tensor): Tensor storing Mean Percentile Rank values during training.
+        ndcg_history (torch.Tensor): Tensor storing Normalized Discounted Cumulative Gain values during training.
+        recall20_history (torch.Tensor): Tensor storing Recall@20 values during training.
+        recall50_history (torch.Tensor): Tensor storing Recall@50 values during training.
+        similarity_history (torch.Tensor): Tensor storing similarity scores during training.
     """
 
     def __init__(
@@ -33,15 +50,18 @@ class LogisticMatrixFactorization(nn.Module):
         name_suffix: str = "",
     ):
         """
-        Constructor.
-        :param R: The matrix of interactions.
-        :param num_factors: The number of latent factors.
-        :param alpha: The alpha parameter.
-        :param lambd: The lambda parameter.
-        :param device: The device for computations (e.g., "cpu" or "cuda").
-        :param dtype: The data type for tensors (e.g., torch.float32 or torch.float64).
-        :param name_suffix: A suffix to add to the model's name.
+        Initializes the LogisticMatrixFactorization model.
+
+        Args:
+            num_users (int): Number of users in the dataset.
+            num_items (int): Number of items in the dataset.
+            num_factors (int): Number of latent factors for matrix factorization.
+            reg_param (float): Regularization parameter.
+            device (str, optional): Computation device ('cpu' or 'cuda'). Defaults to 'cpu'.
+            dtype (torch.dtype, optional): Data type for tensors. Defaults to torch.float64.
+            name_suffix (str, optional): Suffix for the model's name. Defaults to an empty string.
         """
+
         super(LogisticMatrixFactorization, self).__init__()
 
         self.num_users, self.num_items = num_users, num_items
@@ -92,7 +112,10 @@ class LogisticMatrixFactorization(nn.Module):
         self.recall50_history = torch.zeros(
             0, dtype=self.dtype, device=self.device, requires_grad=False
         )
-        self.similarity_history = torch.zeros(
+        self.similarity_train_history = torch.zeros(
+            0, dtype=self.dtype, device=self.device, requires_grad=False
+        )
+        self.similarity_val_history = torch.zeros(
             0, dtype=self.dtype, device=self.device, requires_grad=False
         )
 
@@ -102,9 +125,14 @@ class LogisticMatrixFactorization(nn.Module):
         self, R: torch.Tensor, user: bool = True
     ) -> Tuple[torch.Tensor, torch.Tensor]:
         """
-        Compute derivatives for either users or items.
-        :param user: If True, compute derivatives for users; otherwise, compute derivatives for items.
-        :return: Tuple of derivatives for latent vectors and biases.
+        Forward pass of the model to compute derivatives for either users or items.
+
+        Args:
+            R (torch.Tensor): Interaction matrix.
+            user (bool, optional): If True, computes derivatives for users; else for items. Defaults to True.
+
+        Returns:
+            Tuple[torch.Tensor, torch.Tensor]: Derivatives for latent vectors and biases.
         """
         ones = torch.ones(
             (R.shape[0], R.shape[1]), dtype=self.dtype, device=self.device
@@ -138,6 +166,16 @@ class LogisticMatrixFactorization(nn.Module):
         return vec_deriv, bias_deriv
 
     def log_likelihood(self, R: torch.Tensor) -> torch.Tensor:
+        """
+        Computes the log-likelihood of the model given the interaction matrix.
+
+        Args:
+            R (torch.Tensor): Interaction matrix.
+
+        Returns:
+            torch.Tensor: Computed log-likelihood.
+        """
+
         ones = torch.ones(
             (R.shape[0], R.shape[1]), dtype=self.dtype, device=self.device
         )
@@ -177,8 +215,12 @@ class LogisticMatrixFactorization(nn.Module):
     def predict_all(self, user: bool = True) -> torch.Tensor:
         """
         Predicts the interactions for all users or all items.
-        :param user: If True, return predictions for all users; otherwise, return predictions for all items.
-        :return: The matrix of interactions.
+
+        Args:
+            user (bool, optional): If True, return predictions for all users; otherwise, return predictions for all items. Defaults to True.
+
+        Returns:    
+            torch.Tensor: The matrix of interactions.
         """
         if user:
             return (
@@ -201,15 +243,30 @@ class LogisticMatrixFactorization(nn.Module):
         tqdm: bool = True,
         validation_df_features: pd.DataFrame = None,
         validation_features_columns: List[str] = None,
+        validation_users_train: List[str] = None,
+        validation_users_val: List[str] = None,
         similarity_max_item: int = 50,
     ) -> "LogisticMatrixFactorization":
         """
-        Train the matrix factorization model.
-        :param num_epochs: Number of training epochs.
-        :param learning_rate: Learning rate for optimization.
-        :param verbose: If True, print progress.
-        :param log_interval: Interval for logging progress.
+        Trains the matrix factorization model.
+
+        Args:
+            R (torch.Tensor): Interaction matrix for training.
+            num_epochs (int): Number of training epochs.
+            learning_rate (float): Learning rate for optimization.
+            validation_train (torch.Tensor): Training set of the validation split.
+            validation_test (torch.Tensor): Test set of the validation split.
+            verbose (bool, optional): If True, prints progress. Defaults to True.
+            log_interval (int, optional): Interval for logging progress. Defaults to 10.
+            tqdm (bool, optional): If True, uses tqdm for progress bar. Defaults to True.
+            validation_df_features (pd.DataFrame, optional): DataFrame of features for validation. Defaults to None.
+            validation_features_columns (List[str], optional): List of feature column names for validation. Defaults to None.
+            similarity_max_item (int, optional): Maximum number of items for similarity computation. Defaults to 50.
+
+        Returns:
+            LogisticMatrixFactorization: Trained model.
         """
+
         self.losses = torch.zeros(
             num_epochs,
             dtype=self.dtype,
@@ -246,7 +303,13 @@ class LogisticMatrixFactorization(nn.Module):
             device=self.device,
             requires_grad=False,
         )
-        self.similarity_history = torch.zeros(
+        self.similarity_train_history = torch.zeros(
+            num_epochs,
+            dtype=self.dtype,
+            device=self.device,
+            requires_grad=False,
+        )
+        self.similarity_val_history = torch.zeros(
             num_epochs,
             dtype=self.dtype,
             device=self.device,
@@ -277,7 +340,7 @@ class LogisticMatrixFactorization(nn.Module):
             requires_grad=False,
         )
 
-        best_val = 0.0
+        best_val = -np.inf
         best_model: LogisticMatrixFactorization = None
         optimizer = optim.Adagrad(self.parameters(), lr=learning_rate)
 
@@ -315,7 +378,8 @@ class LogisticMatrixFactorization(nn.Module):
                 recall20_value,
                 recall50_value,
                 mpr_value,
-                similarity,
+                similarity_train,
+                similarity_val,
             ) = self.evaluate_model(
                 R,
                 validation_train,
@@ -323,6 +387,8 @@ class LogisticMatrixFactorization(nn.Module):
                 validation_df_features,
                 validation_features_columns,
                 similarity_max_item,
+                users_train=validation_users_train,
+                users_val=validation_users_val,
             )
             # We calculate the MPR
             self.losses[epoch] = loglik
@@ -331,16 +397,22 @@ class LogisticMatrixFactorization(nn.Module):
             self.ndcg_history[epoch] = ndcg_value
             self.recall20_history[epoch] = recall20_value
             self.recall50_history[epoch] = recall50_value
-            self.similarity_history[epoch] = similarity
+            self.similarity_train_history[epoch] = similarity_train
+            self.similarity_val_history[epoch] = similarity_val
 
-            if similarity > best_val:
-                best_val = similarity
+            if similarity_val > best_val:
+                best_val = similarity_val
                 best_model = self.copy()
+                if verbose:
+                    print(
+                        f"Best model updated at epoch {epoch+1}, with score {best_val}"
+                    )
 
             if verbose and (epoch + 1) % log_interval == 0:
                 print(
-                    f"Epoch: {epoch+1} \t Loss: {loglik:.4f} \t MPR: {mpr_value:.4f} \t NDCG@100: {ndcg_value:.4f} \t Recall@20: {recall20_value:.4f} \t Recall@50: {recall50_value:.4f} \t Similarity: {similarity:.4f}"
+                    f"Epoch: {epoch+1} \t Loss: {loglik:.4f} \t MPR: {mpr_value:.4f} \t NDCG@100: {ndcg_value:.4f} \t Recall@20: {recall20_value:.4f} \t Recall@50: {recall50_value:.4f} \t Similarity (train): {similarity_train:.4f} \t Similarity (val): {similarity_val:.4f}"
                 )
+
         return best_model
 
     def evaluate_model(
@@ -351,12 +423,22 @@ class LogisticMatrixFactorization(nn.Module):
         df_features: pd.DataFrame,
         features_columns: List[str],
         similarity_max_item: int,
+        users_train: List[str] = None,
+        users_val: List[str] = None,
     ):
         """
         Evaluates the model on the validation set.
-        :param validation_train: The training set of the validation split.
-        :param validation_test: The test set of the validation split.
-        :param top_k: The number of items to recommend.
+
+        Args:
+            R (torch.Tensor): Interaction matrix for training.
+            validation_train (torch.Tensor): Training set of the validation split.
+            validation_test (torch.Tensor): Test set of the validation split.
+            df_features (pd.DataFrame): DataFrame of features for validation.
+            features_columns (List[str]): List of feature column names for validation.
+            similarity_max_item (int): Maximum number of items for similarity computation.
+
+        Returns:
+            Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]: Tuple of loss, NDCG@100, Recall@20, Recall@50, MPR, similarity train and validation scores.
         """
         self.eval()
 
@@ -382,12 +464,17 @@ class LogisticMatrixFactorization(nn.Module):
             r50 = Recall_at_k_batch_torch(
                 recon_batch, validation_test, 50, device=self.device, dtype=self.dtype
             )
-            I = torch.argsort(self.predict_all(True), dim=1, descending=True)
+            I = torch.argsort(recon_batch, dim=1, descending=True)
             mpr_value = mpr(R, I, device=self.device, dtype=self.dtype)
 
-            similarity_score_list = []
-            for user_id in df_features["username"].cat.codes.unique():
-                user_tracks_df = df_features[df_features["username"].cat.codes == user_id]
+            users_train_acc = []
+            users_val_acc = []
+            users = users_train + users_val
+            for user_id in users:
+                # Get the ground truth tracks for the user
+                user_tracks_df = df_features[
+                    df_features["username"].cat.codes == user_id
+                ]
                 user_tracks_df = user_tracks_df.sort_values(
                     by="affinity", ascending=False
                 )
@@ -396,15 +483,18 @@ class LogisticMatrixFactorization(nn.Module):
                     dtype=self.dtype,
                     device=self.device,
                 )
-                max_item = min(
-                    similarity_max_item,
-                    len(user_tracks_features),
-                )
 
-                predicted_tracks_idx, predicted_tracks_scores = self.recommend(
-                    R, user_id, top_k=max_item, filter_user_items=True
+                # Perform recommendations
+                predicted_tracks_scores = recon_batch[user_id]
+                predicted_tracks_idx = (
+                    torch.argsort(predicted_tracks_scores, descending=True)
+                    .cpu()
+                    .detach()
+                    .numpy()
                 )
+                predicted_tracks_scores = predicted_tracks_scores.cpu().detach().numpy()
 
+                # Add the scores to the predicted tracks
                 predicted_tracks_features_df = df_features.copy()
                 predicted_tracks_features_df["item_id"] = df_features[
                     "id"
@@ -417,33 +507,54 @@ class LogisticMatrixFactorization(nn.Module):
                     predicted_tracks_scores,
                     index=predicted_tracks_features_df.index,
                 )
-                predicted_tracks_features_df = predicted_tracks_features_df[
-                    ~predicted_tracks_features_df.index.isin(user_tracks_df.index)
-                ]
-                predicted_tracks_features_df.drop_duplicates(
-                    subset=["id"], inplace=True
-                )
+
+                # Remove duplicates and sort by score
                 predicted_tracks_features_df = predicted_tracks_features_df.sort_values(
                     by="score", ascending=False
                 )
+                predicted_tracks_features_df.drop_duplicates(
+                    subset=["id"], inplace=True
+                )
+                # Remove the tracks that the user already listened to
+                predicted_tracks_features_df = predicted_tracks_features_df[
+                    ~predicted_tracks_features_df["id"].isin(
+                        user_tracks_df["id"].head(similarity_max_item)
+                    )
+                ]
 
+                # Get the predicted tracks features
                 predicted_tracks_features = torch.tensor(
                     predicted_tracks_features_df[features_columns].to_numpy(),
                     dtype=self.dtype,
                     device=self.device,
                 )
-                max_item = min(
-                    similarity_max_item,
-                    max_item,
-                )
+
+                # Make sure that the number of tracks is the same
+                predicted_tracks_features = predicted_tracks_features[
+                    :similarity_max_item
+                ]
+                user_tracks_features = user_tracks_features[:similarity_max_item]
+
+                assert (
+                    len(predicted_tracks_features)
+                    == len(user_tracks_features)
+                    == similarity_max_item
+                ), f"Number of tracks is not {similarity_max_item} ({len(predicted_tracks_features)} and {len(user_tracks_features)})"
+
+                # Calculate the similarity score between the ground truth and the predicted tracks
                 similarity_score = similarities_score(
-                    user_tracks_features[:max_item],
-                    predicted_tracks_features[:max_item],
-                    device=self.device,
-                    dtype=self.dtype,
+                    user_tracks_features,
+                    predicted_tracks_features,
                 )
-                similarity_score_list.append(similarity_score)
-            similarity = torch.nanmean(torch.tensor(similarity_score_list))
+
+                if user_id in users_train:
+                    users_train_acc.append(similarity_score.cpu().detach().item())
+
+                if user_id in users_val:
+                    users_val_acc.append(similarity_score.cpu().detach().item())
+
+            similarity_train = np.nanmean(users_train_acc)
+            similarity_val = np.nanmean(users_val_acc)
 
         return (
             loss,
@@ -451,7 +562,8 @@ class LogisticMatrixFactorization(nn.Module):
             torch.nanmean(r20),
             torch.nanmean(r50),
             mpr_value,
-            similarity,
+            similarity_train,
+            similarity_val,
         )
 
     def recommend(
@@ -463,10 +575,15 @@ class LogisticMatrixFactorization(nn.Module):
     ) -> Tuple[List[int], List[float]]:
         """
         Recommends items for a user.
-        :param user_id: The user id.
-        :param top_k: The number of items to recommend.
-        :param filter_user_items: If True, items already interacted by the user are not recommended.
-        :return: Tuple of recommended items and their scores.
+
+        Args:
+            R (torch.Tensor): Interaction matrix.
+            user_id (int): The user id.
+            top_k (int, optional): The number of items to recommend. Defaults to 10.
+            filter_user_items (bool, optional): If True, items already interacted by the user are not recommended. Defaults to True.
+
+        Returns:
+            Tuple[List[int], List[float]]: Tuple of recommended items and their scores.
         """
         scores = self.predict_all(True)[user_id]
         if filter_user_items:
@@ -477,24 +594,34 @@ class LogisticMatrixFactorization(nn.Module):
     def get_item_factors(self, item_ids: List[int]) -> np.ndarray:
         """
         Returns the factors for a list of items.
-        :param item_ids: The list of item ids.
-        :return: The item factors.
+
+        Args:
+            item_ids (List[int]): The list of item ids.
+
+        Returns:
+            np.ndarray: The item factors.
         """
         return self.item_vectors[item_ids].detach().cpu().numpy()
 
     def get_user_factors(self, user_ids: List[int]) -> np.ndarray:
         """
         Returns the factors for a list of users.
-        :param user_ids: The list of user ids.
-        :return: The user factors.
+
+        Args:
+            user_ids (List[int]): The list of user ids.
+
+        Returns:
+            np.ndarray: The user factors.
         """
         return self.user_vectors[user_ids].detach().cpu().numpy()
 
     def save(self, path: str, name: str = "model") -> None:
         """
         Saves the model.
-        :param path: The path to the directory where the model will be saved.
-        :param name: The name of the model.
+
+        Args:
+            path (str): The path to the directory where the model will be saved.
+            name (str, optional): The name of the model. Defaults to "model".
         """
         torch.save(
             self.state_dict(), os.path.join(path, f"{name}{self.name_suffix}.pt")
@@ -503,8 +630,10 @@ class LogisticMatrixFactorization(nn.Module):
     def load(self, path: str, name: str = "model") -> None:
         """
         Loads the model.
-        :param path: The path to the directory where the model will be loaded from.
-        :param name: The name of the model.
+
+        Args:
+            path (str): The path to the directory where the model will be loaded from.
+            name (str, optional): The name of the model. Defaults to "model".
         """
         self.load_state_dict(
             torch.load(os.path.join(path, f"{name}{self.name_suffix}.pt"))
@@ -513,7 +642,9 @@ class LogisticMatrixFactorization(nn.Module):
     def copy(self):
         """
         Returns a copy of the model.
-        :return: A copy of the model.
+
+        Returns:
+            LogisticMatrixFactorization: Copy of the model.
         """
         model = LogisticMatrixFactorization(
             self.num_users,

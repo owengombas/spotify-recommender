@@ -1,12 +1,12 @@
 from lib import spoti
 
-owen = spoti.SpotiUser("larry")
-brenda = spoti.SpotiUser("virginia")
-arthur = spoti.SpotiUser("meagan")
-misch = spoti.SpotiUser("joann")
-paul = spoti.SpotiUser("timothy")
-yasmine = spoti.SpotiUser("daniel")
-michelle = spoti.SpotiUser("sean")
-dany = spoti.SpotiUser("todd")
+larry = spoti.SpotiUser("larry")
+virginia = spoti.SpotiUser("virginia")
+meagan = spoti.SpotiUser("meagan")
+joann = spoti.SpotiUser("joann")
+timothy = spoti.SpotiUser("timothy")
+daniel = spoti.SpotiUser("daniel")
+sean = spoti.SpotiUser("sean")
+todd = spoti.SpotiUser("todd")
 
-USERS = [yasmine, owen, brenda, arthur, michelle, paul, dany]
+USERS = [daniel, larry, virginia, meagan, sean, timothy, todd]

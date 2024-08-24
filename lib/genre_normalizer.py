@@ -60,11 +60,16 @@ genre_normalization_map = {
     "afro": "afro",
 }
 
+
 def normalize_genres(genres: pd.Series) -> pd.Series:
     """
     Normalize genre names to a standard set of genres.
-    :param genres: A series of lists of genres List[str].
-    :return: A series of lists of normalized genres List[str].
+
+    Args:
+        genres (pd.Series): A series of lists of genres List[str].
+
+    Returns:
+        pd.Series: A series of lists of normalized genres List[str].
     """
     genres = genres.copy()
 
@@ -76,5 +81,5 @@ def normalize_genres(genres: pd.Series) -> pd.Series:
                     genre_list[i] = genre_normalization_map[key]
 
         return genre_list
-    
+
     return genres.apply(normalize_genre_list)

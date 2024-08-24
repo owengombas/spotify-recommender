@@ -13,11 +13,15 @@ def remove_outliers_iqr(
 ) -> pd.DataFrame:
     """
     Remove outliers from a dataframe using the interquartile range.
-    :param df: The dataframe.
-    :param numeric_features: The numeric features to remove outliers from.
-    :param quantile: The quantile to use for the interquartile range.
-    :param threshold: The threshold to use for the interquartile range.
-    :return: The dataframe with outliers removed.
+
+    Args:
+        df (pd.DataFrame): The dataframe.
+        numeric_features (List[str]): The numeric features to remove outliers from.
+        quantile (float): The quantile to use for the interquartile range.
+        threshold (float): The threshold to use for the interquartile range.
+
+    Returns:
+        pd.DataFrame: The dataframe with outliers removed.
     """
     df = df.copy()
     for feature in numeric_features:
@@ -41,14 +45,18 @@ def count_list_column_per_user(
 ) -> pd.DataFrame:
     """
     Count the number of times each value in a list column appears per user.
-    :param df: The dataframe.
-    :param username_column: The username column.
-    :param column: The column to count.
-    :id_column: The id column (unique identifier).
-    :param destination_column: The destination column.
-    :return: The dataframe with the counts.
-    """
 
+    Args:
+        df (pd.DataFrame): The dataframe.
+        column (str): The column to count.
+        normalize (bool): Whether to normalize the counts.
+        username_column (str): The username column.
+        destination_column (str): The destination column.
+        id_column (str): The id column (unique identifier).
+
+    Returns:
+        pd.DataFrame: The dataframe with the counts.
+    """
     df_count = df.explode(column)
     df_count = df_count.groupby([column, username_column]).count().reset_index()
     df_count = df_count.rename(columns={id_column: destination_column})
@@ -65,9 +73,13 @@ def count_list_column_per_user(
 def get_smallest_sub_dataframe(df: pd.DataFrame, column: str):
     """
     Get the smallest sub dataframe for each value in a column.
-    :param df: The dataframe.
-    :param column: The column to group by.
-    :return: The smallest sub dataframe for each value in a column.
+
+    Args:
+        df (pd.DataFrame): The dataframe.
+        column (str): The column to group by.
+    
+    Returns:
+        pd.DataFrame: The smallest sub dataframe for each value in a column.
     """
     return min(df.value_counts(column).to_dict().items(), key=lambda x: x[1])[0]
 
@@ -75,9 +87,13 @@ def get_smallest_sub_dataframe(df: pd.DataFrame, column: str):
 def count_number_of_occurence(df: pd.DataFrame, column: str):
     """
     Count the number of occurence of each value in a column.
-    :param df: The dataframe.
-    :param column: The column to count.
-    :return: The dataframe with the counts.
+
+    Args:
+        df (pd.DataFrame): The dataframe.
+        column (str): The column to count.
+    
+    Returns:
+        pd.DataFrame: The dataframe with the counts.
     """
     return df.value_counts(column)
 
@@ -87,10 +103,14 @@ def filter_rows_by_min_number_of_occurence(
 ):
     """
     Filter the rows of a dataframe by the minimum number of occurence of a value in a column.
-    :param df: The dataframe.
-    :param column: The column to count.
-    :param min_occurence: The minimum number of occurence.
-    :return: The filtered dataframe.
+
+    Args:
+        df (pd.DataFrame): The dataframe.
+        column (str): The column to count.
+        at_least (int): The minimum number of occurence.
+
+    Returns:
+        pd.DataFrame: The filtered dataframe.
     """
     df_count = count_number_of_occurence(df, column)
     df = df[df[column].isin(df_count.index[df_count >= at_least])]
@@ -102,10 +122,14 @@ def compute_sparsity(
 ) -> Tuple[float, int, int, int]:
     """
     Compute the sparsity of a dataframe.
-    :param df: The dataframe.
-    :param username_column: The username column.
-    :param item_column: The item column.
-    :return: The sparsity.
+
+    Args:
+        df (pd.DataFrame): The dataframe.
+        username_column (str): The username column.
+        item_column (str): The item column.
+
+    Returns:
+        Tuple[float, int, int, int]: The sparsity, number of users, number of items and number of interactions.
     """
     users = count_number_of_occurence(df, username_column)
     items = count_number_of_occurence(df, item_column)
@@ -137,9 +161,15 @@ def split_users_train_validation_test(
 ) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     """
     Split a dataframe into train, validation and test sets.
-    :param df: The dataframe.
-    :param heldout_percentage: The percentage of users to use for validation and test sets.
-    :return: The train, validation and test sets.
+
+    Args:
+        df_users_shuffled (pd.DataFrame): The dataframe.
+        validation_percentage (float): The percentage of users to use for validation set.
+        test_percentage (float): The percentage of users to use for test set.
+        seed (int): The random seed.
+
+    Returns:
+        Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]: The train, validation and test sets.
     """
     dev_df, test_df = train_test_split(
         df_users_shuffled,
@@ -171,9 +201,17 @@ def populate_train_test_dataframes(
 ) -> Tuple[pd.DataFrame, pd.DataFrame]:
     """
     Split a dataframe into train and test sets.
-    :param df: The dataframe.
-    :param test_percentage: The percentage of users to use for the test set.
-    :return: The train and test sets.
+
+    Args:
+        df (pd.DataFrame): The dataframe.
+        selected_users (pd.DataFrame): The selected users.
+        test_percentage (float): The percentage of users to use for the test set.
+        min_items_threshold (int): The minimum number of items per user.
+        verbose (bool): Whether to print progress.
+        log_interval (int): The interval to print progress.
+    
+    Returns:
+        Tuple[pd.DataFrame, pd.DataFrame]: The train and test sets.
     """
     username_column = selected_users.index.name
     df = df.copy()
@@ -188,7 +226,9 @@ def populate_train_test_dataframes(
         if n_items >= min_items_threshold:
             idx = np.zeros(n_items, dtype=bool)
             idx[
-                np.random.choice(n_items, int(n_items * test_percentage), replace=False).astype(int)
+                np.random.choice(
+                    n_items, int(n_items * test_percentage), replace=False
+                ).astype(int)
             ] = True
             list_df_train.append(user[np.logical_not(idx)])
             list_df_test.append(user[idx])
@@ -203,19 +243,33 @@ def populate_train_test_dataframes(
 
     return df_train, df_test
 
-def min_max_scale(tensor: torch.Tensor, bounds: Tuple[float, float], optimums: Optional[Tuple[float, float]] = None) -> torch.Tensor:
+
+def min_max_scale(
+    tensor: torch.Tensor,
+    bounds: Tuple[float, float],
+    optimums: Optional[Tuple[float, float]] = None,
+) -> torch.Tensor:
     """
     Min-max scale a tensor.
-    :param tensor: The tensor.
-    :param bounds: The bounds.
-    :return: The min-max scaled tensor.
+
+    Args:
+        tensor (torch.Tensor): The tensor.
+        bounds (Tuple[float, float]): The bounds.
+        optimums (Optional[Tuple[float, float]]): The optimums.
+
+    Returns:
+        torch.Tensor: The min-max scaled tensor.
     """
     if optimums is None:
         minimum, maximum = tensor.min().item(), tensor.max().item()
     else:
         minimum, maximum = optimums
-    
+
     bound_minimum, bound_maximum = bounds
 
-    return (tensor - minimum) / (maximum - minimum) * (bound_maximum - bound_minimum) + bound_minimum, minimum, maximum
-
+    return (
+        (tensor - minimum) / (maximum - minimum) * (bound_maximum - bound_minimum)
+        + bound_minimum,
+        minimum,
+        maximum,
+    )

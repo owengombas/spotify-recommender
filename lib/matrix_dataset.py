@@ -8,17 +8,36 @@ from typing import Tuple, Optional
 
 
 class MatrixDataset:
+    """
+    A class to represent a dataset as a matrix for recommendation systems.
+
+    Args:
+        _R (torch.Tensor): Internal representation of the matrix.
+        _df (pd.DataFrame): DataFrame containing the user-item interactions.
+        _user_col (str): Column name for users.
+        _item_col (str): Column name for items.
+        _value_col (str): Column name for values (e.g., ratings).
+    """
+
     _R: torch.Tensor  # Changed to a PyTorch Tensor
 
     @property
     def R(self) -> torch.Tensor:
+        """
+        Returns the internal matrix as a dense tensor.
+
+        Returns:
+            torch.Tensor: The internal matrix representation.
+        """
         return self._R
 
     @property
     def sorted_R(self) -> torch.Tensor:
-        I = torch.argsort(self.R, axis=1, descending=True)  # Convert to dense for sorting
+        I = torch.argsort(
+            self.R, axis=1, descending=True
+        )  # Convert to dense for sorting
         return I
-    
+
     @property
     def df(self) -> pd.DataFrame:
         return self._df
@@ -32,6 +51,17 @@ class MatrixDataset:
         device: str = "cpu",
         dtype: torch.dtype = torch.float32,
     ):
+        """
+        Initializes the MatrixDataset object.
+
+        Args:
+            df (pd.DataFrame): The DataFrame containing user-item interactions.
+            user_col (str): The column name representing users.
+            item_col (str): The column name representing items.
+            value_col (str): The column name representing interaction values (e.g., ratings).
+            device (str, optional): The device to store the tensor on. Defaults to "cpu".
+            dtype (torch.dtype, optional): The data type of the tensor. Defaults to torch.float32.
+        """
         # A matrix of shape (num_users, num_items)
         self._user_col = user_col
         self._item_col = item_col
@@ -56,138 +86,185 @@ class MatrixDataset:
         self._R = self._R.to_dense().to(device=device, dtype=dtype)
 
     def compute_alpha(self):
-        alpha = (torch.numel(self.R) - torch.count_nonzero(self.R)) / self.R.sum()
+        """
+        Computes the alpha value based on the sparsity of the matrix.
+
+        Returns:
+            float: The computed alpha value.
+        """
+        alpha = (torch.numel(self.R) - torch.count_nonzero(self.R)) / self.R.nansum()
         return alpha
-    
+
     def set_alpha(self, alpha: float):
+        """
+        Multiplies the internal matrix by the given alpha value.
+
+        Args:
+            alpha (float): The alpha value to multiply with.
+        """
         self._R *= alpha
-    
-    def min_max_scale(self, bounds: Tuple[float, float], optimums: Optional[Tuple[float, float]] = None):
+
+    def min_max_scale(
+        self,
+        bounds: Tuple[float, float],
+        optimums: Optional[Tuple[float, float]] = None,
+    ):
         """
-        Min-max scale the dataset.
-        :param bounds: The bounds.
-        :param optimums: The optimums.
+        Applies min-max scaling to the internal matrix.
+
+        Args:
+            bounds (Tuple[float, float]): The lower and upper bounds for scaling.
+            optimums (Optional[Tuple[float, float]], optional): The optimum values for scaling. Defaults to None.
+
+        Returns:
+            Tuple[float, float]: The minimum and maximum values after scaling.
         """
-        self._R, minimum, maximum = preprocessing.min_max_scale(self._R, bounds, optimums)
+        self._R, minimum, maximum = preprocessing.min_max_scale(
+            self._R, bounds, optimums
+        )
         return minimum, maximum
 
     def get_user(self, user_id: int) -> torch.Tensor:
         """
-        Returns the user vector.
-        :param user_id: The user id.
-        :return: The user vector.
+        Returns the vector representation of a user.
+
+        Args:
+            user_id (int): The user's ID.
+
+        Returns:
+            torch.Tensor: The user vector.
         """
         return self._R[user_id]
 
     def get_item(self, item_id: int) -> torch.Tensor:
         """
-        Returns the item vector.
-        :param item_id: The item id.
-        :return: The item vector.
+        Retrieves the item vector for a given item ID from the matrix.
+
+        Args:
+            item_id (int): The ID of the item.
+
+        Returns:
+        . torch.Tensor: The vector representing the specified item.
         """
         return self._R[:, item_id]
 
     def get_interaction(self, user_id: int, item_id: int) -> float:
         """
-        Returns the interaction between a user and an item.
-        :param user_id: The user id.
-        :param item_id: The item id.
-        :return: The interaction.
+        Retrieves the interaction value between a specific user and item.
+
+        Args:
+            user_id (int): The ID of the user.
+            item_id (int): The ID of the item.
+
+        Returns:
+            float: The interaction value between the given user and item.
         """
         return self._R[user_id, item_id]
-    
+
     def get_interactions_ids(self, user_id: int) -> torch.Tensor:
         """
-        Returns the list of item ids that the user interacted with.
-        :param user_id: The user id.
-        :return: A binary vector of the items the user interacted with.
+        Retrieves a list of item IDs with which a specific user has interacted.
+
+        Args:
+            user_id (int): The ID of the user.
+
+        Returns:
+            torch.Tensor: A tensor of item IDs that the user has interacted with.
         """
         return self._R[user_id].nonzero().squeeze()
 
     def usernames_to_ids(self, usernames: List[str]) -> List[int]:
         """
-        From the category values of the users column, returns the corresponding ids.
-        :param usernames: The list of usernames.
-        :return: The list of ids.
+        Converts a list of usernames to their corresponding user IDs.
+
+        Args:
+            usernames (List[str]): The list of usernames.
+
+        Returns:
+            List[int]: A list of user IDs corresponding to the given usernames.
         """
         df_users = self._df[self._user_col].cat.categories
         return df_users.get_indexer(usernames)
-    
+
     def itemnames_to_ids(self, itemnames: List[str]) -> List[int]:
         """
-        From the category values of the items column, returns the corresponding ids.
-        :param itemnames: The list of itemnames.
-        :return: The list of ids.
+        Converts a list of item names to their corresponding item IDs.
+
+        Args:
+            itemnames (List[str]): The list of item names.
+
+        Returns:
+            List[int]: A list of item IDs corresponding to the given item names.
         """
         df_items = self._df[self._item_col].cat.categories
         return df_items.get_indexer(itemnames)
-    
+
     def ids_to_usernames(self, ids: List[int]) -> List[str]:
         """
-        From the category values of the users column, returns the corresponding usernames.
-        :param ids: The list of ids.
-        :return: The list of usernames.
+        Converts a list of user IDs to their corresponding usernames.
+
+        Args:
+            ids (List[int]): The list of user IDs.
+
+        Returns:
+            List[str]: A list of usernames corresponding to the given user IDs.
         """
         df_users = self._df[self._user_col].cat.categories
         return df_users[ids].tolist()
-    
+
     def ids_to_itemnames(self, ids: List[int]) -> List[str]:
         """
-        From the category values of the items column, returns the corresponding itemnames.
-        :param ids: The list of ids.
-        :return: The list of itemnames.
+        Converts a list of item IDs to their corresponding item names.
+
+        Args:
+            ids (List[int]): The list of item IDs.
+
+        Returns:
+            List[str]: A list of item names corresponding to the given item IDs.
         """
         df_items = self._df[self._item_col].cat.categories
         return df_items[ids].tolist()
-    
+
     def get_usernames(self) -> List[str]:
         """
         Returns the list of usernames.
         :return: The list of usernames.
         """
         return self._df[self._user_col].cat.categories.tolist()
-    
+
     def get_itemnames(self) -> List[str]:
         """
         Returns the list of itemnames.
         :return: The list of itemnames.
         """
         return self._df[self._item_col].cat.categories.tolist()
-    
+
     def item_ids_to_df(self, item_ids: List[int]) -> pd.DataFrame:
         """
         Returns the dataframe of the items.
-        :param item_ids: The list of item ids.
-        :return: The dataframe of the items.
+
+        Args:
+            item_ids (List[int]): The list of item ids.
+
+        Returns:
+            pd.DataFrame: The dataframe of the items.
         """
         # Retrieve the rows of the items from the dataframe
         df_items = self._df[self._df[self._item_col].cat.codes.isin(item_ids)]
         return df_items
-    
+
     def user_interacted_with(self, user_id: int) -> List[int]:
         """
         Returns the list of item ids that the user interacted with.
-        :param user_id: The user id.
-        :return: A binary vector of the items the user interacted with.
+
+        Args:
+            user_id (int): The user's ID.
+
+        Returns:
+            List[int]: The list of item ids.
         """
         interacted = self._R[user_id].nonzero().squeeze()
         return interacted
-    
-    @staticmethod
-    def split_train_validation_test(
-        df: pd.DataFrame,
-        validation_ratio: float = 0.1,
-        test_ratio: float = 0.1,
-        random_state: int = 42,
-    ) -> ("MatrixDataset", "MatrixDataset", "MatrixDataset", "MatrixDataset", "MatrixDataset"):
-        """
-        Splits the dataset into train, validation and test sets.
-        :param validation_ratio: The ratio of the validation set.
-        :param test_ratio: The ratio of the test set.
-        :param random_state: The random state for the split.
-        :return: The train, validation and test sets.
-        """
-        pass
 
     def __str__(self):
         return str(self._R)

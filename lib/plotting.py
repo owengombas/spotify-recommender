@@ -7,18 +7,24 @@ import plotly.express as px
 import plotly.graph_objects as go
 from lib import spoti
 import matplotlib.colors as mcolors
+from matplotlib.colors import LogNorm, Normalize
+from matplotlib.ticker import MaxNLocator
 
 
 def plot_feature_distribution(
     df: pd.DataFrame, numeric_features: List[str], cols: int = 5, rows: int = 2
 ) -> plt.Figure:
     """
-    Plot the distribution of numeric features.
-    :param df: The dataframe to plot.
-    :param numeric_features: The numeric features to plot.
-    :param cols: The number of columns in the plot.
-    :param rows: The number of rows in the plot.
-    :return: The figure.
+    Plots the distribution of numeric features in the DataFrame.
+
+    Args:
+        df (pd.DataFrame): The DataFrame containing the data.
+        numeric_features (List[str]): List of numeric feature names to plot.
+        cols (int): Number of columns in the plot grid.
+        rows (int): Number of rows in the plot grid.
+
+    Returns:
+        plt.Figure: Matplotlib figure object with the distribution plots.
     """
     fig, axes = plt.subplots(rows, cols, figsize=(cols * 5, rows * 5))
     for i, feature in enumerate(numeric_features):
@@ -35,12 +41,17 @@ def plot_latent_space(
     latent_columns: List[str] = None,
 ) -> go.Figure:
     """
-    Plot the latent space of a dataframe.
-    :param df: The dataframe.
-    :param color: The color of each point.
-    :param text: The text of each point.
-    :param title: The title of the plot.
-    :return: The figure.
+    Plots the latent space of a DataFrame using Plotly.
+
+    Args:
+        df (pd.DataFrame): The DataFrame to plot.
+        color (pd.Series, optional): Series to color the points.
+        text (pd.Series, optional): Text to display at each point.
+        title (str, optional): Title of the plot.
+        latent_columns (List[str], optional): List of columns representing latent dimensions.
+
+    Returns:
+        go.Figure: Plotly figure object for the latent space plot.
     """
     if latent_columns is None:
         latent_columns = list(filter(lambda x: "latent_" in x, df.columns))
@@ -76,9 +87,13 @@ def plot_latent_space(
 
 def plot_genres(genres: pd.Series) -> go.Figure:
     """
-    Plot the distribution of genres.
-    :param genres: A series of lists of genres List[str].
-    :return: The figure.
+    Plots a bar chart of genre distributions.
+
+    Args:
+        genres (pd.Series): Series of genres.
+
+    Returns:
+        go.Figure: Plotly figure object for the genre distribution plot.
     """
     genre_counts = genres.explode().value_counts()
     fig = px.bar(
@@ -94,6 +109,16 @@ def plot_genres(genres: pd.Series) -> go.Figure:
 def plot_column_distributions(
     sub_dfs: pd.DataFrame, numeric_features: List[str] = spoti.NUMERICAL_FEATURES
 ) -> plt.Figure:
+    """
+    Plots distributions of numeric columns for different subsets of a DataFrame.
+
+    Args:
+        sub_dfs (pd.DataFrame): DataFrame containing subsets of data.
+        numeric_features (List[str]): List of numeric feature names.
+
+    Returns:
+        plt.Figure: Matplotlib figure object with the distribution plots.
+    """
     fig, axs = plt.subplots(
         len(sub_dfs),
         len(numeric_features),
@@ -113,18 +138,54 @@ def plot_column_distributions(
 
 
 def plot_multivariate_gaussian_image_with_labels(
-    means, variances, labels, color_map="viridis", num_points=1000, figsize=(10, 10),
-    title="Latent Space Representation", x_bounds = (-3, 3), y_bounds = (-3, 3), dpi=None
+    means,
+    variances,
+    labels,
+    color_map="viridis",
+    num_points=1000,
+    figsize=(10, 10),
+    title="Latent Space Representation",
+    x_bounds=None,
+    y_bounds=None,
+    dpi=None,
 ):
+    """
+    Plots a multivariate Gaussian image with labels.
+
+    Args:
+        means: Mean coordinates for Gaussian distributions.
+        variances: Variance for each Gaussian distribution.
+        labels: Labels for each Gaussian distribution.
+        color_map (str): Color map for the plot.
+        num_points (int): Number of points in the grid.
+        figsize (tuple): Size of the figure.
+        title (str): Title of the plot.
+        x_bounds (tuple, optional): Bounds for the x-axis.
+        y_bounds (tuple, optional): Bounds for the y-axis.
+        dpi (optional): Dots per inch for the figure.
+
+    Returns:
+        None: This function does not return a value but shows a plot.
+    """
     # Create a grid of points
+    if x_bounds is None:
+        x_bounds = (
+            np.min(means[:, 0]) - 1 * np.sqrt(np.max(variances[:, 0])),
+            np.max(means[:, 0]) + 1 * np.sqrt(np.max(variances[:, 0])),
+        )
+    if y_bounds is None:
+        y_bounds = (
+            np.min(means[:, 1]) - 1 * np.sqrt(np.max(variances[:, 1])),
+            np.max(means[:, 1]) + 1 * np.sqrt(np.max(variances[:, 1])),
+        )
     x = np.linspace(
-        np.min(means[:, 0]) + x_bounds[0] * np.sqrt(np.max(variances[:, 0])),
-        np.max(means[:, 0]) + x_bounds[1] * np.sqrt(np.max(variances[:, 0])),
+        x_bounds[0],
+        x_bounds[1],
         num_points,
     )
     y = np.linspace(
-        np.min(means[:, 1]) + y_bounds[0] * np.sqrt(np.max(variances[:, 1])),
-        np.max(means[:, 1]) + y_bounds[1] * np.sqrt(np.max(variances[:, 1])),
+        y_bounds[0],
+        y_bounds[1],
         num_points,
     )
     X, Y = np.meshgrid(x, y)
@@ -185,14 +246,44 @@ def plot_multivariate_gaussian_image_with_labels(
     plt.title(title)
     plt.show()
 
-def plot_user_similarities_matrix(matrix: pd.DataFrame, figsize=(50, 50), lower_triangle=True, title="User Similarities Matrix"):
+
+def plot_user_similarities_matrix(
+    matrix: pd.DataFrame,
+    figsize=(50, 50),
+    lower_triangle=True,
+    title="User Similarities Matrix",
+    log_scale=False,
+):
+    """
+    Plots a heatmap of the user similarities matrix.
+
+    Args:
+        matrix (pd.DataFrame): DataFrame representing the user similarities matrix.
+        figsize (tuple): Size of the figure.
+        lower_triangle (bool): Whether to plot only the lower triangle of the matrix.
+        title (str): Title of the plot.
+        log_scale (bool): Whether to use logarithmic scale.
+
+    Returns:
+        None: This function does not return a value but shows a plot.
+    """
+    matrix = matrix.to_numpy()
+    matrix[matrix == 0] = 1e-4
     plt.figure(figsize=figsize)
     # Drop rows that contains NaN values
     if lower_triangle:
         mask = np.triu(np.ones_like(matrix, dtype=bool))
     else:
         mask = np.identity(n=matrix.shape[0])
-    sns.heatmap(matrix, annot=False, cmap='viridis', mask=mask)
+    sns.heatmap(
+        matrix,
+        annot=False,
+        cmap="viridis",
+        mask=mask,
+        norm=LogNorm(vmin=matrix.min().min(), vmax=matrix.max().max(), clip=True)
+        if log_scale
+        else None
+    )
     plt.title(title)
     plt.ylabel("User")
     plt.xlabel("Other User")
