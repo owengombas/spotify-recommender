@@ -1,0 +1,13 @@
+\chapter{Future perspectives and improvements}
+\section{Sparse matrix support for large batches}
+As mentioned in \ref{subsec:r_matrix} our matrix are highly sparse, meaning that our entries are mostly zeros. Multiple  Python libraries implement tools to work with sparse matrix and allow performing operations with them. To keep our implementations simple we wanted to use PyTorch only, which also support sparse matrices but their implementation in currently on beta and cannot be run on the devices we used (CPU/MPS). Since our scientific question involves small datasets we didn't spend more time implementing a sparse matrix support. For a production purpose, it would be a very important aspect to implement, for instance in the current state we cannot load and use the datasets \cite{liang2018variational} used, it simply crashed due to insufficient memory when loading the matrix in a dense format.
+
+\section{Human based metrics}
+In the case where we were allowed by Spotify to use there data to train a recommender in a education purpose, we could evaluate our model with an app our users can access and rate the recommendation made by our systems. We have made a prototype with dummy data without connecting that to any model since we aren't allowed to train them with Spotify data.
+\figurewithcaption{human_based_metric}{Our users are recommended a song from Spotify and can rate them with ordered qualitative feedback}{8cm}{0}
+
+\section{Individual improvements of the models}
+To be able to compare our models with more correctness we enforced a common baseline on them to see how well they perform in \textbf{the same conditions}. But this context might not yield the optimal result for every model. For instance we could find the optimal number of latent features for the collaborative models.
+
+\section{Metric compatibility}
+As discussed in the Sections \ref{sec:lmf_train} and \ref{sec:vae_train} we may not succeed porting the LMF metrics to the VAE and the VAE ones to the LMF. Further investigations should be done to be able to compare them successfully. However we did succeed implementing the evolution metrics of the LMF for the LMF and the VAE ones for the VAE, allowing us to evaluate them individually.

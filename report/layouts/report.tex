@@ -1,0 +1,93 @@
+% \input{sections/glossary.tex}
+
+\title{\documenttitle}
+\stepcounter{footnote}
+\author{Owen Gombas\thanks{University of Bern}, Arthur Gygax\thanks{University of Neuchâtel}}
+\affil{\organizations}
+\date{\deliverydate}
+
+\begin{document}
+\begin{titlepage}
+
+\sffamily
+
+{%
+\Large%
+\noindent%
+\justifying%
+Machine Learning and Data Mining\\
+}
+
+% \vspace{1cm}
+\vfill
+
+{%
+\noindent%
+\Huge%
+\textbf{\documenttitle}%
+%\Large \vspace{0.1in} \par
+}
+
+\vspace{0.75cm}
+
+{%
+\raggedright%
+\normalsize%
+\textbf{Authors}\\
+\vspace{0.1cm}%
+\Large%
+Owen Gombas\\
+\vspace{0.1cm}%
+\normalsize%
+University of Bern
+}
+
+\vspace{0.2cm}
+
+{%
+\raggedright%
+\normalsize%
+\Large%
+Arthur Gygax\\
+\vspace{0.1cm}%
+\normalsize%
+University of Neuchâtel
+}
+
+\vspace{1cm}
+\vfill
+
+{%
+\Large
+\noindent
+September 1, 2024
+}
+\end{titlepage}
+
+\nocite{*}
+
+\setcounter{footnote}{0}% Reset footnote counter
+\renewcommand*{\thefootnote}{\arabic{footnote}}
+
+\tableofcontents{}
+% \printglossary[type=\acronymtype,title=Glossary]
+\subfile{sections/introduction.tex}
+\subfile{sections/data.tex}
+\subfile{sections/data_analysis.tex}
+\subfile{sections/affinity.tex}
+%\subfile{sections/content_based.tex}
+\subfile{sections/metrics.tex}
+\subfile{sections/nn.tex}
+\subfile{sections/collaborative.tex}
+\subfile{sections/lmf.tex}
+\subfile{sections/vae.tex}
+\subfile{sections/ethic.tex}
+\subfile{sections/results.tex}
+\subfile{sections/further_perspectives.tex}
+\subfile{sections/dev_doc.tex}
+\subfile{sections/conclusion.tex}
+
+%\bibliographystyle{plain}
+\bibliography{sections/references.bib}
+
+\end{document}

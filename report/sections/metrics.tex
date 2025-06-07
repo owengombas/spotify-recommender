@@ -1,0 +1,53 @@
+\chapter{Metrics}
+\section{Vector Set Divergence (VSD)} \label{sec:vsd}
+Since the different metrics we saw in the different papers MPR (\cite{johnson_logistic_matrix_factorization}), NDCG@K and Recall@K (\cite{liang2018variational}) aren't quite compatible with our content based Nearest Neighbors recommender and difficult to adapt for that purpose. To be able to answer our initial scientific question we had to come up with a metric that allows us to compare content-based recommender systems and collaborative-based recommender systems.
+
+As we didn't found an existing name for this metric, we will refer to it as the "\textbf{Vector Set Divergence}", the goal is to have a score close to 0 if two sets of vector are identical and the more these sets of vector are different the more this value would diverge from 0. To achieve that we use the \texttt{pairwise\_cosine\_similarity} method from \href{https://lightning.ai/docs/torchmetrics/stable/}{TorchMetrics}  which computes the cosine similarity between every pairs of two collections of vectors. Then we use the \href{https://en.wikipedia.org/wiki/Hungarian_algorithm}{Hungarian algorithm} with \href{https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.linear_sum_assignment.html}{\texttt{Scipy's linear\_sum\_assignment}} to find the optimal assignment that pairs each vector in set $A$ with a unique vector in set $B$ such that the sum of distances for these pairings is minimized. We then choose to perform our model selection using this metric for all models.
+
+However, please note that this metric is only used to answer our scientific question. To perform model selection on the individual type of model we would use the metrics described in their paper which we also successfully implemented.
+
+VSD does not take into account the order of the items but instead it works on the values of the features of the items, allowing us to compare more easily the results of content-based and collaborative-based recommender systems.
+
+\begin{lstlisting}{}
+from scipy.optimize import linear_sum_assignment
+from torchmetrics.functional import pairwise_cosine_similarity
+
+def vector_set_divergence(A: torch.Tensor, B: torch.Tensor):
+    """
+    Calculate the similarity score two matrices set of vectors
+
+    Args:
+        A (torch.Tensor): The first matrix.
+        B (torch.Tensor): The second matrix.
+
+    Returns:
+        torch.Tensor: The similarity score.
+    """
+    # Create a cost matrix using cosine similarity
+    cost_matrix = 1 - pairwise_cosine_similarity(A, B)
+
+    # Find the optimal assignment (maximization) using the Hungarian algorithm
+    row_ind, col_ind = linear_sum_assignment(cost_matrix.cpu().numpy())
+
+    # Calculate score
+    score = cost_matrix[row_ind, col_ind].sum()
+    return -score
+\end{lstlisting}
+
+\subsection{Setting up the ground truth} \label{subsec:ground_truth}
+To set up the ground truth to use VSD we take the top $N$ tracks of every users based on the affinity they have with their known songs, in the case where we would deal with Spotify data we would use the affinity inference method introduced in Chapter \ref{chap:affinity} to establish these top $N$ songs. $N$ is a value that has to be defined manually, we established that if the first 25 songs that are recommended are similar to the top 25 tracks of the users then it's a pretty good recommendation.
+
+\subsection{Dealing with multiple users}
+When dealing with multiple users, we measure the similarity score of recommendations for every users and we average these scores and that gives us a final score.
+
+\section{MPR, NDCG and Recall} \label{sec:ordered_metrics}
+We spent a lot of time implementing the different metrics found in the different papers we used such as the Mean Percentage Ranking (MPR) \cite{johnson_logistic_matrix_factorization}, the \href{https://en.wikipedia.org/wiki/Discounted_cumulative_gain}{Normalized Discounted Cumulative Gain (NDCG)} and the Recall \cite{liang2018variational} so we could compare the different collaborative-filtering methods. We succeed making the MPR work with the VAE introduced in Chapter \ref{chap:vae} but we doubt that the NDCG and Recall work for the LMF since our models yield results that differ a lot, so they will not be discussed further more in this report. However it is a great tool to have for different projects and to select the best VAE model. As a result, we will only use MPR to compare the collaborative models together.
+
+Unlike our Vector Set Divergence (VSD) metric introduced in Section \ref{sec:vsd}, they all take into account the order of the recommendation but they do not take into account the features of the items they work on. As a result, the VSD evolution over epoch will lead to a noisy curve since the objective of the collaborative models isn't to find the most similar items (discussed deeper in the sections \ref{sec:lmf_train} and \ref{sec:vae_train}).
+
+\begin{itemize}
+    \item \textbf{VSD}: The higher, the better
+    \item \textbf{MPR}: The lower, the better
+    \item \textbf{NDCG}: The higher, the better
+    \item \textbf{Recall}: The higher, the better
+\end{itemize}

@@ -1,0 +1,76 @@
+\chapter{Content-based filtering using Nearest Neighbors} \label{chap:nn}
+
+The first paradigm we decided to explore was the content-based filtering one. It provides personalized recommendations based on the intrinsic features of the items we want to recommend. In our case, we have 14 available characteristics for each songs as introduced in \ref{subsection:user_data_retrieval}. We are then able to create a listening profile for each user, by taking their top 150 liked songs.
+
+One key advantage of content-based filtering is its independence from user interactions or the preferences of other users. It doesn't rely on collaborative data or social connections; instead, it's all about understanding the intrinsic characteristics of the items and aligning them with the user's known preferences.
+
+However, content-based filtering also comes with its limitations. For example, due to its tendency to strengthen existing preferences based on identified patterns, it might struggle to introduce users to entirely new genres or unexpected choices. Additionally, if the system only has a few information about the items or the user, it might not generate accurate recommendations
+
+To explore this paradigm we decided to implement the nearest neighbors (NN) algorithm. It is simply based on identifying similarities between data points according to a certain metric, it could be the euclidian distance, the cosine similarity... It enables the algorithm to further make predictions or classify objects. The underlying principle of Nearest Neighbor methods is the idea that similar data points in a feature space tend to exhibit similar characteristics or behaviors. One of the key advantages of NN methods is their simplicity and intuitiveness. Rather than relying on complex mathematical models, NN methods operate by measuring the proximity of instances in a dataset.
+
+\section{Expected results and thoughts} \label{sec:nn_excpected}
+Since the Nearest Neighbors model picks the closest tracks to the ones we make the recommendation from, we expect that the VSD introduced in Section \ref{sec:vsd} will be close to 0 since the songs have to be similar to each others to be placed 'closely' in the feature space. But we tend to think that it could be lacking generalization capabilities, in particular when we perform recommendation for users the model doesn't known about (fitted without the songs of this user).
+
+However if the feature space lacks of information, for instance if we miss the language of a song, and a user does not listen to music in that language. By adding more and more tracks, we are flooding the space with more data points that might be close to the ones we make the recommendation from. However this song wouldn't have been recommended if a language feature was present. So we would decrease the recommendation quality perceived by the user.
+
+\section{Key difference with collaborative-filtering methods}
+A key difference between the Nearest Neighbors and the collaborative-filtering based models is that we can fit the Nearest Neighbors with data that isn't directly related to the users. This data comes from Spotify an might not be present in any user's playlists, liked or top tracks. Despite this, we will still provide a final score in our results without this data addition, because this way, we can compare with more correctness (because they have the same amount of information in the input) to the collaborative systems. And also, as we will discuss further in Chapter \ref{chap:results}, the time required for inference increase considerably along with the number of items, so flooding the space with even more songs will lead to a really slow model. It would be smarter to first filter the necessary songs we want to be recommended before fitting the model, leading to a deeper data processing and analysis which may require a human intervention.
+
+\section{Data processing}
+\subsection{Loading the data} \label{subsec:nn_loading_data}
+We load the wanted artificial datasets by specifying it's size as introduced in \ref{subsec:artificial_data}. If we would want to work with the Spotify data we defined a method to load the dataset to which we can pass multiple arguments to define the affinity inference process defined in Chapter \ref{chap:affinity}, we can also choose to include enriched data or not.
+
+\subsection{Dropping the duplicates \{"username", "id"\}} \label{subsec:nn_dropping_dup_user_id}
+Since a song can be in multiple playlists of the same user, as well as in their top/liked tracks we have to remove the duplicates which have the same keys \{"username", "id"\}. By default pandas keep the first occurrence so we first sort the dataset on the keys \{"username", "affinity"\} to keep the occurrence which has the best affinity for that item.
+
+\subsection{Scaling the numerical features} \label{subsec:nn_scaling}
+To have a more reliable VSD score (cf. Section \ref{sec:vsd}) we fit a standard scaler using sklearn and transform the numerical features of our dataset. To answer our scientifc question this operation might be unnecessary since we are doing it for every model so relatively it would have no difference.
+
+\subsection{Splitting the user sets} \label{subsec:split_user_set}
+To efficiently evaluate our model we partitioned our dataframe based on the users in three sub-dataset: Train set, Validation set and Test set. We first retrieve the set of unique users of our dataset. Then, we take 80\% of the users we have as the development set and the 20\% left as the test set, then we split the development set into a train set and validation with respectively 70\% and 30\%. We used this method to match the VAE's one, in fact this splitting framework will work more like a data ablation study.
+
+\begin{table}[ht]
+    \centering
+    \begin{tabular}{c|c}
+        \textbf{Dataset} & \textbf{Users included} \\
+        \hline
+        \textbf{Train set} & Larry \\
+        & Daniel \\
+        & Virginia \\
+        \hline
+        \textbf{Validation set} & Sean \\
+        & Meagan \\
+        \hline
+        \textbf{Test set} & Timothy \\
+        & Todd \\
+    \end{tabular}
+    \caption{The result of users split from our original dataset}
+    \label{tab:users_df}
+\end{table}
+
+Once these datasets are built we simply populate the tracks of these users into the three sub datasets (train, validation, test). So for the train set the songs of Larry, Daniel, Virginia would be included (stacked into one dataframe). For the validation set the ones from Sean and Meagan, and for the test set it would be the tracks of Timothy and Todd.
+
+We choose this method of splitting and model selection because it also corresponds to how it is done with our collaborative filtering models from \cite{liang2018variational} and \cite{johnson_logistic_matrix_factorization} allowing for a more accurate comparison of the performances. To correctly compare them we perform a generalization analysis by performing a data ablation process, we fit the Nearest Neighbor with the train set containing only a part of the users and calculate the VSD. Then we recommend songs for the users in the validation set and calculate the VSD score, afterward we do the same with the users test set to conclude with a VSD score corresponding to the final generalization capability of the model.
+
+\section{Model selection}
+\subsection{Grid Search}
+We set a grid of hyperparameters to test which are:
+\begin{lstlisting}
+ param_grid = {
+     "n_neighbors": [2, 3, 4, 5, 10],
+     "metric": ["cosine", "euclidean"],
+     "radius": [0, 0.01, 0.05, 0.1, 0.5],
+}
+\end{lstlisting}
+
+Then we test every combination of these hyper-parameters (50 combinations) by fitting the Nearest Neighbors model with the train data and measure the VSD \ref{sec:vsd} with our established ground truth \ref{subsec:ground_truth}, this gives a training score. Still fitted with only the training data, we recommend songs to the users that are in the validation set (the model doesn't know about the songs of these people since it was fitted on the training users set) and measure the VSD on this recommendation, this gives us a validation score and shows how well our model generalise to unseen users which have other tastes and preferences.
+
+As we said this process is a data ablation study to test the generalization capability of the model. We refer to it as "train, validation, test" to match how the data are decomposed in the VAE. This allows us to compare the models with less biases and more correctness.
+
+\subsection{Test}
+Once we found the best model which is still fitted with the training set, we use the test set to have a final score for this model which is still fitted only with the train data.
+
+\section{Inference}
+To get the recommendation, we simply sample the $N$ top tracks of the users, which is in fact our ground truth as in \ref{subsec:ground_truth} (picking the ones with the highest affinity value). Then we get their closest $k$ neighbours using our model, with $k$ determined by the Grid Search (\texttt{n\_neighbors}). Once we retrieved the $k$ closest tracks of each tracks of the ground truth, we end up with $N \cdot k$ tracks recommended which have a distance property to the song it was recommended from. We sort them by the distances they have with their original track and drop the duplicates. That gives us the recommended tracks.
+
+\figurewithcaption{nn_viz}{An example of a space with the tracks of a user (blue) and the recommended tracks (red). The space has been reduced to 3 dimensions with PCA to be able to produce this visualization.}{\textwidth}{0}

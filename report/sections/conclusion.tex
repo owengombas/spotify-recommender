@@ -1,0 +1,10 @@
+\chapter{Conclusion}
+
+During this project, we implemented and went into the details of three different recommender systems for Spotify songs that are based on two different paradigms:  We started with content-based filtering using a nearest neighbors model (cf. Chapter \ref{chap:nn}) and followed with collaborative filtering using on the one hand a Logistic Matrix Factorization (cf. Chapter \ref{chap:lmf}) and on the other hand Variational Autoencoders (cf. Chapter \ref{chap:vae}). 
+
+With our objective being to be able to measure and compare the effectiveness of content-based filtering and collaborative filtering in recommender systems while dealing with a small user base. We implemented a metric: the Vector Set Divergence outlined in Section \ref{sec:vsd} to be able to quantitatively compare the different outputs of all our models. Additionally, we also implemented a data generator as discussed in Section \ref{sec:data_generation}, to address the size limitation of the dataset we retrieved from Spotify, and have the flexibility to control the quantity of data and improve our experiment.
+
+
+Our results as detailed in Chapter \ref{chap:results} show that, based on the Vector Set Divergence metric, the collaborative-filtering paradigm despite the constraint of a small user base achieves in general better scores, with the VAE and LMF models scoring very similar scores, than the content-based filtering. It is also worth noting that the Nearest Neighbors model tend to have very slow training times compared to both other models.
+
+In future work, investigating hybrid approaches that combine both content-based filtering and collaborative-filtering may increase the accuracy and inference time. Adding a human-based metric could also enhance the overall accuracy of the models and ensure the models serve their purpose.

@@ -1,0 +1,61 @@
+\begin{thebibliography}{10}
+\providecommand{\natexlab}[1]{#1}
+\providecommand{\url}[1]{\texttt{#1}}
+\expandafter\ifx\csname urlstyle\endcsname\relax
+  \providecommand{\doi}[1]{doi: #1}\else
+  \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
+
+\bibitem[Hu et~al.(2008)Hu, Koren, and Volinsky]{4781121}
+Yifan Hu, Yehuda Koren, and Chris Volinsky.
+\newblock Collaborative filtering for implicit feedback datasets.
+\newblock In \emph{2008 Eighth IEEE International Conference on Data Mining}, pages 263--272, Dec 2008.
+\newblock \doi{10.1109/ICDM.2008.22}.
+
+\bibitem[Johnson(2014)]{johnson_logistic_matrix_factorization}
+Christopher~C. Johnson.
+\newblock Logistic matrix factorization for implicit feedback data.
+\newblock In \emph{NIPS 2014 Workshop on Music, Machine Learning, and Metadata}, 2014.
+\newblock URL \url{https://web.stanford.edu/~rezab/nips2014workshop/submits/logmat.pdf}.
+
+\bibitem[Johnson(2016)]{implicit-mf}
+Christopher~C. Johnson.
+\newblock implicit-mf.
+\newblock \url{https://github.com/MrChrisJohnson/implicit-mf}, 2016.
+
+\bibitem[Kingma and Welling(2022)]{kingma2022autoencoding}
+Diederik~P Kingma and Max Welling.
+\newblock Auto-encoding variational bayes, 2022.
+
+\bibitem[Liang(2018)]{vae-cf}
+Dawen Liang.
+\newblock vae\_cf.
+\newblock \url{https://github.com/dawenl/vae_cf}, 2018.
+
+\bibitem[Liang et~al.(2018)Liang, Krishnan, Hoffman, and Jebara]{liang2018variational}
+Dawen Liang, Rahul~G. Krishnan, Matthew~D. Hoffman, and Tony Jebara.
+\newblock Variational autoencoders for collaborative filtering, 2018.
+
+\bibitem[Mnih and Salakhutdinov(2007)]{NIPS2007_d7322ed7}
+Andriy Mnih and Russ~R Salakhutdinov.
+\newblock Probabilistic matrix factorization.
+\newblock In J.~Platt, D.~Koller, Y.~Singer, and S.~Roweis, editors, \emph{Advances in Neural Information Processing Systems}, volume~20. Curran Associates, Inc., 2007.
+\newblock URL \url{https://proceedings.neurips.cc/paper_files/paper/2007/file/d7322ed717dedf1eb4e6e52a37ea7bcd-Paper.pdf}.
+
+\bibitem[Narayanan and Shmatikov(2008)]{4531148}
+Arvind Narayanan and Vitaly Shmatikov.
+\newblock Robust de-anonymization of large sparse datasets.
+\newblock In \emph{2008 IEEE Symposium on Security and Privacy (sp 2008)}, pages 111--125, 2008.
+\newblock \doi{10.1109/SP.2008.33}.
+
+\bibitem[Rezende et~al.(2014)Rezende, Mohamed, and Wierstra]{pmlr-v32-rezende14}
+Danilo~Jimenez Rezende, Shakir Mohamed, and Daan Wierstra.
+\newblock Stochastic backpropagation and approximate inference in deep generative models.
+\newblock In Eric~P. Xing and Tony Jebara, editors, \emph{Proceedings of the 31st International Conference on Machine Learning}, volume~32 of \emph{Proceedings of Machine Learning Research}, pages 1278--1286, Bejing, China, 22--24 Jun 2014. PMLR.
+\newblock URL \url{https://proceedings.mlr.press/v32/rezende14.html}.
+
+\bibitem[Seo(2021)]{vae-cf-pytorch}
+Younggyo Seo.
+\newblock vae-cf-pytorch.
+\newblock \url{https://github.com/younggyoseo/vae-cf-pytorch}, 2021.
+
+\end{thebibliography}

@@ -1,0 +1,176 @@
+\chapter{Variational Autoencoders} \label{chap:vae}
+
+An autoencoder is a neural architecture that consists of an encoder and a decoder. The encoder takes input data and maps it to a lower-dimensional representation (latent space), while the decoder takes this lower-dimensional representation and reconstructs the original input data as closely as possible.
+
+Variational inference is a method used to approximate complex probability distributions and involves transforming the problem of finding the posterior distribution into an optimization problem.
+
+Variational autoencoders serve as probabilistic generative models that incorporate neural networks as components. These neural network elements are commonly denoted as the encoder and decoder for the first and second components, respectively. The initial neural network maps the input variable to a latent space, aligning with the parameters of a variational distribution. This enables the encoder to generate diverse samples originating from the same distribution. Conversely, the decoder functions in reverse, mapping from the latent space to the input space to generate or produce data points.
+
+We will follow \cite{liang2018variational} for this implementation and keep their notations.
+
+\section{The general model}
+
+For each user $u$ we sample a $K-dimensional$ latent representation $z_u$ from a Gaussian prior. Then, $z_u$ is transformed via a non-linear function $f_{\theta}( \cdot ) \in \mathbb{R}^I$ which gives $\pi(z_u)$ a probability distribution over I items from which $r_{u,i} \quad i=1,...,m$ is assumed to have been drawn. $f_{\theta}( \cdot )$ is a multilayer perceptron with parameters $\theta$ that can be represented as the concatenation of all weight and bias parameters across all layers:
+\[
+\theta=\{W^{(1)},b^{(1)},W^{(2)},b^{(2)},…,W^{(L)},b^{(L)}\}
+\]
+where $L$ is the total number of layers in the MLP. The output is then normalized via a softmax function that finally gives the probability vector $\pi(z_u)$.
+
+The softmax function takes as input a vector of real numbers and produces a probability distribution over the elements of the vector. Given an input vector $z=(z_1,z_2,…,z_k)$, the softmax function computes the probability $p_i$ of the $i$-th element as following:
+\[
+p_i= \frac{e^{z_i}}{\sum_{j=1}^k e^{z_j}}
+\]
+
+The generative model that generalizes the latent factor model can be written as:
+\begin{align*}
+    &z_u \sim \mathcal{N}(0, I_K) \\
+    &\pi(z_u) \propto exp\{f_{\theta}(z_u)\} \\
+    &r_u \sim Mult(N_u, \pi(z_u)) \quad \text{With } N_u = \sum_{i} r_{u,i} \quad \text{ Note that here } r_{u,i} \text{ represents affinity.}
+\end{align*}
+
+Finally, with the probability mass function (PMF) of a multinomial distribution, we have:
+\[
+\ln p_{\theta}(r_u | z_u) = \sum_{i} r_{u,i} \pi_i(z_u)
+\]
+
+Note that by using the logistic likelihood and setting $f_{\theta}$ to be linear, we have the same equation as in the previous section.
+
+\section{Variational inference}
+
+The goal is to learn the generative model we introduced above:
+
+\begin{itemize}
+    \item $z_u \sim \mathcal{N}(0, I_K)$ the latent variable for each user is sampled from a multivariate normal (Gaussian) distribution, $K$ is the dimensionality of the latent space.
+
+    \item $\pi(z_u) \propto exp\{f_{\theta}(z_u)\}$ $\pi(z_u)$ transforms the latent space representation into a probability distribution via a neural network with parameters $\theta$ and normalized with a softmax function.
+
+    \item $r_u \sim Mult(N_u, \pi(z_u))$ The observed data $r_u$ for user $u$ is generated from a multinomial distribution. The parameters of this multinomial distribution are determined by $\pi(z_u)$, the probability distribution over the items. The parameter $N_u$ is the sum of the user's $u$ affinity with its items.
+\end{itemize}
+
+and especially, we need to estimate $\theta$ to learn this model. To do so, they use variational inference to approximate the true intractable posterior $p(z_u | r_u)$ with an easier variational distribution $q(z_u)$ a fully factorized (diagonal) Gaussian distribution.
+\[
+q(z_u) = \mathcal{N}\left(\mu_u, diag(\sigma_u^2)\right)
+\]
+
+This defines a probability distribution for the variable $z_u$ to be a Gaussian distribution where the variables are uncorrelated, and the covariance matrix is diagonal. This choice simplifies the distribution by assuming independence between the components of $z_u$.
+
+Now the objective of variational inference, is to optimize $\{ \mu_u, \sigma_u^2 \}$ such that the Kullback-Leiber divergence is minimized.
+\[
+D_{KL}(q(z_u) || p(z_u | r_u))
+\]
+
+One of the main problem is that this optimization needs to be done for each data point. Meaning that a recommender system with millions of users and items will be very slow. This is where variational autoencoders come into play as they use a data-dependent function, usually called inference model parametrized by $\phi$:
+\[
+g_{\phi}(r_u) = \begin{bmatrix}
+    \mu_{\phi}(r_u) & \sigma_{\phi}(r_u)
+\end{bmatrix} \in \mathbb{R}^{2K}
+\]
+where $\mu_{\phi}(r_u)$ and $\sigma_{\phi}(r_u)$ are two vectors in $\mathbb{R}^K$. We then set the variational distribution to be:
+\[
+q_{\phi}(z_u | r_u) = \mathcal{N} \left(\mu_{\phi}(r_u), diag\{ \sigma_{\phi}^2(r_u) \} \right)
+\]
+
+Finally, using the data we know $r_u$, the inference model outputs the variational parameter $\phi$ of $q_{\phi}(z_u | r_u)$. When optimized, this variational distribution approximates the posterior we search. Putting this variational distribution and the generative model together, we have:
+
+\figurewithcaption{taxonomy}{A taxonomy of autoencoders given in \cite{liang2018variational}}{\textwidth}{0}
+
+\section{Learning the parameters}
+
+To have a deeper understanding of how the learning can be done, we checked \cite{kingma2022autoencoding} which is also mentioned in \cite{liang2018variational}.
+
+The log marginal likelihood for one user, which measures how well the generative model parameterized by $\theta$ explains or generates the observed data, can be expressed as:
+\[
+\ln{p_{\theta}(r_u)} = D_{KL}(q_{\phi}(z_u | r_u) || p_{\theta}(z_u | x_u)) + \mathcal{L}(\phi, \theta ; r_u)
+\]
+With $\mathcal{L}(\phi, \theta ; r_u)$ being the evidence lower bound (ELBO) defined as:
+\[
+\mathcal{L}(\phi, \theta ; r_u) := \mathbb{E}_{q_{\phi}(z_u|r_u)} \left[ \ln{p_{\theta}(r_u, z_u)} - \ln{q_{\phi}(z_u | r_u)} \right]
+\]
+and as:
+\begin{align*}
+    \mathbb{E}_{q_{\phi}(z_u|r_u)} \left[ \ln{p_{\theta}(r_u, z_u)} - \ln{q_{\phi}(z_u | r_u)} \right] &= 
+    \mathbb{E}_{q_{\phi}(z_u|r_u)} \left[ \ln{p_{\theta}(r_u| z_u)} + \ln{p_{\theta}(z_u)} - \ln{q_{\phi}(z_u | r_u)} \right] \\
+    &= \mathbb{E}_{q_{\phi}(z_u|r_u)} \left[ \ln{p_{\theta}(r_u| z_u)} \right] + \mathbb{E}_{q_{\phi}(z_u|r_u)} \left[ \ln{p_{\theta}(z_u)}-\ln{q_{\phi}(z_u | r_u)} \right] \\
+\end{align*}
+Let's only have a look at:
+\begin{align*}
+    \mathbb{E}_{q_{\phi}(z_u|r_u)} \left[ \ln{p_{\theta}(z_u)}-\ln{q_{\phi}(z_u | r_u)} \right] &= \mathbb{E}_{q_{\phi}(z_u|r_u)} \left[ \ln \frac{{p_{\theta}(z_u)}}{{q_{\phi}(z_u | r_u)}} \right] \\
+    &= \int q_{\phi}(z_u|r_u) \ln \frac{{p_{\theta}(z_u)}}{{q_{\phi}(z_u | r_u)}} \, dz_u \\
+    &= -\int q_{\phi}(z_u|r_u) \ln \frac{{q_{\phi}(z_u | r_u)}}{{p_{\theta}(z_u)}} \, dz_u \\
+    &= - D_{KL}\left( q_{\phi}(z_u|r_u) || p_{\theta}(z_u) \right)
+\end{align*}
+
+Which finally gives us:
+\[
+\ln{p_{\theta}(r_u)} \geq \mathcal{L}(\phi, \theta ; r_u) = \mathbb{E}_{q_{\phi}(z_u|r_u)} \left[ \ln{p_{\theta}(r_u| z_u)} \right] - D_{KL}\left( q_{\phi}(z_u|r_u) || p_{\theta}(z_u) \right)
+\]
+The lower bound we seek to maximize for the user $u$ and that's why it takes its name. Note that this function depends on both $\phi$ and $\theta$ parameters. But the main problem is to take the gradient with respect to $\phi$, to solve this issue, \cite{kingma2022autoencoding} introduce a reparametrization trick. We will not go into the details, but they sample $\epsilon \sim \mathcal{N}(0, I_K)$ and reparametrize $z_u = \mu_{\phi}(r_u) + \epsilon \odot \sigma_{\phi}(r_u)$ to be able to back-propagate the gradient with respect to $\phi$.
+
+The whole training part can be written as the following pseudo-code:
+
+\begin{algorithm}
+\caption{VAE-SGD Training collaborative filtering VAE with stochastic gradient descent from \cite{liang2018variational}.}
+\begin{algorithmic}[1]
+\Require Affinity matrix $\mathbf{X} \in \mathbb{R}^{U \times I}$
+\State Randomly initialize $\theta, \phi$
+\While{not converged}
+    \State Sample a batch of users $U$
+    \ForAll{$u \in U$}
+        \State Sample $\mathbf{\varepsilon} \sim \mathcal{N}(0, \mathbf{I}_K)$ and compute $z_u$ via reparameterization trick
+        \State Compute noisy gradient $\nabla_\theta \mathcal{L}$ and $\nabla_\phi \mathcal{L}$ with $z_u$
+    \EndFor
+    \State Average noisy gradients from batch
+    \State Update $\theta$ and $\phi$ by taking stochastic gradient steps
+\EndWhile
+\State \textbf{return} $\theta, \phi$
+\end{algorithmic}
+\end{algorithm}
+
+Finally, after defining formally this objective, they consider some trade-off mainly to increase the performances. In fact, as in the problem of image inpainting in computer vision, they look at the ELBO as a reconstruction error term and a regularization term with a parameter $\beta$ to control its strength. This alternate ELBO is defined as:
+\[
+\mathcal{L}_{\beta}(\phi, \theta ; r_u) := \mathbb{E}_{q_{\phi}(z_u|r_u)} \left[ \ln{p_{\theta}(r_u| z_u)} \right] - \beta \cdot D_{KL}\left( q_{\phi}(z_u|r_u) || p_{\theta}(z_u) \right)
+\]
+But how to select the best $\beta$ parameter ?
+
+The authors propose a simple heuristic during the training: set $\beta$ as a free regularization parameter and start with $\beta = 0$ and gradually increase it to $1$. Annealing the KL term slowly over multiple updates. The best $\beta$ is determined based on the peak validation metric. Once the best $\beta$ is found, we retrain the model and we stop increasing $\beta$ after reaching the annealing schedule. 
+
+The main idea of annealing here, is to allow the model to initially focus on the reconstruction error and then gradually take the regularization term into account. This approach can improve the overall performance of the VAE.
+
+
+\section{Prediction}
+Once the generative model is trained, we proceed as following to make the predictions. Given the affinity vector of user $u$ $r_u$, we firstly build the latent representation $z_u$ by taking the mean of the variational distribution:
+\[
+z_u = \mu_{\phi}(r_u)
+\]
+And then, based on the un-normalized predicted multinomial probability $f_{\theta}(z)$ we rank the items.
+
+Note that one key advantage compared to the matrix factorization we discussed previously is that, when given a affinity vector of a user not seen in the training, we don't need to perform any kind of optimization to obtain the latent representation of this user.
+
+\section{Training process and model selection} \label{sec:vae_train}
+For the LMF model we used a Stochastic Gradient Descent mode, we decided to do the same for the VAE to compare their training time in the same conditions and also because we do not have a large amount of user. However the implementation allows us to easily increase the number of user per batch by changing a variable \texttt{batch\_size} in the \text{recommender\_vae.ipynb} notebook.
+
+With our implementation based on \cite{vae-cf-pytorch} and the author's one \cite{vae-cf} we could effectively train our model:
+\figurewithcaption{train_vae_128}{The training loss and validation loss we have with the 128 users dataset}{\textwidth}{0}
+
+Outlined in Figure \ref{fig:vae_metrics} and \ref{fig:vae_mpr} are our evaluation metrics over time for the 128 users dataset, we can see the MPR decreasing, the NDCG/Recall increasing which is what we expect. Since the MPR seems to adopt the expected behavior for both the LMF and VAE we will use that metric to compare the results of the collaborative systems in the Chapter \ref{chap:results}. However, we have to be careful with the MPR because it converges to magnitude higher value than with the LMF, we might need to make some adjustment to successfully port the MPR to the VAE.
+\figurewithcaption{vae_mpr}{MPR}{\textwidth}{0}
+\figurewithcaption{vae_metrics}{NDCG and Recall20, Recall50}{\textwidth}{0}
+
+\newpage
+
+Just like for the LMF, the VSD metric converges really quickly to it's final value and oscillates around a central value, ending up with a more noisy VSD evolution. We gave an explanation to the phenomenon in the previous Section \ref{sec:lmf_train}.
+\figurewithcaption{vae_vsd}{VSD}{\textwidth}{0}
+
+\newpage
+
+\section{Latent distribution visualization}
+Instead of representing a user by a single point in a space like LMF does, the VAE represents them as multivariate distributions. We could use the same visualization method as for LMF and plot a point where the user's mean is but it wouldn't provide the whole information. For that purpose, we developed a tool to visualize the latent distributions, we simply plot the users distributions as a heatmap of every pair of dimensions. Allowing us to better understand what is going on under the hood of this model.
+
+The same visualisation could be done with the tracks but would be harder to interpret. For that reason we only focused  on providing the user proximity plot.
+
+\begin{multicols}{2}
+    \figurewithcaption{vae_viz_1}{Dimension 144 against 146}{6.5cm}{0}
+    \figurewithcaption{vae_viz_2}{Dimension 144 against 147}{6.5cm}{0}
+    \figurewithcaption{vae_viz_3}{Dimension 146 against 147}{6.5cm}{0}
+    \figurewithcaption{vae_viz_4}{Dimension 1 against 2}{6.5cm}{0}
+\end{multicols}

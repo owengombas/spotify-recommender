@@ -1,0 +1,58 @@
+% !TeX root = report.tex
+\documentclass[english,a4paper,11pt]{report}
+
+% PACKAGES
+\usepackage[symbol,hang,perpage]{footmisc}
+\usepackage{graphicx} % for pdf, bitmapped graphics files
+\usepackage{hyperref} % for hyperlinks
+% \usepackage[T1]{fontenc} % for french accents
+% \usepackage{tgadventor} % for font family
+\usepackage{subfiles} % for subfiles
+\usepackage[parfill]{parskip} % for paragraph spacing
+\usepackage{amsmath} % for maths
+\usepackage{amssymb}
+\usepackage{ragged2e}
+\DeclareMathOperator*{\argmax}{arg\,max}
+\usepackage{titlesec} % for chapter title formatting
+\usepackage{listings} % for code blocks
+\usepackage{color} % for colors
+\usepackage{xurl} % for urls, long urls are not broken
+\usepackage{float} % for figure positioning
+\usepackage[affil-it]{authblk} % for authors and affiliations
+\usepackage{xcolor} % for colors
+\usepackage{caption} % for captions
+\usepackage{lipsum} % for lorem ipsum
+\usepackage[htt]{hyphenat} % for hyphenation in texttt
+% \usepackage[style=numeric]{biblatex} % for bibliography
+\usepackage[round]{natbib} % for bibliography
+\usepackage[nottoc]{tocbibind} % for bibliography in table of contents
+\usepackage{tabularx} % for tables
+\usepackage{blindtext}
+\usepackage{multicol}
+\usepackage{pdflscape}
+\usepackage[nomain,acronym,xindy,toc,numberedsection]{glossaries}
+\usepackage[margin=2.5cm, includehead]{geometry}
+\usepackage{fancyhdr}
+\usepackage{rotating}
+\usepackage[table,xcdraw]{xcolor}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{multirow}
+% \usepackage{minted}
+
+% CONSTANTS
+\input{constants/constants.tex}
+
+% COMMANDS
+\input{commands/headerfooter.tex}
+\input{commands/figurewithcaption.tex}
+
+% LANGUAGES
+\input{languages/json.tex}
+
+% CONFIGURATIONS
+\input{configurations/configuration.tex}
+
+% DOCUMENT
+\input{layouts/report.tex}
+

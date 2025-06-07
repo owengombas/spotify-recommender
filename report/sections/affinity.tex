@@ -1,0 +1,96 @@
+\chapter{Affinity inference on Spotify data} \label{chap:affinity}
+With our dataset from Spotify we do not get any explicit affinity score for a user and a track. However, we wondered if the order from which we receive the top listened tracks from the users is important and match the affinity, meaning that the first song of this list is the one the user like\footnote{Determined by Spotify} the most. We first refereed to an issue opened on the Spotify Web API GitHub repository: \url{https://github.com/spotify/web-api/issues/1425} which didn't give a concrete answer. Then we checked an online service called "\href{https://www.statsforspotify.com}{Stats for Spotify}" which allows people to retrieve an ordered list of their top tracks/artists from the Spotify API, we compared this information to what we received from our own API calls using Spotipy and it matched. To be sure we also performed a manual analysis with our own accounts and verified that it sorts the tracks according to what we listened to the most for these time ranges and it indeed matched the order from which we received them.
+
+\section{Top tracks} \label{subsection:top_tracks}
+Based on this observation, we can define a decreasing function that attributes an affinity score according to the order of the tracks we get from this endpoint. We choose a simple linear decreasing function using \texttt{np.linspace(start, end, 50, endpoint=False)} but we have set different \texttt{start} value for each time range:
+\begin{itemize}
+    \item \textbf{short\_term}:\\
+    The affinity goes from start=1.0 to end=0.5 (not included), meaning that the first song has a 1.0 affinity score and it linearly decrease to 0.5 (not included) for the last song.
+    \item \textbf{medium\_term}:\\
+    The same logic goes for the medium\_term but with start=0.7 and end=0.4.
+    \item \textbf{long\_term}:\\
+    The same logic goes for the long\_term but with start=0.5 and end=0.3
+\end{itemize}
+Note that these values are hard-coded, for further and deeper model selection we would find the best values for these hyper-parameters. For this submission we couldn't find the time to implement that but it would be a great improvement.
+
+
+\section{Liked tracks}
+The liked tracks also have an interesting feature from which we can infer an affinity which is \textit{added\_at}. Assuming that a user is more likely to enjoy similar tracks to which they listened recently we can use the same logic as discussed for the top tracks in Section \ref{subsection:top_tracks}. We set a start and end value and assume all the liked items have an affinity based on the time they were added to the liked tracks. Then the most recent song added has an affinity which is equal to the \texttt{start} value.
+
+\section{Playlists tracks}
+We could also assign a constant affinity to the tracks contained in the playlists because no feature allows us to infer any affinity score. For instance, we can say that every songs that are in playlists have an affinity of 0.2. Again, this value can be fine tuned with a deeper model selection.
+
+\section{Final values}
+For this report the following chosen values are:
+\begin{table}[ht]
+    \centering
+    \begin{tabular}{c|c|c}
+        \textbf{time\_range} & \textbf{start} & \textbf{end} \\
+        short\_term & 1.0 & 0.5 \\
+        medium\_term & 0.7 & 0.4 \\
+        long\_term & 0.5 & 0.3 \\
+    \end{tabular}
+    \caption{Affinity values for top tracks}
+    \label{tab:top_tracks_values}
+\end{table}
+
+\begin{table}[ht]
+    \centering
+    \begin{tabular}{c|c|c}
+        \textbf{subset} & \textbf{start} & \textbf{end} \\
+        liked\_tracks & 0.7 & 0.1 \\
+    \end{tabular}
+    \caption{Affinity values for liked tracks}
+    \label{tab:liked_tracks_values}
+\end{table}
+
+\begin{table}[ht]
+    \centering
+    \begin{tabular}{c|c}
+        \textbf{subset} & \textbf{value} \\
+        playlist\_tracks & 0.2 \\
+    \end{tabular}
+    \caption{Affinity values for playlists tracks}
+    \label{tab:playlists_tracks_values}
+\end{table}
+
+A user can have the same song appearing in their top tracks, liked tracks and multiple playlists. As that would be reflected in our dataset, we have to drop duplicated on the \texttt{username} and track \texttt{id} keys. When dropping these duplicates, pandas will keep only the first occurrence and because of the order the tracks have in our dataset the first occurrence have highest affinity value so we do not loose any potential affinity information by reducing it to 0.
+
+\section{Unknown tracks}
+The tracks the a user doesn't know has a implicit 0 affinity with the user, this value is also used in the different paper we based our work on \cite{johnson_logistic_matrix_factorization} and \cite{liang2018variational}.
+
+\newpage
+
+\section{Loading the data} \label{sec:loading_data}
+To load the data into a Python script or a Jupyter notebook we implemented a method called \texttt{load\_all\_tracks} that allows us to do it easily. We can pass the affinity inference parameters (start, stop for the tracks types) and retrieve our collected data. Here is an example of it's usage:
+\begin{lstlisting}
+df = spoti.load_all_tracks(
+    base_path=data_path.DATA_PATH,
+    users=users_list.USERS,
+
+    # Affinity inference parameters
+    top_tracks_affinity_start = {
+        "short_term": 1.0,
+        "medium_term": 0.7,
+        "long_term": 0.5,
+    },
+    top_tracks_affinity_end = {
+        "short_term": 0.5,
+        "medium_term": 0.4,
+        "long_term": 0.3,
+    },
+    liked_tracks_start_affinity=0.7,
+    liked_tracks_end_affinity=0.1,
+    playlists_affinity=0.2,
+    
+    # [a, b] or [a, b[ interval
+    top_tracks_include_end=False,
+    liked_tracks_include_endpoint=False,
+
+    # Load the tracks that aren't related to any user
+    # (Refered further as the enriched data)
+    load_spotify_tracks=False,
+)
+\end{lstlisting}
+
+

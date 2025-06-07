@@ -1,0 +1,89 @@
+\contentsline {chapter}{\numberline {1}Introduction}{4}{chapter.1}%
+\contentsline {section}{\numberline {1.1}Problem statement}{4}{section.1.1}%
+\contentsline {section}{\numberline {1.2}What do we mean by "small"}{4}{section.1.2}%
+\contentsline {section}{\numberline {1.3}Report vocabulary}{5}{section.1.3}%
+\contentsline {chapter}{\numberline {2}Data collection}{6}{chapter.2}%
+\contentsline {section}{\numberline {2.1}From the Spotify API}{6}{section.2.1}%
+\contentsline {subsection}{\numberline {2.1.1}User data retrieval}{6}{subsection.2.1.1}%
+\contentsline {subsection}{\numberline {2.1.2}Retrieval of tracks that are not related to users}{7}{subsection.2.1.2}%
+\contentsline {subsection}{\numberline {2.1.3}Spotify forbidding AI training}{7}{subsection.2.1.3}%
+\contentsline {section}{\numberline {2.2}Data Generation}{8}{section.2.2}%
+\contentsline {subsection}{\numberline {2.2.1}Generated datasets}{10}{subsection.2.2.1}%
+\contentsline {section}{\numberline {2.3}Available Datasets}{11}{section.2.3}%
+\contentsline {chapter}{\numberline {3}Data Analysis}{12}{chapter.3}%
+\contentsline {section}{\numberline {3.1}User based analysis}{12}{section.3.1}%
+\contentsline {subsection}{\numberline {3.1.1}Tracks quantity per user}{12}{subsection.3.1.1}%
+\contentsline {subsection}{\numberline {3.1.2}User genre quantity}{13}{subsection.3.1.2}%
+\contentsline {subsection}{\numberline {3.1.3}User features distribution}{14}{subsection.3.1.3}%
+\contentsline {subsection}{\numberline {3.1.4}User interactions}{15}{subsection.3.1.4}%
+\contentsline {subsection}{\numberline {3.1.5}User features pairplot}{16}{subsection.3.1.5}%
+\contentsline {subsection}{\numberline {3.1.6}User PCA 2D}{16}{subsection.3.1.6}%
+\contentsline {section}{\numberline {3.2}Genre based analysis}{17}{section.3.2}%
+\contentsline {subsection}{\numberline {3.2.1}Quantity of (very) specific genres}{17}{subsection.3.2.1}%
+\contentsline {subsection}{\numberline {3.2.2}Quantity of genres}{17}{subsection.3.2.2}%
+\contentsline {subsection}{\numberline {3.2.3}Genre features distribution}{19}{subsection.3.2.3}%
+\contentsline {subsection}{\numberline {3.2.4}Genre scatter matrix}{20}{subsection.3.2.4}%
+\contentsline {section}{\numberline {3.3}The whole dataset}{21}{section.3.3}%
+\contentsline {chapter}{\numberline {4}Affinity inference on Spotify data}{22}{chapter.4}%
+\contentsline {section}{\numberline {4.1}Top tracks}{22}{section.4.1}%
+\contentsline {section}{\numberline {4.2}Liked tracks}{22}{section.4.2}%
+\contentsline {section}{\numberline {4.3}Playlists tracks}{23}{section.4.3}%
+\contentsline {section}{\numberline {4.4}Final values}{23}{section.4.4}%
+\contentsline {section}{\numberline {4.5}Unknown tracks}{23}{section.4.5}%
+\contentsline {section}{\numberline {4.6}Loading the data}{24}{section.4.6}%
+\contentsline {chapter}{\numberline {5}Metrics}{25}{chapter.5}%
+\contentsline {section}{\numberline {5.1}Vector Set Divergence (VSD)}{25}{section.5.1}%
+\contentsline {subsection}{\numberline {5.1.1}Setting up the ground truth}{26}{subsection.5.1.1}%
+\contentsline {subsection}{\numberline {5.1.2}Dealing with multiple users}{26}{subsection.5.1.2}%
+\contentsline {section}{\numberline {5.2}MPR, NDCG and Recall}{26}{section.5.2}%
+\contentsline {chapter}{\numberline {6}Content-based filtering using Nearest Neighbors}{27}{chapter.6}%
+\contentsline {section}{\numberline {6.1}Expected results and thoughts}{27}{section.6.1}%
+\contentsline {section}{\numberline {6.2}Key difference with collaborative-filtering methods}{28}{section.6.2}%
+\contentsline {section}{\numberline {6.3}Data processing}{28}{section.6.3}%
+\contentsline {subsection}{\numberline {6.3.1}Loading the data}{28}{subsection.6.3.1}%
+\contentsline {subsection}{\numberline {6.3.2}Dropping the duplicates \{"username", "id"\}}{28}{subsection.6.3.2}%
+\contentsline {subsection}{\numberline {6.3.3}Scaling the numerical features}{28}{subsection.6.3.3}%
+\contentsline {subsection}{\numberline {6.3.4}Splitting the user sets}{28}{subsection.6.3.4}%
+\contentsline {section}{\numberline {6.4}Model selection}{29}{section.6.4}%
+\contentsline {subsection}{\numberline {6.4.1}Grid Search}{29}{subsection.6.4.1}%
+\contentsline {subsection}{\numberline {6.4.2}Test}{30}{subsection.6.4.2}%
+\contentsline {section}{\numberline {6.5}Inference}{30}{section.6.5}%
+\contentsline {chapter}{\numberline {7}Collaborative filtering with implicit feedback}{31}{chapter.7}%
+\contentsline {section}{\numberline {7.1}Notations}{31}{section.7.1}%
+\contentsline {section}{\numberline {7.2}Data processing}{31}{section.7.2}%
+\contentsline {subsection}{\numberline {7.2.1}Loading the data, dropping the duplicates and scaler}{31}{subsection.7.2.1}%
+\contentsline {subsection}{\numberline {7.2.2}Keeping the tracks that appears at least $N$ times}{32}{subsection.7.2.2}%
+\contentsline {subsection}{\numberline {7.2.3}Splitting the user set}{32}{subsection.7.2.3}%
+\contentsline {subsection}{\numberline {7.2.4}Building the interaction matrix}{33}{subsection.7.2.4}%
+\contentsline {subsection}{\numberline {7.2.5}Scaling the matrix entries}{34}{subsection.7.2.5}%
+\contentsline {chapter}{\numberline {8}Logistic matrix factorization}{35}{chapter.8}%
+\contentsline {section}{\numberline {8.1}General probabilistic framework}{35}{section.8.1}%
+\contentsline {section}{\numberline {8.2}Our framework}{35}{section.8.2}%
+\contentsline {section}{\numberline {8.3}Learning the parameters}{36}{section.8.3}%
+\contentsline {section}{\numberline {8.4}Prediction}{37}{section.8.4}%
+\contentsline {section}{\numberline {8.5}Training process and model selection}{38}{section.8.5}%
+\contentsline {section}{\numberline {8.6}Latent space visualization}{40}{section.8.6}%
+\contentsline {chapter}{\numberline {9}Variational Autoencoders}{42}{chapter.9}%
+\contentsline {section}{\numberline {9.1}The general model}{42}{section.9.1}%
+\contentsline {section}{\numberline {9.2}Variational inference}{43}{section.9.2}%
+\contentsline {section}{\numberline {9.3}Learning the parameters}{44}{section.9.3}%
+\contentsline {section}{\numberline {9.4}Prediction}{46}{section.9.4}%
+\contentsline {section}{\numberline {9.5}Training process and model selection}{46}{section.9.5}%
+\contentsline {section}{\numberline {9.6}Latent distribution visualization}{49}{section.9.6}%
+\contentsline {chapter}{\numberline {10}Ethical discussion}{50}{chapter.10}%
+\contentsline {section}{\numberline {10.1}Privacy, anonymization method and ethical discussion on our project}{50}{section.10.1}%
+\contentsline {section}{\numberline {10.2}Ethical discussion on recommender systems}{50}{section.10.2}%
+\contentsline {chapter}{\numberline {11}Results and discussions}{52}{chapter.11}%
+\contentsline {section}{\numberline {11.1}Results}{52}{section.11.1}%
+\contentsline {section}{\numberline {11.2}Model selection}{52}{section.11.2}%
+\contentsline {section}{\numberline {11.3}NN vs NN Full}{53}{section.11.3}%
+\contentsline {section}{\numberline {11.4}Best Nearest Neighbor hyper-parameters}{53}{section.11.4}%
+\contentsline {section}{\numberline {11.5}Discussion}{53}{section.11.5}%
+\contentsline {chapter}{\numberline {12}Future perspectives and improvements}{55}{chapter.12}%
+\contentsline {section}{\numberline {12.1}Sparse matrix support for large batches}{55}{section.12.1}%
+\contentsline {section}{\numberline {12.2}Human based metrics}{55}{section.12.2}%
+\contentsline {section}{\numberline {12.3}Individual improvements of the models}{56}{section.12.3}%
+\contentsline {section}{\numberline {12.4}Metric compatibility}{56}{section.12.4}%
+\contentsline {chapter}{\numberline {13}Developer documentation}{57}{chapter.13}%
+\contentsline {chapter}{\numberline {14}Conclusion}{58}{chapter.14}%
+\contentsline {chapter}{\numberline {15}Bibliography}{59}{chapter.15}%

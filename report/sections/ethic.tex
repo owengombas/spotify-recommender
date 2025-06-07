@@ -1,0 +1,20 @@
+\chapter{Ethical discussion}
+\section{Privacy, anonymization method and ethical discussion on our project}
+As discussed in \ref{subsec:law_spotify}, we cannot use people information to train our models. We strictly respected this rule and saw it as common challenge that we will have to deal with in our carreer since the data privacy and AI are topics rising with importance in our society.
+
+Even though there are no more personally identifiable information in our datasets, it was already shown in 2006 when Netflix launched a competition that it is not sufficient to preserve the privacy. They shared a data of movie ratings, the date the rating was done and a unique ID to describe the user. The goal of the competition was to find a better recommendation system than theirs. Only a couple of weeks later it was shown by \cite{4531148} that it was possible to connect many of the IDs to real people, by cross-referencing the publicly available IMDB movie ratings.
+
+Not to forget that these systems collect an enormous amount of data about people, mainly to build these recommender systems and to always improve them. While this data helps in personalizing our experience, it can also be a breach of privacy. How much do these platforms know about us? And who else gets access to this information? For instance, we can recall the \href{https://en.wikipedia.org/wiki/Facebook–Cambridge_Analytica_data_scandal}{Facebook-Cambridge Analytica data scandal} where the data of million of users were use without their consent.
+
+In the end, to keep the scope of the project and because it's not the main goal of this course, we decided not to implement any privacy preserving mechanism. We will simply not release the datasets and remove all possible identifier in the code before publishing it on our GitHub. Of course, for the grading of this project we have to hand them in.
+
+\section{Ethical discussion on recommender systems}
+Recommender systems, like the ones used by YouTube, Spotify, TikTok, Instagram and other entertainment platforms are designed to suggest content that we might like. Sounds simple, right? But there's a lot more going on under the hood, these models are the ones that are the closest to us, human, they are built to represent what we like and understand who we are in a very detailed manner.
+
+First, these algorithms learn from our behavior, what we like, share, or spend time watching/listening. They use our data to feed us with more of similar content. Initially, it sounds great because it helps us find items we're interested in without much effort, but it might introduce a lot of ethic concerns.
+
+One big issue is the creation of "filter bubbles.", this phenomenon tends to appear when the systems keeps showing us only what it thinks we want to see. It sounds okay at first, but it can narrow our worldview, limiting our exposure to different perspectives. Consider the scenario where you are only presented with information that are fully aligned to your existing beliefs. For some individuals, it could lead them to extreme way of thinking about different subjects such as conspiracy theories for instance.
+
+We can also talk about the impact on mental health, especially for younger users. Platforms like Instagram and TikTok are known for their addictive nature. They're designed to keep us engaged for as long as possible. This can lead to excessive use, which could be really armful for mentally vulnerable people. We can see this aspect mixed with "filter bubbles" which can be a really dangerous cocktail to keep in mind when creating such models.
+
+Lastly, fake news and content manipulation are big challenges for the platforms. These systems might promote sensational or misleading content because it tends to get more engagement, affecting public opinion on important matters such as political subjects.

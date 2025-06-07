@@ -1,0 +1,19 @@
+\chapter{Introduction} \label{chap:introduction}
+Over the past few years, recommender systems have become part of our everyday life, for the vast majority they are part of web services we interact with everyday. Whether in e-commerce, where they suggest articles aligning with buyers' interests; on social media platforms, where they are used to suggest friends, pages, or content based on users' past interactions and interests. Or in music streaming services where they are used to build personalized playlists, recommend new songs, and suggest artists based on users' listening history and preferences. These systems generally rely on either or both two different paradigms: collaborative filtering and content-based filtering.
+
+\textbf{Collaborative Filtering}:
+Collaborative-Based Filtering predicts user preferences by exploiting information about many other users. It analyzes interactions and behaviors of a group of users to make predictions about the preferences of a specific user, with the main assumption that if two users share the same affinity on an item, they are more likely to also share the same affinity on another item. In general, collaborative filtering requires a large amount of users.
+
+\textbf{Content-Based Filtering}:
+In contrast, Content-Based Filtering approach uses the features of the items belonging to an user to produce personalized recommendations. By analyzing the proximity of  a large amount of items that a user didn't interact with, with the users preferences. It simply suggests items similar to those the user has already shown interest in, focusing only on the content's features. 
+
+In the following sections, we're going to take a closer look at how we build collaborative and content-based recommendation systems especially for Spotify. We'll explore the specific methods, algorithms, and evaluation techniques that make it all work.
+
+\section{Problem statement}
+With the number of new songs available on Spotify always increasing, it has become a challenge for users to discover new songs that satisfy their tastes. The objective of this report is to implement different recommendation systems and understand in details how they work. We choose Spotify to be our data source for this project but these techniques can be applied in a more general way and can be used with different type of items, not only music songs.
+
+\section{What do we mean by "small"}
+We could only retrieve a user base of 8 users, which is a very (very) small amount of users when dealing with collaborative filtering models, however we could retrieve around 10'000 tracks. So we asked ourselves if that's enough to build an efficient collaborative-based recommender systems which would outperform a content-based filtering recommender system with a large amount of tracks data. \cite{johnson_logistic_matrix_factorization} is dealing with a user base of 50'000 users with the tracks of the 10'000 most popular artists of Spotify. In the other hand, \cite{liang2018variational} uses publicly available datasets \href{https://grouplens.org/datasets/movielens/20m/}{MovieLens 20M Dataset} which contains 138'000 users, \href{https://www.kaggle.com/datasets/netflix-inc/netflix-prize-data}{Netflix Prize Data} which contains 480'189 users and \href{http://millionsongdataset.com/tasteprofile/}{Million Song Dataset} which has 1'019'318 users. Taking all that into account, and considering the fact that we do not possess a great amount of computational power, we will set the threshold to consider a relatively small number of users below 150.
+
+\section{Report vocabulary}
+Please note that in this work we refer to music songs with different terms: songs, tracks, items but it all means the same. The same goes for dataset and DataFrame.

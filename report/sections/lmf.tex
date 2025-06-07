@@ -1,0 +1,128 @@
+\chapter{Logistic matrix factorization} \label{chap:lmf}
+
+The model adopts a similar strategy as outlined in \cite{4781121}. However, instead of minimizing a weighted RMSE, it uses a probabilistic approach introduced by \cite{NIPS2007_d7322ed7}, where the assumption is made that the entries follow a Gaussian distribution. In this context, the authors present a novel probabilistic framework tailored for implicit scenarios. Within this framework, the probability of a user selecting an item is modeled using a logistic function. The model achieves factorization of matrix $R$ into two lower-dimensional matrices, $X_{n \times f}$ and $Y_{m \times f}$, where $f$ represents the number of latent factors.
+
+To implement the code in we based our implementation on the authors one from his GitHub repository: \url{https://github.com/MrChrisJohnson/logistic-mf}. We converted everything to be able to use PyTorch with the GPU to make the learning phase faster.
+
+\begin{itemize}
+    \item The rows of $X$ are latent factor vectors representing a user's taste
+    \item The columns of $Y^T$ are latent factor vectors representing an item's style, genre, ...
+\end{itemize}
+
+\section{General probabilistic framework}
+
+The general probabilistic matrix factorization framework is based on Bayesian learning where the aim is to find a posterior distribution of the model parameters by using the Bayes rule:
+\[
+p(\theta | X , \alpha) = \frac{p( X  | \theta, \alpha) p(\theta | \alpha)}{P( X | \alpha)} \propto p( X  | \theta, \alpha) p(\theta | \alpha)
+\]
+
+with $X$ the dataset, $\theta$ the parameter set of the distribution, $\alpha$ the hyperparameter of the distribution, $p(\theta | X , \alpha)$ the posterior, $p( X  | \theta, \alpha)$ the likelihood and $p(\theta | \alpha)$ the prior.
+
+\section{Our framework}
+
+In our case, we have:
+\begin{align*}
+    X &= R \\
+    \theta &= X, Y \\
+    \alpha &= \sigma_u^2, \sigma_i^2
+\end{align*}
+
+So we have the following posterior:
+\[
+p(X, Y | R, \sigma_u^2, \sigma_i^2) = p(R | X, Y, \sigma_u^2, \sigma_i^2) p(X, Y | \sigma_u^2, \sigma_i^2)
+\]
+
+As $X$ and $Y$ are independent:
+\[
+p(X, Y | R, \sigma_u^2, \sigma_i^2) = p(R | X, Y, \sigma_u^2, \sigma_i^2) p(X | \sigma_u^2) p(Y | \sigma_i^2)
+\]
+
+Now, we need to find each term on the right hand side of the equation.
+
+Let $l_{u.i}$ denote the event that user $u$ has interacted with item $i$.
+Then they consider that the probability of this event is distributed according to a logistic function:
+\[
+p( l_{u,i} | x_u, y_i, \beta_u, \beta_i) = \frac{\exp(x_u y_i^T + \beta_u + \beta_i)}{1 + \exp(x_u y_i^T + \beta_u + \beta_i)}
+\]
+
+With $\beta_i$ and $\beta_u$ introduced as biased meant to account for
+variation in behavior across both users and items.
+
+The formulation introduces a confidence measure, $c = \alpha r_{u,i}$, based on a tuning parameter, $\alpha$, where non-zero entries in the observation matrix $R$ serve as positive observations, and zero entries as negative observations, with $\alpha$ allowing for the adjustment of weights between positive and negative observations.
+
+By considering zero-mean spherical Gaussian priors on user and item latent factor
+vectors and that all entries of $R$ are independent, the posterior can be written as:
+\[
+p(X, Y, \beta | R) = \prod_{u,i} p(l_{u,i} | x_u, y_i, \beta_u, \beta_i)^{\alpha r_{u,i}} (1 - p(l_{u,i} | x_u, y_i, \beta_u, \beta_i)) \prod_u
+ \mathcal{N}(x_u | 0, \sigma_{u}^2) \prod_i \mathcal{N}(y_i | 0, \sigma_{i}^2)
+ \]
+
+ If we take the log of the posterior we have:
+ \begin{align*}
+    &\sum_{u,i} \alpha r_{u,i} \ln \left( p(l_{u,i} | x_u, y_i, \beta_u, \beta_i) \right) + \ln \left( 1 - p(l_{u,i} | x_u, y_i, \beta_u, \beta_i) \right) + \sum_u \ln \left( \mathcal{N}(x_u | 0, \sigma_{u}^2) \right) + \sum_i \ln \left( \mathcal{N}(y_i | 0, \sigma_{i}^2) \right) \\
+    &\text {Let $z = \sum_{u} \ln \left( \mathcal{N}(x_u | 0, \sigma_{u}^2) \right) + \sum_i \ln \left( \mathcal{N}(y_i | 0, \sigma_{i}^2) \right)$} \\
+    &= \sum_{u,i} \alpha r_{u,i} \ln \left( \frac{\exp(x_u y_i^T + \beta_u + \beta_i)}{1 + \exp(x_u y_i^T + \beta_u + \beta_i)} \right) + \ln \left( \frac{1 + \exp(x_u y_i^T + \beta_u + \beta_i)}{1 + \exp(x_u y_i^T + \beta_u + \beta_i)} - \frac{\exp(x_u y_i^T + \beta_u + \beta_i)}{1 + \exp(x_u y_i^T + \beta_u + \beta_i)} \right) + z \\
+    &=\sum_{u,i} \alpha r_{u,i} \ln \left( \frac{\exp(x_u y_i^T + \beta_u + \beta_i)}{1 + \exp(x_u y_i^T + \beta_u + \beta_i)} \right) + \ln \left( \frac{1 }{1 + \exp(x_u y_i^T + \beta_u + \beta_i)} \right) + z \\
+    &=\sum_{u,i} \alpha r_{u,i}(x_u y_i^T + \beta_u + \beta_i) - \alpha r_{u,i} \ln \left( 1 + \exp(x_u y_i^T + \beta_u + \beta_i) \right) - \ln \left( 1 + \exp(x_u y_i^T + \beta_u + \beta_i) \right) + z \\
+    &\text{Let $w = x_u y_i^T + \beta_u + \beta_i$} \\
+    &= \sum_{u,i} \alpha r_{u,i}w - (1 + \alpha r_{u,i}) \ln \left( 1 + \exp(w) \right) - \frac{1}{2 \sigma_{u}^2} \sum_u x_u^T x_u - \frac{1}{2 \sigma_{i}^2} \sum_i y_i^T y_i
+  \end{align*}
+We finally have:
+\[
+\ln \left( p(X, Y, \beta | R) \right) = \sum_{u,i} \alpha r_{u,i}(x_u y_i^T + \beta_u + \beta_i) - (1 + \alpha r_{u,i}) \ln \left( 1 + \exp(x_u y_i^T + \beta_u + \beta_i) \right) - \frac{1}{2 \sigma_{u}^2} \|x_u\|^2 - \frac{1}{2 \sigma_{i}^2}  \|y_i\|^2
+\]
+
+\section{Learning the parameters}
+
+The goal now, is to learn $X, Y, \beta$ that maximizes the log posterior.
+
+\[
+\argmax_{X, Y, \beta} \ln \left( p(X, Y, \beta | R) \right)
+\]
+
+This can be done with an alternating gradient ascent. Where at each iteration, we first fix the vectors $X$ and $\beta$ and take a step towards the gradient of the vectors $Y$ and $\beta$. Next we do it the other way around. Let's compute these gradients:
+\begin{align*}
+    &\text{Firstly, } \\
+    &\text{Using the chain rule for: } \frac{\partial}{\partial \beta_u} \ln \left( 1 + \exp(x_u y_i^T + \beta_u + \beta_i) \right) = \frac{\partial \ln(a)}{\partial a} \frac{\partial a}{\partial \beta_u} \text{ with } a = 1 + \exp(x_u y_i^T + \beta_u + \beta_i) \\
+    &\frac{\partial}{\partial \beta_u} \ln \left(p(X, Y, \beta | R) \right) \\
+    &= \frac{\partial}{\partial \beta_u} \sum_{u,i} \alpha r_{u,i}(x_u y_i^T + \beta_u + \beta_i) - (1 + \alpha r_{u,i}) \ln \left(1 + \exp(x_u y_i^T + \beta_u + \beta_i) \right) - \frac{1}{2 \sigma_{u}^2} \|x_u\|^2 - \frac{1}{2 \sigma_{i}^2}  \|y_i\|^2 \\
+    &= \sum_{i} \alpha r_{u,i} - (1 + \alpha r_{u,i}) \frac{\exp(x_u y_i^T + \beta_u + \beta_i)}{1 + \exp(x_u y_i^T + \beta_u + \beta_i)} \\
+    &\text{Secondly, with the same method we have} \\
+    &\frac{\partial}{\partial \beta_i} \ln \left(p(X, Y, \beta | R) \right)
+    = \sum_{u} \alpha r_{u,i} - (1 + \alpha r_{u,i}) \frac{\exp(x_u y_i^T + \beta_u + \beta_i)}{1 + \exp(x_u y_i^T + \beta_u + \beta_i)} \\
+    &\text{In the same way, we get: }\\
+    &\frac{\partial}{\partial x_u} \ln \left(p(X, Y, \beta | R) \right)
+    = \sum_{i} \alpha r_{u,i} y_i - (1 + \alpha r_{u,i}) y_i \frac{\exp(x_u y_i^T + \beta_u + \beta_i)}{1 + \exp(x_u y_i^T + \beta_u + \beta_i)} - \frac{x_u}{\sigma_u^2} \\
+    &\text{and finally, } \\
+    &\frac{\partial}{\partial y_i} \ln \left(p(X, Y, \beta | R) \right) 
+    = \sum_{u} \alpha r_{u,i} x_u - (1 + \alpha r_{u,i}) x_u \frac{\exp(x_u y_i^T + \beta_u + \beta_i)}{1 + \exp(x_u y_i^T + \beta_u + \beta_i)} - \frac{y_i}{\sigma_i^2}
+\end{align*}
+
+They address the linear time complexity issue in large datasets by reducing negative samples and adjusting parameters for faster computation. Additionally, they explore adaptive gradient step sizes using AdaGrad, potentially reducing the number of iterations needed for convergence. The AdaGrad update for the variable $x_u$ at iteration $t$ is:
+\[
+x_u^t = x_u^{t-1} + \frac{\gamma g_u^{t-1}}{\sqrt{\sum_{t' = 1}^{t-1} (g_u^{t'})^2}}
+\]
+
+\section{Prediction}
+Once we have determined both $X$ and $Y$ and $\beta$ that maximizes the log posterior, we are able to predict the interactions for all users and items by simply taking: $X \cdot Y^T + \beta$. That gives the predicted affinity matrix, where every rows represents a user. We can simply argsort these rows and retrieve the indices of the items to build a recommendation list.
+
+\section{Training process and model selection} \label{sec:lmf_train}
+Following \cite{implicit-mf} implementation we could effectively train the model with all our generated datasets built in \ref{subsec:artificial_data} (and ending up with similar loss curves outlined in Figure \ref{fig:lmf_128} for every datasets):
+\figurewithcaption{lmf_128}{The training loss and validation loss we have with the 128 users dataset}{\textwidth}{0}
+
+The MPR metric introduced by the LMF paper adopts the expected results, decreasing and converging to 0 as shown in Figure \ref{fig:lmf_mpr}. Showing that it effectively learns.
+\figurewithcaption{lmf_mpr}{The MPR metric}{\textwidth}{0}
+
+The VSD converges really quickly to it's final value and adopts an noisy signal as outlined in Figure \ref{fig:lmf_vsd}, it is probably because the loss function does not operate on item's features. The model does not directly learn how to provide recommendation on similar items but based on an interaction matrix. Unlike the MPR or NDCG metrics which operated on the item's rank in the recommendation list, which is what the model is capable to learn.
+\figurewithcaption{lmf_vsd}{The VSD metric}{\textwidth}{0}
+
+\newpage
+
+The other metrics, NDCG and Recall, do not really adopt the expected behaviour described by the VAE paper as shown in Figure \ref{fig:lmf_metrics}. They maybe aren't suited for this model, further analysis can be done to verify the cause, but since it will not help answering our scientific question we will not spend more time on this aspect.
+\figurewithcaption{lmf_metrics}{The NDCG and Recall metrics}{\textwidth}{0}
+
+\section{Latent space visualization}
+Since this model learns latent representation of users and items we can simply plot the produced latent features into a space and analyse the objects proximity. That's what we implemented to understand the latent space. To produce the plot we can train the model to have $N > 3$ features and use a pair plot or a dimensionality reduction method like PCA or directly train the model with $N <= 3$ and plot it directly. To produce a more meaningful plot we choose the second option here:
+\figurewithcaption{lmf_viz_users}{The 2D users latent representations}{\textwidth}{0}
+\figurewithcaption{lmf_viz_tracks}{The users tracks 2D users latent representations}{\textwidth}{0}
+

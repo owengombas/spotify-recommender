@@ -1,0 +1,44 @@
+\chapter{Data Analysis}
+We performed two preliminary analysis on the data we retrieved from Spotify, one concerning the users and the other one for the genres of the tracks.
+
+All the people who allowed us to use their information have their name anatomized in our datasets and in this report. We generated fake names to represent them, however they all allowed us to keep a trace of the anonymization process so we can verify our further potential analysis. The document that stores the correspondences of the generated name and the real name is confidential and will not be reviled without the consent of all the participants.
+
+Some of the following plots are interactive, for further analysis we recommend you to refer to the following file: \texttt{data\_analysis\_user.ipynb}
+
+\section{User based analysis}
+
+\subsection{Tracks quantity per user}
+\figurewithcaption{users_count}{The quantity of tracks we have per user, "Spotify" represent all the tracks that we retrieve from public playlists \ref{subsection:spotify_tracks}}{\textwidth}{0}
+
+\subsection{User genre quantity}
+\figurewithcaption{users_genres}{How much every user listen to different genres, "Spotify" represent all the tracks that we retrieve from public playlists\ref{subsection:spotify_tracks}}{\textwidth}{0}
+
+\subsection{User features distribution}
+\figurewithcaption{users_distribution}{It shows the discrete distributions for every user on all the features we retrieved from the Spotify API, "Spotify" represent all the tracks that we retrieve from public playlists \ref{subsection:spotify_tracks}}{\textwidth}{90}
+
+\subsection{User interactions}
+\figurewithcaption{users_matrix}{The interaction heatmap of a user $A$ with a user $B$, it shows how much a user $A$ shares tracks with an user $B$}{\textwidth}{0}
+
+\subsection{User features pairplot}
+\figurewithcaption{users_pairplot}{For every user (here they are represented with inidividual colors) we can plot every feature against each other and to form a pairplot, this can be view as the raw representation of a user}{\textwidth}{0}
+
+\subsection{User PCA 2D}
+To counter the fact that the pairplot isn't really readable we can perform a dimensional reduction on the data using PCA and plot it.
+\figurewithcaption{users_pca_2d}{PCA to our features to 2 components so we can plot it (and show it in this report). If the dimensionality reduction isn't to low, it would be a great indicator on how much users are close to each others. You can use the following notebook to visual that PCA analysis for higher dimensions: \texttt{data\_analysis\_user.ipynb}}{\textwidth}{0}
+
+\section{Genre based analysis}
+\subsection{Quantity of (very) specific genres}
+\figurewithcaption{genres_quantity}{The quantity of very specific genres we have in our dataset (cropped to take the most present ones)}{\textwidth}{0}
+
+\subsection{Quantity of genres}
+We simplified the genres so the sub-genres of rock are wrapped into the rock genre, the same goes for rap which is almost the same as hip-hop. We performed this grouping for all the main genres we have in our dataset to end up with more simple genres.
+\figurewithcaption{genres_normalized_quantity}{The quantity of genres we have in our dataset (cropped to take the most present ones)}{\textwidth}{0}
+
+\subsection{Genre features distribution}
+\figurewithcaption{genres_features_distribution}{It shows the discrete distributions for every genres on all the features we retrieved from the Spotify API}{\textwidth}{90}
+
+\subsection{Genre scatter matrix}
+\figurewithcaption{genres_scatter_matrix}{For every feature we plot tracks against another feature, the color represents the genre. We can see some clusters forming.}{15cm}{0}
+
+\section{The whole dataset}
+\figurewithcaption{dataset_features_distribution}{The features distribution from the whole dataset we have, including the tracks that are not related to any users \ref{subsection:spotify_tracks}}{15cm}{90}

@@ -1,0 +1,107 @@
+\chapter{Collaborative filtering with implicit feedback}
+Collaborative filtering with implicit feedback has gained prominence in online recommendation systems due to its practicality. Unlike explicit feedback, which relies on users providing specific ratings or preferences, implicit feedback is inherently more abundant as it is derived from user interactions, such as clicks, views, or purchase history. This wealth of implicit data is readily available in large-scale online platforms, making it more convenient and cost-effective to collect. Additionally, implicit feedback addresses the sparsity issue often encountered with explicit feedback, where users may not consistently rate or provide feedback on items.
+
+Our approach to collaborative filtering with implicit feedback is built upon the implementation introduced in \cite{johnson_logistic_matrix_factorization}. In the following sections, we will delve into an explanation of this implementation, providing detailed insights into its workings. In this paper, they explore a new method for collaborative filtering with implicit feedback
+data that’s based in part on the traditional matrix factorization strategy. We will explain the theoretical foundations of the model and how to train it.
+
+We choose the Multi Variational Model by \cite{liang2018variational} and the Logistic Matrix Factorization by \cite{johnson_logistic_matrix_factorization} because both were very well described by platforms such as Google, Netflix and Spotify. Also they are based on two different mechanism so we could cover a wider variety of collaborative models.
+
+\section{Notations}
+For the rest of our collaborative filtering approaches, we will assume that we have:
+\begin{itemize}
+    \item $U = \left( u_1, ..., u_n \right)$ a group of $n$ users
+    \item $I = \left( i_1, ..., i_m \right)$ a group of $m$ items
+    \item $R = \left( r_{u,i} \right)_{n \times m}$ a user-item observation matrix where $r_{u,i} \in \mathbb{R}^+$ represents the number of times user $u$ interacted with item $i$.
+    \item $r_u = \begin{bmatrix} r_{u,1} & ... & r_{u,m} \end{bmatrix}$ a vector containing the affinity for each items from user $u$.
+\end{itemize}
+
+\section{Data processing}
+For all the collaborative filtering models, our data processing is almost the same.
+
+\subsection{Loading the data, dropping the duplicates and scaler}
+We perform the same loading process as for the Nearest Neighbor model outlined in \ref{subsec:nn_loading_data}, with the same affinity inference parameters as in Section \ref{sec:loading_data}. We also perform the same pre-processing operations such as dropping the duplicated on the \{"username", "id"\} keys \ref{subsec:nn_dropping_dup_user_id} and scaling our numerical features with a standard scaler \ref{subsec:nn_scaling}.
+
+\subsection{Keeping the tracks that appears at least $N$ times}
+What was done in \cite{liang2018variational} that improves a lot our performances in term of the NDCG, MPR and Recall metrics \ref{sec:ordered_metrics}, is to keep only the tracks that appears $N$ times in our dataset. We found that $N = 2$ is a great value since we do not have a big dataset. For that we implemented a function to which we pass our DataFrame, the column name we work on and the number of minimum occurrence every entry must have:
+\texttt{preprocessing.filter\_rows\_by\_min\_number\_of\_occurence(df, "id", 2)}.
+
+Recall that we dropped the duplicated keys on \{"username", "id"\} which doesn't drop the duplicated tracks in our dataset, user $A$ could have item $i$ as well as user $B$. Leading to the fact that \texttt{filter\_rows\_by\_min\_number\_of\_occurence} will only keep the tracks shared by at least 2 users.
+
+\subsection{Splitting the user set}
+We split our user set the same way we did for the Nearest Neighbors model in \ref{subsec:split_user_set} and with the same parameters. But note that we build the final dataset differently. In fact, instead of creating three sub datasets (train, validation, test) which contains all the tracks of users, we use the same strategy as the VAE model from \cite{liang2018variational}. They subdivide the validation set and the test set into 2 sub-dataframe, ending up with 5 dataframes (train, validation-train, validatation-test, test-train, test-test) instead of three with our Nearest Neighbors. We used the same naming convention these sub-dataframes as the reference implementation we could find for the VAE \cite{vae-cf} \cite{vae-cf-pytorch}.
+
+\textbf{Train dataset}\\
+We populate the train dataset with all the tracks from the users contained in the user train set.
+
+\textbf{Validation dataset}\\
+From the user validation set we sample half the songs of every users in the validation-train dataset and half in the validation-test dataset. If a user has less than a threshold $t$ that we manually set, then all the user's songs will be placed in the validation-train dataset, we used $t = 2$.
+
+\textbf{Test dataset}\\
+The same thing as for the validation set is done to build the test-train and the test-test datasets which are build form the user test set.
+
+\newpage
+
+\subsection{Building the interaction matrix} \label{subsec:r_matrix}
+To train the collaborative systems the input has to be in a interaction matrix format with $|U|$ rows which represent the user and $|I|$ columns representing the items. The entries of this matrix represent the affinity that user $u$ has with an item $i$.
+
+In the context of implicit feedback, we only know when a user interacted with an item. \textbf{We do not know if they liked it or disliked it}. However we can make assumption as we did in Chapter \ref{chap:affinity} to infer an affinity between an user and an item. In this context the convention is to set the entries to 0 when a user $u$ didn't interact with an item $i$, usually we end up with a really sparse matrix.
+
+We can calculate the matrix sparsity from 0 to 1 with the following formula: \\
+\begin{align*}
+    &S := \frac{|D|}{|U| \cdot |I|}\\
+    &D\text{: The original data set}\\
+    &U\text{: The set of unique users in }D\\
+    &I\text{: The set of unique items in }D
+\end{align*}
+
+We implemented a Python class which turns a flat dataset to an interaction matrix, so for instance if we have the following dataset:
+\begin{table}[ht]
+\centering
+\begin{tabular}{|l|l|l|l|}
+\hline
+\rowcolor[HTML]{EFEFEF} 
+\textbf{username} & \textbf{id} & \textbf{affinity} \\ \hline
+user\_1           & item\_1     & 1.0               \\ \hline
+user\_1           & item\_2     & 0.3               \\ \hline
+user\_1           & item\_3     & 0.4               \\ \hline
+user\_2           & item\_1     & 0.5               \\ \hline
+user\_3           & item\_2     & 1.0               \\ \hline
+user\_3           & item\_3     & 0.6               \\ \hline
+\end{tabular}
+\caption{An example raw dataset without duplicates}
+\label{tab:df_example}
+\end{table}
+
+\newpage
+
+it will turn into the following matrix:
+\begin{table}[ht]
+\centering
+\begin{tabular}{|
+>{\columncolor[HTML]{EFEFEF}}l |l|l|l|}
+\hline
+\textbf{user index (username) / item index (id)} & \cellcolor[HTML]{EFEFEF}\textbf{0 (item\_1)} & \cellcolor[HTML]{EFEFEF}\textbf{1 (item\_2)} & \cellcolor[HTML]{EFEFEF}\textbf{2 (item\_3)} \\ \hline
+\textbf{0 (user\_1)}     & 1.0                                      & 0.3                                      & 0.4                                      \\ \hline
+\textbf{1 (user\_2)}     & 0.5                                      & {\color[HTML]{FE0000} 0}                 & {\color[HTML]{FE0000} 0}                 \\ \hline
+\textbf{2 (user\_3)}     & {\color[HTML]{FE0000} 0}                 & 1.0                                      & 0.6                                      \\ \hline
+\end{tabular}
+\caption{The matrix $R$ generated by the example dataset}
+\label{tab:r_example}
+\end{table}
+
+This class also helps us to map the matrix indices with the usernames and item Ids which helps us to perform mapping while we perform our recommendation process
+
+We build these interaction matrices for each of the sub-datasets we build, train, validation-train, validation-test, test-train and test-test. Ending up with 5 individual matrices.
+
+\subsection{Scaling the matrix entries}
+As proposed by \cite{johnson_logistic_matrix_factorization}, we compute a factor $\alpha$ which scales the entries of the matrix to balance the importance to zero/non-zero entries of the matrix. Once computed $R$ is simply scaled by $\alpha$ as followed: $R := \alpha R$. We used what they proposed using the the following formula:
+\begin{align*}
+& \alpha(R) := \frac{|R| - |R_{\ne0}|}{\sum{R}}\\
+& |R|\text{: The number of entries of }R\\
+& |R_{\ne0}|\text{: The number of non zero entries of }R\\
+& \sum{R}\text{: The sum of the entries of }R
+\end{align*}
+
+To handle the different train, validation and test subsets we compute $\alpha$ on the original dataset before performing the splitting strategy and we apply the $\alpha$ scale to the train, validation and test subsets afterward.
+
+After all these pre-processing steps, the matrices datasets are ready to be processed by our collaborative-based models.

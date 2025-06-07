@@ -1,0 +1,95 @@
+\chapter{Data collection} \label{chap:data collection}
+\section{From the Spotify API}
+\subsection{User data retrieval} \label{subsection:user_data_retrieval}
+Spotify has a public REST API that allows developer to retrieve useful information about the tracks and the Spotify users, such as their playlists, their liked tracks and also their top listened tracks for three different time ranges (with a maximum of 50 tracks per time range):
+\begin{itemize}
+    \item \textbf{long\_term}: Calculated from several years of data and including all new data as it becomes available
+    \item \textbf{medium\_term}: Approximately last 6 months
+    \item \textbf{short\_term}: Approximately last 4 weeks
+\end{itemize}
+
+For our data retrieval process we used these following API endpoints with \href{https://spotipy.readthedocs.io/en/2.22.1/}{Spotipy}\footnote{A Python module which simplify the API calls to the Spotify API} to build our dataset:
+\begin{itemize}
+    \item \url{https://developer.spotify.com/documentation/web-api/reference/get-users-top-artists-and-tracks}
+    \item \url{https://developer.spotify.com/documentation/web-api/reference/get-list-users-playlists}
+    \item \url{https://developer.spotify.com/documentation/web-api/reference/get-users-saved-tracks}
+    \item \url{https://developer.spotify.com/documentation/web-api/reference/get-several-audio-features}
+\end{itemize}
+
+To retrieve the data it works as the following procedure:
+\begin{enumerate}
+    \item Ask the person for the email they used to create their Spotify account.
+    \item We add this e-mail to the authorized user list in our Spotify Developer app dashboard \url{https://developer.spotify.com/dashboard/}.
+    \item We generate an authentication URL that we send to the person.
+    \item By clicking on this URL the person is redirected to a Spotify login interface.
+    \item Once logged it, the person is redirected to the redirect URL with an authentication code. This new URL should be send back to us to complete the authentication process.
+    \item Once we got this URL we can effectively retrieve the person's Spotify data.
+\end{enumerate}
+
+We first retrieve all the tracks known\footnote{Meaning that the track is included in either their top listened songs, playlists or liked songs} by all eight users who accepted to give us their data. Once collected, the tracks do not directly have numerical features related to them, that's why we have to use the \texttt{get-several-audio-features} endpoint for every track to populate our database with useful features. From our 8 users, we could then retrieve 12'429 songs without deducting the duplicates (7'211 from playlists, 4'018 from liked songs and 1'200 from top listened songs). Which all have 14 features: \textit{duration\_ms}, \textit{acousticness}, \textit{danceability}, \textit{energy}, \textit{instrumentalness}, \textit{liveness}, \textit{loudness}, \textit{mode}, \textit{speechiness}, \textit{tempo}, \textit{time\_signature}, \textit{valence}, \textit{release\_year}, \textit{popularity}.
+
+\subsection{Retrieval of tracks that are not related to users} \label{subsection:spotify_tracks}
+To generate more creative and diverse recommendations, we should also include songs that are unknown to our users. That's why we manually selected playlists with the most diverse tracks, considering features such as; \textit{release\_year}, \textit{popularity}, \textit{genre} and \textit{language}, and ensuring a large amount of tracks. We selected 8 large playlists from which we retrieve 7'893 tracks in total. The playlists we use can be accessed through the following links\footnote{If they aren't available anymore online, they can be retrieved from our dataset}:
+\begin{itemize}
+    \item 1960-2023:\\ \url{https://open.spotify.com/playlist/0iwMTcAhHhqjv3ytEfhWs7}
+    
+    \item Every US number one (1960 - 2023):\\
+    \url{https://open.spotify.com/playlist/24P5rHoP6MhEiEaB25l1wI}
+
+    \item top hits 2000-2024:\\
+    \url{https://open.spotify.com/playlist/7E3uEa1emOcbZJuB8sFXeK}
+
+    \item Best Unknown Songs:\\
+    \url{https://open.spotify.com/playlist/0AVwU8BpO8p7MS5LeU8lmj}
+    
+    \item best unknown artists/songs:\\
+    \url{https://open.spotify.com/playlist/6RCtJw3jv1MO3HFeeEY9hC}
+    
+    \item Best (mainly) unknown songs:\\
+    \url{https://open.spotify.com/playlist/2jqYP6k583TFLfejNZ2qhn}
+    
+    \item The Greatest Mixed Playlist Ever:\\
+    \url{https://open.spotify.com/playlist/5zwLw7HmUqTZAXwOTqIdqy}
+\end{itemize}
+
+\subsection{Spotify forbidding AI training} \label{subsec:law_spotify}
+Be aware that Spotify does not allow developers to use this data to train AI algorithms (cf. \url{https://developer.spotify.com/terms#section-iv-restrictions}). For this report, the only purpose of retrieving these data is to perform data analysis aiming to build an artificial data generator providing us with more control over our environment. Upon project submission the dataset is provided to the Professor, new users data can be added easily using the \texttt{retrieve\_*.ipynb} notebooks, allowing for further analysis. We reject all responsibility for the use of this data, since we only provide what can be retrieved by anyone.
+
+cf.
+\begin{itemize}
+    \item \texttt{lib/spoti.py}: Manage the user connection and data retrieval
+    \item \texttt{retrieve\_user\_auth.py}: Retrieve an URL allowing our app to retrieve user's data
+    \item \texttt{retrieve\_liked\_tracks.ipynb}: Retrieve the tracks the users liked
+    \item \texttt{retrieve\_playlists.ipynb}: Retrieve the users tracks contained in their playlists
+    \item \texttt{retrieve\_top\_tracks.ipynb}: Retrieve the tracks the users listened to the most
+    \item \texttt{retrieve\_public\_playlists.ipynb}: Retrieve the tracks contained in playlists (not related to any users)
+\end{itemize}
+
+\setcounter{footnote}{0}% Reset footnote counter
+
+\section{Data Generation} \label{sec:data_generation}
+To address our initial question, we then developed a data generator to build similar datasets from the one we could get from Spotify. This methodology also provides us with better control over the quantity of our data, which is crucial, in particular for the collaborative-filtering based recommender systems we use.
+
+We generate $N$ datasets $D_u$ (each of these dataset can have a different size) which have a given\footnote{In the argument of the \texttt{ArtificialTrackDataset} constructor} set of numerical features that follows a given probabilistic distribution\footnote{Given in the \texttt{ArtificialTrackDataset.randomize} method}, each of these $N$ dataset are assigned to an artificial username that is represented by a name, the same goes for the items of this dataset, we assign every row to a random song name, we used Faker\footnote{A library to generator random values of different nature: \url{https://faker.readthedocs.io/en/master/}} to generate these random names. These $N$ datasets are merged into one bigger dataset that has size $|D_1| + \dots + |D_N|$, with $N$ users and each user have $|D_u|$ tracks. For each of the entries, we also generate an affinity score that ranges from 0 to 1. The features it generates are the same 14 features we have in the Spotify dataset and are sampled from a normal distribution ($\mu = 1.0$ $\sigma=0.1$).
+
+\figurewithcaption{generated_data_distribution}{An example of the features distribution for a generated dataset}{\textwidth}{0}
+
+Once this dataset is generated no tracks are shared by any user because it was independently generated. We have to mix the entries of the dataset, for that purpose we implemented the \texttt{generate\_dataset\_with\_similarities} method that takes in argument \texttt{mix\_with\_someone\_else\_chance} which tells the algorithms the probability (from 0 to 1) that a user $A$ can mix songs with another different user $B$. If the mix has to be performed \texttt{min\_track\_mixing\_percentage} and \texttt{max\_track\_mixing\_percentage} are the arguments that tell how much of the user $A$'s tracks will replace user $B$'s tracks so they share common songs. To give more chance to lower mixture percentage, we pick a random value from a \href{https://en.wikipedia.org/wiki/Beta_distribution}{beta distribution} ($\alpha = 1$, $\beta = 4$) and scale it from \texttt{min\_track\_mixing\_percentage} to \texttt{max\_track\_mixing\_percentage}. The affinity is regenerated so the track $T_i$ has a different affinity for user $A$ than for user $B$.
+
+All the generated features of our dataset follows a normal distribution (loc=0, scale=1) and modified to be bounded by 0 and 1.
+
+cf. \texttt{lib/artificial\_data.py}, \texttt{artificial\_data.ipynb}
+
+\newpage
+\subsection{Generated datasets} \label{subsec:artificial_data}
+\begin{multicols}{2}
+\figurewithcaption{user_mat_8}{Tracks sharing heatmap of 8 users}{6cm}{0}
+\figurewithcaption{user_mat_32}{Tracks sharing heatmap of 32 users}{6cm}{0}
+\figurewithcaption{user_mat_16}{Tracks sharing heatmap of 16 users}{6cm}{0}
+\figurewithcaption{user_mat_64}{Tracks sharing heatmap of 64 users}{6cm}{0}
+\figurewithcaption{user_mat_128}{Tracks sharing heatmap of 128 users}{6cm}{0}
+\end{multicols}
+
+
+\section{Available Datasets}
+Some datasets are openly available online and well suited for collaborative-filtering based recommender systems such as the MovieLens 20M Dataset\footnote{\url{https://grouplens.org/datasets/movielens/20m/}}. These dataset are way bigger than the ones we generated or retrieved from Spotify. After processing they can build a dense Matrix for collaborative filtering that could use more than 9GB of memory. Since these interactions matrices a mainly formed of zeros, some implementation uses SciPy sparse\footnote{\url{https://docs.scipy.org/doc/scipy/reference/sparse.html}} to store these matrices without using too much memory. We tried to achieve the same using only PyTorch but at the time we write this report their implementation of sparsity is still in beta so we have some errors while implementing the sparsity in our algorithms (we tried using CPU and MPS devices). To be able to finish our project on time we didn't spend more time trying to implement the sparsity hoping that in a near future we can slightly adapt our PyTorch implementation to use it.

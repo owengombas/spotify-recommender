@@ -1,0 +1,44 @@
+\renewcommand{\contentsname}{\toctitle}
+\renewcommand{\chaptername}{\chapterprefix}
+
+% Set the chapter title formatting
+\AtBeginDocument{\renewcommand{\bibsection}{\chapter{\bibname}}}
+
+\newcommand{\paragraphb}[1]{\paragraph{#1}\mbox{}\\}
+
+\titleformat{\chapter}[hang]{\normalfont\huge\bfseries}{\thechapter. }{0pt}{\chaptertitlename}
+
+\titlespacing{\chapter}{0cm}{-1cm}{0cm}
+
+% Set the bibliography style
+\bibliographystyle{plainnat}
+
+% Set the path to where the images are loaded
+\graphicspath{ {\imagesfolder} }
+
+% set the page margins
+\setlength{\headheight}{50pt}
+\geometry{a4paper, margin=1in}
+
+% Create an header/foort
+\headerfooter{
+    % \fancyhead[L]{\includegraphics[width=2cm]{images/unibe.png}}
+    % \fancyhead[C]{\includegraphics[width=2cm]{images/unine.png}}
+    % \fancyhead[R]{\includegraphics[width=2cm]{images/unifr.png}}
+}{\authors}{\deliverydate}
+\pagestyle{fancy}
+
+% Set the caption color
+\captionsetup{font={color=gray, small}, justification=centering}
+
+% Set the hyperlinks colors
+\hypersetup{
+  colorlinks=true,
+  linkcolor=\inlinkcolor,
+  urlcolor=\outlinkcolor,
+  citecolor=\biblinkcolor,
+}
+
+% Set the font family to sans-serif
+% \renewcommand{\familydefault}{\sfdefault}
+\renewcommand{\thefootnote}{\fnsymbol{footnote}}
